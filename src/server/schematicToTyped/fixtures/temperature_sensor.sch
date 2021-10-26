@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="9.2.2">
+<eagle version="9.6.2">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -351,19 +351,27 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <wire x1="-12.7" y1="-10.16" x2="-7.62" y2="-10.16" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="&lt;SCL" class="0">
+<net name="#I2C4.SCL_3.3V" class="0">
 <segment>
 <pinref part="U1" gate="G$1" pin="SCL"/>
-<wire x1="-2.54" y1="-10.16" x2="-2.54" y2="-15.24" width="0.1524" layer="91"/>
-<wire x1="-2.54" y1="-15.24" x2="5.08" y2="-15.24" width="0.1524" layer="91"/>
+<wire x1="-2.54" y1="-10.16" x2="-2.54" y2="-17.78" width="0.1524" layer="91"/>
+<wire x1="-2.54" y1="-17.78" x2="5.08" y2="-17.78" width="0.1524" layer="91"/>
+<label x="5.08" y="-17.78" size="1.27" layer="95" xref="yes"/>
+</segment>
+</net>
+<net name="#I2C4.SDA_3.3V" class="0">
+<segment>
+<pinref part="U1" gate="G$1" pin="SDA"/>
+<wire x1="0" y1="-10.16" x2="0" y2="-15.24" width="0.1524" layer="91"/>
+<wire x1="0" y1="-15.24" x2="5.08" y2="-15.24" width="0.1524" layer="91"/>
 <label x="5.08" y="-15.24" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="&lt;SDA" class="0">
+<net name="#GPIO0_3.3V" class="0">
 <segment>
-<pinref part="U1" gate="G$1" pin="SDA"/>
-<wire x1="0" y1="-10.16" x2="0" y2="-12.7" width="0.1524" layer="91"/>
-<wire x1="0" y1="-12.7" x2="5.08" y2="-12.7" width="0.1524" layer="91"/>
+<pinref part="U1" gate="G$1" pin="ALERT"/>
+<wire x1="2.54" y1="-10.16" x2="2.54" y2="-12.7" width="0.1524" layer="91"/>
+<wire x1="2.54" y1="-12.7" x2="5.08" y2="-12.7" width="0.1524" layer="91"/>
 <label x="5.08" y="-12.7" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
