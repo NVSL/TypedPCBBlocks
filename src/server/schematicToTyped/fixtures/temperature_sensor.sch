@@ -351,7 +351,7 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <wire x1="-12.7" y1="-10.16" x2="-7.62" y2="-10.16" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="#I2C4.SCL_3.3V" class="0">
+<net name="#I2C4.SCL_3.3V,5V,9V" class="0">
 <segment>
 <pinref part="U1" gate="G$1" pin="SCL"/>
 <wire x1="-2.54" y1="-10.16" x2="-2.54" y2="-17.78" width="0.1524" layer="91"/>
@@ -359,7 +359,7 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <label x="5.08" y="-17.78" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#I2C4.SDA_3.3V" class="0">
+<net name="#I2C4.SDA_3.3V-9V" class="0">
 <segment>
 <pinref part="U1" gate="G$1" pin="SDA"/>
 <wire x1="0" y1="-10.16" x2="0" y2="-15.24" width="0.1524" layer="91"/>

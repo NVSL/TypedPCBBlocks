@@ -11,6 +11,7 @@ Options:
 """
 import json
 import re
+from types import resolve_bases
 from Swoop import Swoop
 from docopt import docopt
 
@@ -33,9 +34,7 @@ def main(arguments):
 
   typedSchematic = [{}]
   for sheet in boardFile.sheets:
-    # print(sheet.nets)
     for net in sheet.nets:
-      # print(net)
       if('#' in net):
         # Get schematic typed data
         protocolAndNumber = net.partition('_')[0].partition('.')[0].partition('#')[2]
@@ -44,7 +43,21 @@ def main(arguments):
           protocolNumber = "0"
         protocol = protocolAndNumber.partition(protocolNumber)[0]
         protocolSubnet = net.partition('_')[0].partition('.')[2].partition('_')[0]
-        protocolVoltage = net.partition('_')[2]
+
+        # Check if voltage is one number, a range or a list
+        resVoltage = net.partition('_')[2]
+        resVoltage = resVoltage.replace("V", ""); # Remove all occurences of V (e.g 3.3V->3.3)
+        protocolVoltage = []
+        protocolVoltageType = "" # number, range or list
+        if('-' in resVoltage):
+          protocolVoltageType = "range"
+          protocolVoltage = resVoltage.split('-')
+        elif (',' in resVoltage):
+          protocolVoltageType = "list"
+          protocolVoltage = resVoltage.split(',')
+        else:
+          protocolVoltageType = "number"
+          protocolVoltage = resVoltage
 
         # print(protocol)
         # print(protocolNumber)
@@ -52,12 +65,14 @@ def main(arguments):
         # print(protocolSubnet)
         # print(protocolVoltage)
         
-        # Append schematic net data
+        # Create dictionary
         if(protocolAndNumber not in typedSchematic[0]):
           typedSchematic[0][protocolAndNumber] = []
-        typedSchematic[0][protocolAndNumber].append({'protocol':protocol, 'number': protocolNumber, 'net': protocolSubnet, 'voltage': protocolVoltage})
 
-  # Write Typed Data
+        # Add Typed information
+        typedSchematic[0][protocolAndNumber].append({'protocol':protocol, 'number': protocolNumber, 'net': protocolSubnet, 'voltageType': protocolVoltageType, 'voltage': protocolVoltage})
+
+  # Write Typed Datas
   with open('typedFile.json', 'w') as typedFile:
     print(json.dumps(typedSchematic[0], indent=4, sort_keys=True))
     json.dump(typedSchematic[0], typedFile ,indent=4, sort_keys=True)
