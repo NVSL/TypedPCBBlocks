@@ -18,6 +18,11 @@ from types import resolve_bases
 from Swoop import Swoop
 from docopt import docopt
 
+class dotdict(dict):
+    """dot.notation access to dictionary attributes"""
+    __getattr__ = dict.get
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
 
 def main(arguments):
 
@@ -33,96 +38,116 @@ def main(arguments):
       if (not protocolAndNumber[charNum].isdigit()):
         return protocolAndNumber[charNum+1:]
 
-  # MAIN 
+  ####
+  # MAIN
+  #### 
   boardFile = Swoop.EagleFile.from_file(arguments['SCHEMATIC_FILE']);
   # print(boardFile.__dict__.keys())
 
-  # Typed dictionary
+  # Initialize typed dictionary
   typedSchematic = [{}]
-
 
   for sheet in boardFile.sheets:
     for net in sheet.nets:
 
-      protocolAndNumber = ''
-      protocol = ''
-      protocolNumber = ''
-      protocolSignal = ''
-      protocolVoltage = ''
-      protocolVoltageType = ''
+      # Dictionary variables
+      typedProtocolAndNumber = ''
+      typedInfo = dotdict({'NET': '', 'TYPE': '', 'NUMBER': '', 'SIGNAL': '','VOLTAGE': '', 'VOLTAGE_LIST': '', 'VOLTAGE_RANGE': ''})
       foundTypedNet = False
-      # Minimal typed information
+
+      ####
+      # Minimal typed information parser
+      ####
       if('#' in net):
         foundTypedNet = True
 
-        # Get schematic typed data
-        protocolAndNumber = net.partition('_')[0].partition('.')[0].partition('#')[2]
-        protocolNumber = getProtocolNumber(protocolAndNumber)
-        if not protocolNumber:
-          protocolNumber = "0"
-        protocol = protocolAndNumber.partition(protocolNumber)[0]
-        protocolSignal = net.partition('_')[0].partition('.')[2].partition('_')[0]
+        # Save net name 
+        typedInfo.NET = str(net)
 
-        # Check if voltage is one number, a range or a list
+        # Get schematic protocol data
+
+        typedProtocolAndNumber = net.partition('_')[0].partition('.')[0].partition('#')[2]
+        typedInfo.NUMBER = getProtocolNumber(typedProtocolAndNumber)
+        if not typedInfo.NUMBER:
+          typedInfo.NUMBER = "0"
+        typedInfo.TYPE = typedProtocolAndNumber.partition(typedInfo.NUMBER)[0]
+        typedInfo.SIGNAL = net.partition('_')[0].partition('.')[2].partition('_')[0]
+
+        # Get voltage data and check if voltage is one number, a range or a list
+
         resVoltage = net.partition('_')[2]
         resVoltage = resVoltage.replace("V", ""); # Remove all occurences of V (e.g 3.3V->3.3)
-        protocolVoltage = []
-        protocolVoltageType = "" # number, range or list
         if('-' in resVoltage):
-          protocolVoltageType = "range"
-          protocolVoltage = resVoltage.split('-')
+          typedInfo.VOLTAGE_RANGE = resVoltage.split('-')
         elif (',' in resVoltage):
-          protocolVoltageType = "list"
-          protocolVoltage = resVoltage.split(',')
+          typedInfo.VOLTAGE_LIST = resVoltage.split(',')
         else:
-          protocolVoltageType = "number"
-          protocolVoltage = resVoltage
+          typedInfo.VOLTAGE = resVoltage
 
-        # print(protocol)
-        # print(protocolNumber)
-        # print(protocolAndNumber)
-        # print(protocolSignal)
-        # print(protocolVoltage)
 
-      # Extended typed information
+      ####
+      # Extended typed information parser
+      ####
       if('[' and ']' in net):
         foundTypedNet = True
+
+        # Save net name 
+        typedInfo.NET = str(net)
         
+        # String to python dictionary
         netDictionary = dict(literal_eval(net))
 
+        # Get schematic protocol data
+
         if('TYPE' in netDictionary):
-          protocol = netDictionary['TYPE']
+          typedInfo.TYPE = netDictionary['TYPE']
         else:
           eprint('Missing protocol type in', net)
           quit()
 
         if ('NUMBER' in netDictionary):
-          protocolAndNumber = netDictionary['TYPE']+str(netDictionary['NUMBER'])
-          protocolNumber = str(netDictionary['NUMBER'])
+          typedInfo.NUMBER = str(netDictionary['NUMBER'])
         else:
-          protocolAndNumber = netDictionary['TYPE']+'0'
-          protocolNumber = '0'
+          typedInfo.NUMBER = '0'
+          
+        typedProtocolAndNumber = typedInfo.TYPE+typedInfo.NUMBER
 
         if ('SIGNAL' in netDictionary):
-          protocolSignal = netDictionary['SIGNAL']
-        else:
-          protocolSignal = ''
+          typedInfo.SIGNAL = netDictionary['SIGNAL']
+
+        # Get voltage data and check if voltage is one number, a range or a list
 
         if ('VOLTAGE' in netDictionary):
-          protocolVoltage = str(netDictionary['VOLTAGE'])
-        else:
-          protocolVoltage = ''
+          typedInfo.VOLTAGE = str(netDictionary['VOLTAGE'])
 
-        protocolVoltageType = '' # TODO
+        if ('VOLTAGE_LIST' in netDictionary):
+          try:
+            voltagelist = literal_eval(netDictionary['VOLTAGE_LIST'])
+            if isinstance(voltagelist, list):
+              typedInfo.VOLTAGE_LIST = [str(v).replace('V', '') for v in voltagelist]
+          except:
+            print("TODO: Rise exception")
+        
+        if ('VOLTAGE_RANGE' in netDictionary):
+          try:
+            voltagelist =literal_eval(netDictionary['VOLTAGE_RANGE'])
+            if isinstance(voltagelist, list):
+              typedInfo.VOLTAGE_RANGE = [str(v) for v in voltagelist]
+          except:
+            print("TODO: Rise exception")
 
+
+      ####
+      # Save parsed data
+      ####
       if (foundTypedNet):
+
         # Create dictionary if doesn't exists for protocol
-        if(protocolAndNumber not in typedSchematic[0]):
-          typedSchematic[0][protocolAndNumber] = []
+        if(typedProtocolAndNumber not in typedSchematic[0]):
+          typedSchematic[0][typedProtocolAndNumber] = []
 
         # Add Typed information
-        typedSchematic[0][protocolAndNumber].append({'protocol': { 'type': protocol, 'number': protocolNumber, 'signal': protocolSignal }, 
-        'voltage': {'type': protocolVoltageType, 'voltage': protocolVoltage}})
+        typedSchematic[0][typedProtocolAndNumber].append(typedInfo)
         
 
   # Write Typed Datas

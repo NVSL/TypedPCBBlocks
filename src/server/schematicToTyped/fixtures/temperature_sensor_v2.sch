@@ -359,7 +359,7 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <label x="5.08" y="-17.78" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="[('TYPE','I2C'),('NUMBER',0),('SIGNAL','SDA'),('VOLTAGE',3.3)]" class="0">
+<net name="[('TYPE','I2C'),('NUMBER',0),('SIGNAL','SDA'),('VOLTAGE_RANGE','[3.3,4]')]" class="0">
 <segment>
 <pinref part="U1" gate="G$1" pin="SDA"/>
 <wire x1="0" y1="-10.16" x2="0" y2="-15.24" width="0.1524" layer="91"/>
