@@ -38,6 +38,18 @@ def main(arguments):
       if (not protocolAndNumber[charNum].isdigit()):
         return protocolAndNumber[charNum+1:]
 
+  def saveTypedInfo(typedSchematic, typedInfo, typedProtocolAndNumber):
+    ####
+    # Save parsed data
+    ####
+
+    # Create dictionary if doesn't exists for protocol
+    if(typedProtocolAndNumber not in typedSchematic[0]):
+      typedSchematic[0][typedProtocolAndNumber] = []
+
+    # Add Typed information
+    typedSchematic[0][typedProtocolAndNumber].append(typedInfo)
+
   ####
   # MAIN
   #### 
@@ -50,50 +62,56 @@ def main(arguments):
   for sheet in boardFile.sheets:
     for net in sheet.nets:
 
-      # Dictionary variables
-      typedProtocolAndNumber = ''
-      typedInfo = dotdict({'NET': '', 'TYPE': '', 'NUMBER': '', 'SIGNAL': '','VOLTAGE': '', 'VOLTAGE_LIST': '', 'VOLTAGE_RANGE': ''})
-      foundTypedNet = False
-
       ####
       # Minimal typed information parser
       ####
       if('#' in net):
-        foundTypedNet = True
 
-        # Save net name 
-        typedInfo.NET = str(net)
+        for protocolData in net.split('||'):
 
-        # Get schematic protocol data
+          # Dictionary variables
+          typedProtocolAndNumber = ''
+          typedInfo = dotdict({'NET': '', 'TYPE': '', 'NUMBER': '', 'SIGNAL': '','VOLTAGE': '', 'VOLTAGE_LIST': '', 'VOLTAGE_RANGE': ''})
 
-        typedProtocolAndNumber = net.partition('_')[0].partition('.')[0].partition('#')[2]
-        typedInfo.NUMBER = getProtocolNumber(typedProtocolAndNumber)
-        if not typedInfo.NUMBER:
-          typedInfo.NUMBER = "0"
-        typedInfo.TYPE = typedProtocolAndNumber.partition(typedInfo.NUMBER)[0]
-        typedInfo.SIGNAL = net.partition('_')[0].partition('.')[2].partition('_')[0]
+          # Set full net name name 
+          typedInfo.NET = str(net)
 
-        # Get voltage data and check if voltage is one number, a range or a list
+          # Get schematic protocol data
 
-        resVoltage = net.partition('_')[2]
-        resVoltage = resVoltage.replace("V", ""); # Remove all occurences of V (e.g 3.3V->3.3)
-        if('-' in resVoltage):
-          typedInfo.VOLTAGE_RANGE = resVoltage.split('-')
-        elif (',' in resVoltage):
-          typedInfo.VOLTAGE_LIST = resVoltage.split(',')
-        else:
-          typedInfo.VOLTAGE = resVoltage
+          typedProtocolAndNumber = protocolData.partition('_')[0].partition('.')[0].partition('#')[2]
+          typedInfo.NUMBER = getProtocolNumber(typedProtocolAndNumber)
+          if not typedInfo.NUMBER:
+            typedInfo.NUMBER = "0"
+          typedInfo.TYPE = protocolData.partition(typedInfo.NUMBER)[0].replace('#','')
+          typedInfo.SIGNAL = protocolData.partition('_')[0].partition('.')[2].partition('_')[0]
+
+          # Get voltage data and check if voltage is one number, a range or a list
+
+          resVoltage = protocolData.partition('_')[2]
+          resVoltage = resVoltage.replace("V", ""); # Remove all occurences of V (e.g 3.3V->3.3)
+          if('-' in resVoltage):
+            typedInfo.VOLTAGE_RANGE = resVoltage.split('-')
+          elif (',' in resVoltage):
+            typedInfo.VOLTAGE_LIST = resVoltage.split(',')
+          else:
+            typedInfo.VOLTAGE = resVoltage
+
+          # Save Typed Info
+          saveTypedInfo(typedSchematic, typedInfo, typedProtocolAndNumber)
 
 
       ####
       # Extended typed information parser
       ####
       if('[' and ']' in net):
-        foundTypedNet = True
 
-        # Save net name 
+        # Dictionary variables
+        typedProtocolAndNumber = ''
+        typedInfo = dotdict({'NET': '', 'TYPE': '', 'NUMBER': '', 'SIGNAL': '','VOLTAGE': '', 'VOLTAGE_LIST': '', 'VOLTAGE_RANGE': ''})
+
+        # Set full net name name 
         typedInfo.NET = str(net)
-        
+
         # String to python dictionary
         netDictionary = dict(literal_eval(net))
 
@@ -136,19 +154,8 @@ def main(arguments):
           except:
             print("TODO: Rise exception")
 
-
-      ####
-      # Save parsed data
-      ####
-      if (foundTypedNet):
-
-        # Create dictionary if doesn't exists for protocol
-        if(typedProtocolAndNumber not in typedSchematic[0]):
-          typedSchematic[0][typedProtocolAndNumber] = []
-
-        # Add Typed information
-        typedSchematic[0][typedProtocolAndNumber].append(typedInfo)
-        
+        # Save Typed Info
+        saveTypedInfo(typedSchematic, typedInfo, typedProtocolAndNumber)
 
   # Write Typed Datas
   with open('typedFile.json', 'w') as typedFile:
