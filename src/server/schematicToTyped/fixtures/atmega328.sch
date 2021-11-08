@@ -2302,7 +2302,7 @@ SparkFun BigTime Watch Kit&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;
 <pinref part="P+1" gate="1" pin="VCC"/>
 </segment>
 </net>
-<net name="#GPIO14" class="0">
+<net name="#GPIO-RESET" class="0">
 <segment>
 <wire x1="63.5" y1="127" x2="63.5" y2="124.46" width="0.1524" layer="91"/>
 <wire x1="63.5" y1="124.46" x2="63.5" y2="121.92" width="0.1524" layer="91"/>
@@ -2350,7 +2350,7 @@ SparkFun BigTime Watch Kit&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;
 <pinref part="C6" gate="G$1" pin="1"/>
 </segment>
 </net>
-<net name="#GPIO15" class="0">
+<net name="#GPIO-DTR" class="0">
 <segment>
 <wire x1="50.8" y1="124.46" x2="45.72" y2="124.46" width="0.1524" layer="91"/>
 <pinref part="C3" gate="G$1" pin="1"/>
