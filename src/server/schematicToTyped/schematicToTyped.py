@@ -46,6 +46,14 @@ def main(arguments):
     # Create dictionary if doesn't exists for protocol
     if(typedProtocolAndNumber not in typedSchematic[0]):
       typedSchematic[0][typedProtocolAndNumber] = []
+    else:
+      # Check if typed info is duplicate
+      if (len(typedSchematic[0][typedProtocolAndNumber]) != 0):
+        altname = typedSchematic[0][typedProtocolAndNumber][0].ALTNAME
+        signal = typedSchematic[0][typedProtocolAndNumber][0].SIGNAL
+        if (altname == typedInfo.ALTNAME and signal == typedInfo.SIGNAL):
+          eprint("Error: duplicate protocol", typedProtocolAndNumber+".", "Add an ALTNAME to fix the error")
+          quit()
 
     # Add Typed information
     typedSchematic[0][typedProtocolAndNumber].append(typedInfo)
@@ -71,7 +79,7 @@ def main(arguments):
 
           # Dictionary variables
           typedProtocolAndNumber = ''
-          typedInfo = dotdict({'NET': '', 'TYPE': '', 'NUMBER': '', 'SIGNAL': '','VOLTAGE': '', 'VOLTAGE_LIST': '', 'VOLTAGE_RANGE': ''})
+          typedInfo = dotdict({'NET': '', 'TYPE': '', 'ALTNAME': '', 'SIGNAL': '','VOLTAGE': '', 'VOLTAGE_LIST': '', 'VOLTAGE_RANGE': ''})
 
           # Set full net name name 
           typedInfo.NET = str(net)
@@ -79,10 +87,13 @@ def main(arguments):
           # Get schematic protocol data
 
           typedProtocolAndNumber = protocolData.partition('_')[0].partition('.')[0].partition('#')[2]
-          typedInfo.NUMBER = getProtocolNumber(typedProtocolAndNumber)
-          if not typedInfo.NUMBER:
-            typedInfo.NUMBER = "0"
-          typedInfo.TYPE = protocolData.partition(typedInfo.NUMBER)[0].replace('#','')
+          if ('-' in typedProtocolAndNumber):
+            typedInfo.ALTNAME = typedProtocolAndNumber.split('-')[1]
+          else:
+            typedInfo.ALTNAME = getProtocolNumber(typedProtocolAndNumber)
+            if not typedInfo.ALTNAME:
+              typedInfo.ALTNAME = '0'
+          typedInfo.TYPE = protocolData.partition(typedInfo.ALTNAME)[0].replace('#','').replace('-','')
           typedInfo.SIGNAL = protocolData.partition('_')[0].partition('.')[2].partition('_')[0]
 
           # Get voltage data and check if voltage is one number, a range or a list
@@ -97,7 +108,7 @@ def main(arguments):
             typedInfo.VOLTAGE = resVoltage
 
           # Save Typed Info
-          saveTypedInfo(typedSchematic, typedInfo, typedProtocolAndNumber)
+          saveTypedInfo(typedSchematic, typedInfo, typedInfo.TYPE+"-"+typedInfo.ALTNAME)
 
 
       ####
@@ -107,7 +118,7 @@ def main(arguments):
 
         # Dictionary variables
         typedProtocolAndNumber = ''
-        typedInfo = dotdict({'NET': '', 'TYPE': '', 'NUMBER': '', 'SIGNAL': '','VOLTAGE': '', 'VOLTAGE_LIST': '', 'VOLTAGE_RANGE': ''})
+        typedInfo = dotdict({'NET': '', 'TYPE': '', 'ALTNAME': '', 'SIGNAL': '','VOLTAGE': '', 'VOLTAGE_LIST': '', 'VOLTAGE_RANGE': ''})
 
         # Set full net name name 
         typedInfo.NET = str(net)
@@ -120,15 +131,15 @@ def main(arguments):
         if('TYPE' in netDictionary):
           typedInfo.TYPE = netDictionary['TYPE']
         else:
-          eprint('Missing protocol type in', net)
+          eprint('Error: Missing protocol type in', net)
           quit()
 
-        if ('NUMBER' in netDictionary):
-          typedInfo.NUMBER = str(netDictionary['NUMBER'])
+        if ('ALTNAME' in netDictionary):
+          typedInfo.ALTNAME = str(netDictionary['ALTNAME'])
         else:
-          typedInfo.NUMBER = '0'
+          typedInfo.ALTNAME = '0'
           
-        typedProtocolAndNumber = typedInfo.TYPE+typedInfo.NUMBER
+        typedProtocolAndNumber = typedInfo.TYPE+typedInfo.ALTNAME
 
         if ('SIGNAL' in netDictionary):
           typedInfo.SIGNAL = netDictionary['SIGNAL']
@@ -143,19 +154,19 @@ def main(arguments):
             voltagelist = literal_eval(netDictionary['VOLTAGE_LIST'])
             if isinstance(voltagelist, list):
               typedInfo.VOLTAGE_LIST = [str(v).replace('V', '') for v in voltagelist]
-          except:
-            print("TODO: Rise exception")
+          except Exception as e:
+             eprint("Error: Could not parse", typedInfo.NET, e)
         
         if ('VOLTAGE_RANGE' in netDictionary):
           try:
             voltagelist =literal_eval(netDictionary['VOLTAGE_RANGE'])
             if isinstance(voltagelist, list):
               typedInfo.VOLTAGE_RANGE = [str(v) for v in voltagelist]
-          except:
-            print("TODO: Rise exception")
+          except Exception as e:
+             eprint("Error: Could not parse", typedInfo.NET, e)
 
         # Save Typed Info
-        saveTypedInfo(typedSchematic, typedInfo, typedProtocolAndNumber)
+        saveTypedInfo(typedSchematic, typedInfo, typedInfo.TYPE+"-"+typedInfo.ALTNAME)
 
   # Write Typed Datas
   with open('typedFile.json', 'w') as typedFile:
