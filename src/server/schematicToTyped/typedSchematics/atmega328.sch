@@ -2392,7 +2392,7 @@ SparkFun BigTime Watch Kit&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;
 <label x="132.08" y="114.3" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#I2C0.SCL||#ADC4" class="0">
+<net name="#I2C0.SCL||#ADC5" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="PC5(ADC5/SCL)"/>
 <wire x1="124.46" y1="111.76" x2="132.08" y2="111.76" width="0.1524" layer="91"/>
