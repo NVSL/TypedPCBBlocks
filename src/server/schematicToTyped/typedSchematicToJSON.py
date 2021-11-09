@@ -55,7 +55,7 @@ def main(arguments):
           eprint("Error: duplicate protocol", typedProtocolAndNumber+".", "Add an ALTNAME to fix the error")
           quit()
 
-    # Add Typed information
+    # Append typed information
     typedSchematic[0][typedProtocolAndNumber].append(typedInfo)
 
   ####
