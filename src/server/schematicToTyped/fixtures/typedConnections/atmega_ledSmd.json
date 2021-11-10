@@ -1,0 +1,7 @@
+[
+    {"type":"GPIO",
+     "connect": 
+        [{"schematic":"atmega328", "net":"#SERIAL0.TX||#GPIO1"},
+        {"schematic": "led_smd", "net": "#GPIO_3.3V"}]
+    }
+]
