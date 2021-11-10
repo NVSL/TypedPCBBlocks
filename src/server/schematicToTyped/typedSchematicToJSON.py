@@ -93,7 +93,7 @@ def main(arguments):
             typedInfo.ALTNAME = getProtocolNumber(typedProtocolAndNumber)
             if not typedInfo.ALTNAME:
               typedInfo.ALTNAME = '0'
-          typedInfo.TYPE = protocolData.partition(typedInfo.ALTNAME)[0].replace('#','').replace('-','')
+          typedInfo.TYPE = typedProtocolAndNumber.partition(typedInfo.ALTNAME)[0].replace('#','').replace('-','')
           typedInfo.SIGNAL = protocolData.partition('_')[0].partition('.')[2].partition('_')[0]
 
           # Get voltage data and check if voltage is one number, a range or a list
