@@ -21,6 +21,8 @@ from Swoop import Swoop
 
 _debugMode = False
 _arguments = ""
+_uniquePrefix = "__u"
+_mergedSchematicName = "Combined.sch"
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -43,14 +45,12 @@ def main(arguments):
     unique_schematics = {}
     unique_counter = 0
     for connections in deviceConnections:
-        print(connections['connect'])
         for connection in connections['connect']:
             schematic = connection['schematic']
             if (schematic not in unique_schematics):
-                unique_schematics[schematic] = "__u"+str(unique_counter)
+                unique_schematics[schematic] = _uniquePrefix+str(unique_counter)
                 unique_counter+=1;
-
-    print("UNIQUE SCHEMARICS: \n", unique_schematics)
+    debug_print(">> Unique schematics: \n", unique_schematics)
 
 
     # Clone schematics and save them locally
@@ -60,6 +60,7 @@ def main(arguments):
         schematic_data[schematic] = data
 
     # Connect Nets
+    debug_print(">> Renamed connected nets per schematic:")
     for connections in deviceConnections:
         # Create renamed net name
         renamedNet = ''
@@ -76,79 +77,81 @@ def main(arguments):
                 get_nets().
                 with_name(connection['net']))[0]
             net.set_name(renamedNet)
+            debug_print(connection['schematic'],":", renamedNet)
 
     # Make rest of nets unique
+    debug_print(">> Renamed rest of nets per schematic:")
     for schematic in unique_schematics:
         for net in Swoop.From(schematic_data[schematic]).get_sheets().get_nets():
             if ('+' not in net.name):
-                net.set_name(net.name+unique_schematics[schematic])
-            print(schematic, net.name)
+                renamedNet = net.name+unique_schematics[schematic]
+                net.set_name(renamedNet)
+                debug_print(schematic,":", renamedNet)
 
-    # Make parts library unique
+    # Make parts unique
+    debug_print(">> Renamed parts per schematic:")
     for schematic in unique_schematics:
         for part in Swoop.From(schematic_data[schematic]).get_parts():
-            print('Looking at part:', part)
+            # print('Looking at part:', part)
             old_name = part.name
             schematic_data[schematic].remove_part(part)
-            part.name = old_name + '_' + unique_schematics[schematic]
+            part.name = old_name + unique_schematics[schematic]
             schematic_data[schematic].add_part(part)
 
+            if part.library is not None:
+                part.library = part.library + unique_schematics[schematic]
+            if part.library_urn is not None:
+                part.library_urn = part.library_urn + unique_schematics[schematic]
+
             for instance in Swoop.From(schematic_data[schematic]).get_sheets().get_instances():
-                    # print('instance:', instance.part)
                     if instance.part == old_name:
                         instance.part = part.name
 
             for pinref in Swoop.From(schematic_data[schematic]).get_sheets().get_nets().get_segments().get_pinrefs():
-                # print('pinref:', pinref)
                 if pinref.part == old_name:
                     pinref.part = part.name
-        # print(Swoop.From(schematic_data[schematic]).get_libraries().get_devicesets())
 
-    # debug_print('Renamed all parts, verifying')
+            debug_print(schematic,":",
+                "\n Part name:", part.name,
+                "\n Part library:", part.library,
+                "\n Part library_urn:", part.library_urn)
 
-    
-    emptySchematic = Swoop.EagleFile.from_file(pyPath + 'typedSchematics/_emptyTemplate.sch')
-    print(emptySchematic)
-
+    # Make libraries unique
+    debug_print(">> Renamed libraries per schematic:")
     for schematic in unique_schematics:
+        for library in schematic_data[schematic].get_libraries():
+            library.name = library.name + unique_schematics[schematic]
+            schematic_data[schematic].add_library(library)
+            if (library.urn is not None):
+                library.urn = library.urn + unique_schematics[schematic]
+                
+            debug_print(schematic,":", 
+                "\n Library name :", library.name,
+                "\n Library urn:", library.urn)
+    
+    ## Merge schematics into schematic template
+    debug_print(">> Writing")
+    emptySchematic = Swoop.EagleFile.from_file(pyPath + 'typedSchematics/_emptyTemplate.sch')
+    for schematic in unique_schematics:
+        debug_print(schematic,":")
         sheets = schematic_data[schematic].get_sheets()
-        print(sheets)
-        for sheet in sheets:
+        for idx, sheet in enumerate(sheets):
+            debug_print(" Adding sheet :", idx)
             emptySchematic.add_sheet(sheet)
 
         for part in schematic_data[schematic].get_parts():
             library_name = part.get_library()
             library = schematic_data[schematic].get_library(library_name)
-            print("library", library.__dict__)
-            # devicesets = library.get_devicesets()
-            # print("DeviceSets:", devicesets)
-            # print(library)
+            debug_print(" Adding part :", part.name)
             emptySchematic.add_part(part)
+            debug_print(" Adding library :", library.name)
             emptySchematic.add_library(library)
-            print("////", (Swoop.From(emptySchematic).get_libraries()).count())
-            # 
-            # for deviceset in devicesets:
-            #     library.add_deviceset(deviceset)
 
-        # for deviceset in Swoop.From(schematic_data[schematic]).get_libraries().get_devicesets():
-        #     emptySchematic.add_deviceset(deviceset)
-        
-    # print(emptySchematic.get_sheets())
-
-    # Todo: R4__U1 not found
-
-    print("---")
-    print("---")
-    print(Swoop.From(emptySchematic).get_libraries())
-
-    # for deviceset in Swoop.From(emptySchematic).get_libraries().get_devicesets():
-    #     print(deviceset)
-
-    # emptySchematic.write(pyPath + 'Combined.sch')
+    # Save new schematic
+    emptySchematic.write(pyPath + _mergedSchematicName)
 
 
 if __name__ == '__main__':
     _arguments = docopt(__doc__, version='TypedSchematics merger v1.0')
     _debugMode = _arguments['--debug']
-    debug_print(_arguments)
     main(_arguments)
