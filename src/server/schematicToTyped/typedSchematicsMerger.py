@@ -23,6 +23,7 @@ _debugMode = False
 _arguments = ""
 _uniquePrefix = "__u"
 _mergedSchematicName = "Combined.sch"
+_reservedNets = ["GND"]
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -82,11 +83,13 @@ def main(arguments):
     # Make rest of nets unique
     debug_print(">> Renamed rest of nets per schematic:")
     for schematic in unique_schematics:
+        debug_print(schematic,":")
         for net in Swoop.From(schematic_data[schematic]).get_sheets().get_nets():
-            if ('+' not in net.name):
+            debug_print(" -----> NET :", net.name)
+            if (('+' not in net.name) and (net.name not in _reservedNets)):
                 renamedNet = net.name+unique_schematics[schematic]
                 net.set_name(renamedNet)
-                debug_print(schematic,":", renamedNet)
+                debug_print(" RENAMED TO :", renamedNet)
 
     # Make parts unique
     debug_print(">> Renamed parts per schematic:")
