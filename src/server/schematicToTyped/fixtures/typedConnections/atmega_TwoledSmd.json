@@ -3,5 +3,10 @@
      "connect": 
         [{"schematic":"atmega328", "instance": 0,  "net":"#SERIAL0.TX||#GPIO1"},
         {"schematic": "led_smd", "instance": 0, "net": "#GPIO_3.3V"}]
+    },
+    {"type":"GPIO",
+    "connect": 
+        [{"schematic":"atmega328", "instance": 0,  "net":"#SERIAL0.RX||#GPIO0"},
+        {"schematic": "led_smd", "instance": 1, "net": "#GPIO_3.3V"}]
     }
 ]

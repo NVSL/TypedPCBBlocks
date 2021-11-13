@@ -32,6 +32,19 @@ def debug_print(*args, sep=' ', end='\n', file=None):
     if _debugMode is True:
         print(*args, sep=sep, end=end, file=file)
 
+def schematicIsUnique(unique_schematics, schematic, instance):
+    if (len(unique_schematics) == 0):
+        return True
+    for unique in unique_schematics:
+        if (unique["schematic"] == schematic and unique["instance"] == instance):
+            return False
+    return True
+
+def getPrefix(unique_schematics, schematic, instance):
+    for unique in unique_schematics:
+        if (unique["schematic"] == schematic and unique["instance"] == instance):
+            return unique["prefix"]
+
 def main(arguments):
     pyPath = os.path.dirname(os.path.realpath(__file__)) + "/"
 
@@ -41,23 +54,28 @@ def main(arguments):
         with open(arguments['JSON_FILE'], 'r') as f:
             deviceConnections = json.loads(f.read())
 
-
     # Get unique schematics and give them a unique number
-    unique_schematics = {}
+    unique_schematics = []
     unique_counter = 0
     for connections in deviceConnections:
         for connection in connections['connect']:
-            schematic = connection['schematic']
-            if (schematic not in unique_schematics):
-                unique_schematics[schematic] = _uniquePrefix+str(unique_counter)
+            if (schematicIsUnique(unique_schematics, 
+                connection['schematic'],
+                connection['instance'])):
+                # TODO: Order dictionary by prefix
+                unique_schematics.append(
+                    {"schematic": connection['schematic'], 
+                    "instance": connection["instance"], 
+                    "prefix": _uniquePrefix+str(unique_counter)})
                 unique_counter+=1;
     debug_print(">> Unique schematics: \n", unique_schematics)
 
-
     # Clone schematics and save them locally
     schematic_data= {}
-    for schematic in unique_schematics:
+    for unique in unique_schematics:
+        schematic = unique["schematic"]
         data = Swoop.EagleFile.from_file(pyPath + "typedSchematics/" + schematic + '.sch')
+        # TODO: Order schematic data by prefix
         schematic_data[schematic] = data
 
     # Connect Nets
@@ -72,6 +90,7 @@ def main(arguments):
                 renamedNet += connection['net']
         # Rename net
         for connection in connections['connect']:
+            # TODO: use getPrefix
             net = (Swoop.
                 From(schematic_data[connection['schematic']]).
                 get_sheets().
@@ -153,6 +172,13 @@ def main(arguments):
     # Save new schematic
     emptySchematic.write(pyPath + _mergedSchematicName)
 
+
+
+    ################ Board Merger ####################
+    # TODO: Add this to another file
+
+
+    
 
 if __name__ == '__main__':
     _arguments = docopt(__doc__, version='TypedSchematics merger v1.0')
