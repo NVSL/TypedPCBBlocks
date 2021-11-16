@@ -33,17 +33,17 @@ def debug_print(*args, sep=' ', end='\n', file=None):
         print(*args, sep=sep, end=end, file=file)
 
 def schematicIsUnique(unique_schematics, schematic, instance):
-    if (len(unique_schematics) == 0):
-        return True
-    for unique in unique_schematics:
-        if (unique["schematic"] == schematic and unique["instance"] == instance):
-            return False
+    if unique_schematics:
+        for data in unique_schematics.values():
+            if (data["schematic"] == schematic and data["instance"] == instance):
+                return False
     return True
 
 def getPrefix(unique_schematics, schematic, instance):
-    for unique in unique_schematics:
-        if (unique["schematic"] == schematic and unique["instance"] == instance):
-            return unique["prefix"]
+    if unique_schematics:
+        for key,data in unique_schematics.items():
+            if (data["schematic"] == schematic and data["instance"] == instance):
+                return key
 
 def main(arguments):
     pyPath = os.path.dirname(os.path.realpath(__file__)) + "/"
@@ -55,28 +55,28 @@ def main(arguments):
             deviceConnections = json.loads(f.read())
 
     # Get unique schematics and give them a unique number
-    unique_schematics = []
+    unique_schematics = {}
     unique_counter = 0
     for connections in deviceConnections:
         for connection in connections['connect']:
             if (schematicIsUnique(unique_schematics, 
                 connection['schematic'],
                 connection['instance'])):
-                # TODO: Order dictionary by prefix
-                unique_schematics.append(
-                    {"schematic": connection['schematic'], 
-                    "instance": connection["instance"], 
-                    "prefix": _uniquePrefix+str(unique_counter)})
+                # Order unique schematics by prefix
+                prefix = _uniquePrefix+str(unique_counter)
+                unique_schematics[prefix] = {
+                    "schematic": connection['schematic'], 
+                    "instance": connection["instance"]}
                 unique_counter+=1;
     debug_print(">> Unique schematics: \n", unique_schematics)
 
     # Clone schematics and save them locally
     schematic_data= {}
-    for unique in unique_schematics:
-        schematic = unique["schematic"]
+    for prefix, dicValue in unique_schematics.items():
+        schematic = dicValue["schematic"]
         data = Swoop.EagleFile.from_file(pyPath + "typedSchematics/" + schematic + '.sch')
-        # TODO: Order schematic data by prefix
-        schematic_data[schematic] = data
+        schematic_data[prefix] = data
+    debug_print(">> Schematic data: \n", schematic_data)
 
     # Connect Nets
     debug_print(">> Renamed connected nets per schematic:")
@@ -90,80 +90,83 @@ def main(arguments):
                 renamedNet += connection['net']
         # Rename net
         for connection in connections['connect']:
-            # TODO: use getPrefix
+            prefix = getPrefix(unique_schematics, connection['schematic'], connection['instance'])
             net = (Swoop.
-                From(schematic_data[connection['schematic']]).
+                From(schematic_data[prefix]).
                 get_sheets().
                 get_nets().
                 with_name(connection['net']))[0]
             net.set_name(renamedNet)
-            debug_print(connection['schematic'],":", renamedNet)
+            debug_print(connection['schematic'], prefix,":", renamedNet)
 
     # Make rest of nets unique
     debug_print(">> Renamed rest of nets per schematic:")
-    for schematic in unique_schematics:
-        debug_print(schematic,":")
-        for net in Swoop.From(schematic_data[schematic]).get_sheets().get_nets():
+    for prefix, dicValue in unique_schematics.items():
+        debug_print(dicValue['schematic'],prefix,":")
+        for net in Swoop.From(schematic_data[prefix]).get_sheets().get_nets():
             debug_print(" -----> NET :", net.name)
             if (('+' not in net.name) and (net.name not in _reservedNets)):
-                renamedNet = net.name+unique_schematics[schematic]
+                renamedNet = net.name+prefix
                 net.set_name(renamedNet)
                 debug_print(" RENAMED TO :", renamedNet)
+            else:
+                debug_print(" RENAMED TO :", "<SKIPPED>")
 
     # Make parts unique
     debug_print(">> Renamed parts per schematic:")
-    for schematic in unique_schematics:
-        for part in Swoop.From(schematic_data[schematic]).get_parts():
-            # print('Looking at part:', part)
+    for prefix, dicValue in unique_schematics.items():
+        for part in Swoop.From(schematic_data[prefix]).get_parts():
             old_name = part.name
-            schematic_data[schematic].remove_part(part)
-            part.name = old_name + unique_schematics[schematic]
-            schematic_data[schematic].add_part(part)
+            schematic_data[prefix].remove_part(part)
+            part.name = old_name + prefix
+            schematic_data[prefix].add_part(part)
 
             if part.library is not None:
-                part.library = part.library + unique_schematics[schematic]
+                part.library = part.library + prefix
             if part.library_urn is not None:
-                part.library_urn = part.library_urn + unique_schematics[schematic]
+                part.library_urn = part.library_urn + prefix
 
-            for instance in Swoop.From(schematic_data[schematic]).get_sheets().get_instances():
+            for instance in Swoop.From(schematic_data[prefix]).get_sheets().get_instances():
                     if instance.part == old_name:
                         instance.part = part.name
 
-            for pinref in Swoop.From(schematic_data[schematic]).get_sheets().get_nets().get_segments().get_pinrefs():
+            for pinref in Swoop.From(schematic_data[prefix]).get_sheets().get_nets().get_segments().get_pinrefs():
                 if pinref.part == old_name:
                     pinref.part = part.name
 
-            debug_print(schematic,":",
+            debug_print(dicValue['schematic'],prefix,":",
                 "\n Part name:", part.name,
                 "\n Part library:", part.library,
                 "\n Part library_urn:", part.library_urn)
 
+
     # Make libraries unique
     debug_print(">> Renamed libraries per schematic:")
-    for schematic in unique_schematics:
-        for library in schematic_data[schematic].get_libraries():
-            library.name = library.name + unique_schematics[schematic]
-            schematic_data[schematic].add_library(library)
+    for prefix, dicValue in unique_schematics.items():
+        for library in schematic_data[prefix].get_libraries():
+            library.name = library.name + prefix
+            schematic_data[prefix].add_library(library)
             if (library.urn is not None):
-                library.urn = library.urn + unique_schematics[schematic]
+                library.urn = library.urn + prefix
                 
-            debug_print(schematic,":", 
+            debug_print(dicValue['schematic'],prefix,":", 
                 "\n Library name :", library.name,
                 "\n Library urn:", library.urn)
     
+
     ## Merge schematics into schematic template
     debug_print(">> Writing")
     emptySchematic = Swoop.EagleFile.from_file(pyPath + 'typedSchematics/_emptyTemplate.sch')
-    for schematic in unique_schematics:
-        debug_print(schematic,":")
-        sheets = schematic_data[schematic].get_sheets()
+    for prefix, dicValue in unique_schematics.items():
+        debug_print(dicValue['schematic'],":")
+        sheets = schematic_data[prefix].get_sheets()
         for idx, sheet in enumerate(sheets):
             debug_print(" Adding sheet :", idx)
             emptySchematic.add_sheet(sheet)
 
-        for part in schematic_data[schematic].get_parts():
+        for part in schematic_data[prefix].get_parts():
             library_name = part.get_library()
-            library = schematic_data[schematic].get_library(library_name)
+            library = schematic_data[prefix].get_library(library_name)
             debug_print(" Adding part :", part.name)
             emptySchematic.add_part(part)
             debug_print(" Adding library :", library.name)
@@ -171,7 +174,7 @@ def main(arguments):
 
     # Save new schematic
     emptySchematic.write(pyPath + _mergedSchematicName)
-
+    debug_print(">> Schematic write succesfully!")
 
 
     ################ Board Merger ####################
