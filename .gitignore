@@ -1,0 +1,42 @@
+# Build directories 
+dist
+
+# Dependency directories
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# EAGLE recovery files
+*.b#*
+*.s#*
+
+# yarn v2 (berry)
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+yarn-debug.log*
+yarn-error.log*
+
+# src yarn v2 (berry) TODO: Move cache to main
+src/server/.yarn
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Ignore Mac .DS_Store
+.DS_Store
