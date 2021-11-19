@@ -1088,7 +1088,9 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <variantdefs>
 </variantdefs>
 <classes>
-<class number="0" name="default" width="0" drill="0">
+<class number="0" name="default" width="0.1778" drill="0">
+</class>
+<class number="1" name="vcc" width="0.2032" drill="0">
 </class>
 </classes>
 <parts>
