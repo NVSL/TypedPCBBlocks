@@ -1,0 +1,27 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "Typed Schematics Server",
+  "source": "index.ts",
+  "types": "dist/types/index.d.ts",
+  "main": "dist/bundle.cjs.js",
+  "module": "dist/bundle.esm.js",
+  "scripts": {
+    "test": "",
+    "build": "tsc && node dist/main.js",
+    "build:watch": "ts-node-dev --respawn -- main.ts"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "latest",
+    "@typescript-eslint/parser": "^5.4.0",
+    "eslint": "^7.12.1",
+    "eslint-config-standard": "latest",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "prettier": "^2.4.1",
+    "ts-node-dev": "^1.1.8",
+    "tslib": "^2.3.1",
+    "typescript": "^4.4.4"
+  }
+}

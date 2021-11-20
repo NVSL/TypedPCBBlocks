@@ -3,7 +3,7 @@
   "description": "",
   "packageManager": "yarn@3.1.0",
   "workspaces": [
-    "src/client/*",
-    "src/server/*"
+    "client/*",
+    "server/*"
   ]
 }
