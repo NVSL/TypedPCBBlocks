@@ -1,4 +1,6 @@
 import { PROPS } from './data/typedDefinitions/PROTOCOL'; // TODO: Add as a package
+import * as fs from 'fs';
+import Tsch from './tsch';
 
 function loadProtocol(protocol: any, typedJson: any) {
   const loadedProtocol = Object.assign(protocol, typedJson);
@@ -46,5 +48,14 @@ async function makeConnections(
     sourceVoltage: 3.3,
   };
 
-  await makeConnections(props, 'SPI', typedJsonOne, typedJsonTwo);
+  // Load XML
+  const data = fs.readFileSync('data/typedSchematics/atmega328.sch', {
+    encoding: 'utf8',
+    flag: 'r',
+  });
+
+  const tsch = new Tsch();
+  tsch.loadXML(data);
+
+  //await makeConnections(props, 'SPI', typedJsonOne, typedJsonTwo);
 })();
