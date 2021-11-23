@@ -17,7 +17,7 @@ class POWER {
 
 // PROTOCOL base
 interface PROTOCOL<T> {
-  connect(net2: T): boolean;
+  connect(childs: Array<T>): boolean;
 }
 
 export { PROTOCOL, POWER, PROPS, net };

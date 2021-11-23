@@ -9,7 +9,7 @@ interface TypedProtocol {
 interface TypedSchematic {
     [protocolKey: string]: TypedProtocol;
 }
-export default class tsch {
+declare class tsch {
     eagle: any;
     eagleVersion: string | null;
     typedSchematic: TypedSchematic | null;
@@ -20,5 +20,7 @@ export default class tsch {
     private getNetNames;
     private appendTypedProtocol;
     private parse;
+    static areEqual(protocolOne: string, protocolTwo: string): boolean;
+    static getProtocolName(protocolAndAltnameList: string[]): string | null;
 }
-export {};
+export { TypedSchematic, tsch };

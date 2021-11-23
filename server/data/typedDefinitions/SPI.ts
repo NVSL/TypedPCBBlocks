@@ -8,36 +8,39 @@ class SPI extends POWER implements PROTOCOL<SPI> {
     super(props);
     console.log(props);
   }
-  public connect(net: SPI): boolean {
-    const netOne = this;
-    const netTwo = net;
+  public connect(childs: Array<SPI>): boolean {
+    const parent = this;
 
-    // ## Connection Constrains:
+    console.log(childs);
 
-    // The following nets must exist
-    if (
-      !(
-        netOne.MISO &&
-        netOne.MOSI &&
-        netOne.SCK &&
-        netTwo.MISO &&
-        netTwo.MOSI &&
-        netTwo.SCK
-      )
-    ) {
-      console.error('Invalid nets');
-      return false;
-    }
-
-    // Net voltages must be equal
-    if (!(netOne.netVoltage == netTwo.netVoltage)) {
-      console.error('Net voltages are not equal');
-      return false;
-    }
-
-    // Add constrains
-    console.log('Connected!');
     return true;
+
+    // // ## Connection Constrains:
+
+    // // The following nets must exist
+    // if (
+    //   !(
+    //     netOne.MISO &&
+    //     netOne.MOSI &&
+    //     netOne.SCK &&
+    //     netTwo.MISO &&
+    //     netTwo.MOSI &&
+    //     netTwo.SCK
+    //   )
+    // ) {
+    //   console.error('Invalid nets');
+    //   return false;
+    // }
+
+    // // Net voltages must be equal
+    // if (!(netOne.netVoltage == netTwo.netVoltage)) {
+    //   console.error('Net voltages are not equal');
+    //   return false;
+    // }
+
+    // // Add constrains
+    // console.log('Connected!');
+    // return true;
   }
 }
 

@@ -4,6 +4,6 @@ declare class SPI extends POWER implements PROTOCOL<SPI> {
     MOSI: net;
     SCK: net;
     constructor(props: PROPS);
-    connect(net: SPI): boolean;
+    connect(childs: any): boolean;
 }
 export { SPI };
