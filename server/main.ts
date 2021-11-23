@@ -1,62 +1,101 @@
 import { PROPS } from './data/typedDefinitions/PROTOCOL'; // TODO: Add as a package
 import * as fs from 'fs';
-import Tsch from './tsch';
+import { tsch } from './tsch';
 
-function loadProtocol(protocol: any, typedJson: any) {
+interface tschPair {
+  protocolKey: string;
+  typedSchematic: tsch;
+}
+
+function loadConstrains(protocol: any, typedJson: any) {
   const loadedProtocol = Object.assign(protocol, typedJson);
   return loadedProtocol;
 }
 
 async function makeConnections(
   props: PROPS,
-  protocolStr: string,
-  typedJsonOne: any,
-  typedJsonTwo: any,
+  tschParent: tschPair,
+  tschChilds: tschPair[],
 ) {
   const path = './data/typedDefinitions/';
-  const protocol = await import(path + protocolStr);
-  console.log(protocol);
-  const netOne = loadProtocol(new protocol[protocolStr](props), typedJsonOne);
-  const netTwo = loadProtocol(new protocol[protocolStr](props), typedJsonTwo);
-  console.log(netOne);
-  console.log(netTwo);
+  // Checks
+  if (tschChilds.length < 1) {
+    console.error('Typed Schematic child list must be greater than one');
+    return;
+  }
 
-  // Connect:
-  netOne.connect(netTwo);
+  // Get protocol name from protocol-altname, returns SPI, I2C, etc
+  const protocolKeysList = [tschParent.protocolKey].concat(
+    tschChilds.map((e) => {
+      return e.protocolKey;
+    }),
+  );
+  const protocolName = tsch.getProtocolName(protocolKeysList);
+  if (protocolName == null) {
+    console.error('Protoco Name could nor be defined from');
+    return;
+  }
+
+  try {
+    // Dynamically import protcol class
+    const protocolClass = await import(path + protocolName);
+    console.log(protocolClass);
+
+    // Load tsch Parent Class
+    const tschClassParent: typeof protocolClass = loadConstrains(
+      new protocolClass[protocolName](props),
+      tschParent.typedSchematic.getVars(tschParent.protocolKey),
+    );
+    console.log('PARENT >> \n', tschClassParent);
+
+    // Load tsch Childs Class
+    const tschClassChilds: typeof protocolClass = [];
+    for (const tschChild of tschChilds) {
+      const tschClass = loadConstrains(
+        new protocolClass[protocolName](props),
+        tschChild.typedSchematic.getVars(tschChild.protocolKey),
+      );
+      tschClassChilds.push(tschClass);
+      console.log('CHILD >> \n', tschClass);
+    }
+
+    // Connect:
+    tschClassParent.connect(tschClassChilds);
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 // Main program
 (async () => {
-  // Typed NET ONE
-  const typedJsonOne = {
-    MISO: true,
-    MOSI: true,
-    SCK: true,
-    netVoltage: 3.3,
-  };
-
-  // Typed NET TWO
-  const typedJsonTwo = {
-    MISO: true,
-    MOSI: true,
-    SCK: true,
-    netVoltage: 3.3,
-  };
-
   // Global propagation properties
   const props: PROPS = {
     sourceVoltage: 3.3,
   };
 
-  // Load XML
-  const data = fs.readFileSync('data/typedSchematics/atmega328.sch', {
-    encoding: 'utf8',
-  });
+  const tschPath = 'data/typedSchematics/';
 
-  const typedATMEGA328 = new Tsch();
-  await typedATMEGA328.loadTsch(data);
+  const typedATMEGA328 = new tsch();
+  await typedATMEGA328.loadTsch(
+    fs.readFileSync(tschPath + 'atmega328.sch', {
+      encoding: 'utf8',
+    }),
+  );
   console.log(typedATMEGA328.getTsch());
   console.log(typedATMEGA328.getVars('SPI-0'));
 
-  //await makeConnections(props, 'SPI', typedJsonOne, typedJsonTwo);
+  const typedFlashOne = new tsch();
+  await typedFlashOne.loadTsch(
+    fs.readFileSync(tschPath + 'flash.sch', {
+      encoding: 'utf8',
+    }),
+  );
+  console.log(typedFlashOne.getTsch());
+  console.log(typedFlashOne.getVars('SPI-0'));
+
+  await makeConnections(
+    props,
+    { protocolKey: 'SPI-0', typedSchematic: typedATMEGA328 },
+    [{ protocolKey: 'SPI-0', typedSchematic: typedFlashOne }],
+  );
 })();
