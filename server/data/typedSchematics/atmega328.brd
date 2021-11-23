@@ -787,31 +787,31 @@ design rules under a new name.</description>
 <signal name="#GPIO-DTR">
 <contactref element="C3" pad="1"/>
 </signal>
-<signal name="!#ADC0">
+<signal name="#ADC-0">
 <contactref element="U3" pad="23"/>
 </signal>
-<signal name="#ADC1">
+<signal name="#ADC-1">
 <contactref element="U3" pad="24"/>
 </signal>
-<signal name="#ADC2">
+<signal name="#ADC-2">
 <contactref element="U3" pad="25"/>
 </signal>
-<signal name="#ADC3">
+<signal name="#ADC-3">
 <contactref element="U3" pad="26"/>
 </signal>
-<signal name="#I2C0.SDA||#ADC4">
+<signal name="#I2C-0.SDA||#ADC-4">
 <contactref element="U3" pad="27"/>
 </signal>
-<signal name="#I2C0.SCL||#ADC5">
+<signal name="#I2C-0.SCL||#ADC-5">
 <contactref element="U3" pad="28"/>
 </signal>
-<signal name="#ADC6">
+<signal name="#ADC-6">
 <contactref element="U3" pad="19"/>
 </signal>
-<signal name="#ADC7">
+<signal name="#ADC-7">
 <contactref element="U3" pad="22"/>
 </signal>
-<signal name="#SPI0.MOSI||#GPIO11">
+<signal name="#SPI-0.MOSI||#GPIO-11">
 <contactref element="JP4" pad="4"/>
 <contactref element="U3" pad="15"/>
 <wire x1="11.3538" y1="7.3678" x2="11.3538" y2="9.525" width="0.1524" layer="1"/>
@@ -823,7 +823,7 @@ design rules under a new name.</description>
 <wire x1="11.3538" y1="9.525" x2="11.4" y2="9.5774" width="0.1524" layer="1"/>
 <wire x1="4.8768" y1="2.0574" x2="4.84" y2="2.05" width="0.1524" layer="1"/>
 </signal>
-<signal name="#SPI0.MISO||#GPIO12">
+<signal name="#SPI-0.MISO||#GPIO-12">
 <contactref element="U3" pad="16"/>
 <contactref element="JP4" pad="1"/>
 <wire x1="12.192" y1="7.3678" x2="12.192" y2="9.525" width="0.1524" layer="1"/>
@@ -832,7 +832,7 @@ design rules under a new name.</description>
 <wire x1="12.192" y1="9.525" x2="12.2" y2="9.5774" width="0.1524" layer="1"/>
 <wire x1="7.3914" y1="4.6482" x2="7.38" y2="4.59" width="0.1524" layer="1"/>
 </signal>
-<signal name="#SPI0.SCK||#GPIO13">
+<signal name="#SPI-0.SCK||#GPIO-13">
 <contactref element="JP4" pad="3"/>
 <contactref element="U3" pad="17"/>
 <wire x1="6.7818" y1="11.049" x2="13.6398" y2="11.049" width="0.1524" layer="1"/>
@@ -841,37 +841,37 @@ design rules under a new name.</description>
 <wire x1="13.6398" y1="11.049" x2="13.6926" y2="11.07" width="0.1524" layer="1"/>
 <wire x1="4.8768" y1="4.6482" x2="4.84" y2="4.59" width="0.1524" layer="1"/>
 </signal>
-<signal name="#SERIAL0.RX||#GPIO0">
+<signal name="#SERIAL-0.RX||#GPIO-0">
 <contactref element="U3" pad="30"/>
 </signal>
-<signal name="#SERIAL0.TX||#GPIO1">
+<signal name="#SERIAL-0.TX||#GPIO-1">
 <contactref element="U3" pad="31"/>
 </signal>
-<signal name="#INT0||#GPIO2">
+<signal name="#INT-0||#GPIO-2">
 <contactref element="U3" pad="32"/>
 </signal>
-<signal name="#INT1||#GPIO3">
+<signal name="#INT-1||#GPIO-3">
 <contactref element="U3" pad="1"/>
 </signal>
-<signal name="#T0||#GPIO4">
+<signal name="#T-0||#GPIO-4">
 <contactref element="U3" pad="2"/>
 </signal>
-<signal name="#T1||#GPIO5">
+<signal name="#T-1||#GPIO-5">
 <contactref element="U3" pad="9"/>
 </signal>
-<signal name="#AIN0||#GPIO6">
+<signal name="#AIN-0||#GPIO-6">
 <contactref element="U3" pad="10"/>
 </signal>
-<signal name="#AIN1||#GPIO7">
+<signal name="#AIN-1||#GPIO-7">
 <contactref element="U3" pad="11"/>
 </signal>
-<signal name="#ICP0||#GPIO8">
+<signal name="#ICP-0||#GPIO-8">
 <contactref element="U3" pad="12"/>
 </signal>
-<signal name="#GPIO9">
+<signal name="#GPIO-9">
 <contactref element="U3" pad="13"/>
 </signal>
-<signal name="#GPIO10">
+<signal name="#GPIO-10">
 <contactref element="U3" pad="14"/>
 </signal>
 </signals>

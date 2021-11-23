@@ -477,7 +477,7 @@ design rules under a new name.</description>
 <contactref element="R1" pad="2"/>
 <wire x1="2.04" y1="1.91" x2="4.68" y2="1.91" width="0.508" layer="1"/>
 </signal>
-<signal name="#GPIO_3.3V">
+<signal name="#GPIO">
 <contactref element="D1" pad="A"/>
 </signal>
 </signals>

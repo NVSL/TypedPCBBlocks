@@ -1133,7 +1133,7 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <wire x1="10.16" y1="0" x2="10.16" y2="-5.08" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="#GPIO_3.3V" class="0">
+<net name="#GPIO" class="0">
 <segment>
 <pinref part="D1" gate="G$1" pin="A"/>
 <wire x1="-2.54" y1="0" x2="-10.16" y2="0" width="0.1524" layer="91"/>
