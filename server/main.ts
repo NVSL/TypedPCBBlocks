@@ -51,11 +51,12 @@ async function makeConnections(
   // Load XML
   const data = fs.readFileSync('data/typedSchematics/atmega328.sch', {
     encoding: 'utf8',
-    flag: 'r',
   });
 
-  const tsch = new Tsch();
-  tsch.loadXML(data);
+  const typedATMEGA328 = new Tsch();
+  await typedATMEGA328.loadTsch(data);
+  console.log(typedATMEGA328.getTsch());
+  console.log(typedATMEGA328.getVars('SPI-0'));
 
   //await makeConnections(props, 'SPI', typedJsonOne, typedJsonTwo);
 })();
