@@ -1,5 +1,6 @@
 import { error } from 'console';
 import xml2js from 'xml2js';
+import RJSON from 'relaxed-json';
 
 interface TypedProtocol {
   protocol: string | null;
@@ -34,9 +35,10 @@ class tsch {
     } catch (e) {
       console.error('It seems xml is not an eagle file', e);
     }
-    // console.log('>> NETS: ', this.getNetNames());
-    this.parse(this.getNetNames());
-    // console.log('>> TYPED SCHEMATIC: ', this.typedSchematic);
+    console.log('>> NETS: ', this.getNetNames());
+    console.log('>> TEXTS: ', this.getTexts());
+    this.parse(this.getNetNames(), this.getTexts());
+    console.log('>> TYPED SCHEMATIC: ', this.typedSchematic);
   }
 
   public getTsch(): TypedSchematic {
@@ -72,6 +74,16 @@ class tsch {
       }
     }
     return netNames;
+  }
+
+  // Gets schematic text annotations
+  private getTexts(): string[] {
+    let schTexts: string[] = [];
+    const texts = this.eagle.schematic[0].sheets[0].sheet[0].plain[0].text;
+    for (const text of texts) {
+      schTexts.push(text._);
+    }
+    return schTexts;
   }
 
   // Appends single Typed Protocol into Typed Schematic dictionary
@@ -120,7 +132,8 @@ class tsch {
   }
 
   // Creates Typed Schematc dictionary from typed nets
-  private parse(netNames: string[]) {
+  private parse(netNames: string[], schTexts: string[]) {
+    // ## Parse Net Names
     for (let typedNet of netNames) {
       if (typedNet.includes('#')) {
         for (let protocolData of typedNet.split('||')) {
@@ -160,6 +173,36 @@ class tsch {
           } else {
             // Append typed net to typed Schematic dictionary
             this.appendTypedProtocol(protocol);
+          }
+        }
+      }
+    }
+
+    // ## Parse Texts
+    if (this.typedSchematic == null) {
+      return;
+    }
+    for (const text of schTexts) {
+      if (text.includes('#')) {
+        const cleanText = text.replace('#', '');
+        const json = JSON.parse(RJSON.transform(cleanText));
+        console.log(json);
+        for (const [key, newVars] of Object.entries(json)) {
+          if (!key.includes('-')) {
+            // Apply to all protocols of the same protocol name
+            for (const [tschKey] of Object.entries(this.typedSchematic)) {
+              if (tschKey.split('-')[0] == key) {
+                // Append new vars values:
+                Object.assign(this.typedSchematic[tschKey].vars, newVars);
+                console.log('APPENDED:', this.typedSchematic[tschKey].vars);
+              }
+            }
+          } else {
+            if (key in this.typedSchematic) {
+              // Append new vars values:
+              Object.assign(this.typedSchematic[key].vars, newVars);
+              console.log('APPENDED:', this.typedSchematic[key].vars);
+            }
           }
         }
       }
@@ -206,43 +249,3 @@ class tsch {
 }
 
 export { TypedSchematic, tsch };
-
-//  ####
-//       # Minimal typed information parser
-//       ####
-//       if('#' in net):
-
-//         for protocolData in net.split('||'):
-
-//           # Dictionary variables
-//           typedProtocolAndNumber = ''
-//           typedInfo = dotdict({'NET': '', 'TYPE': '', 'ALTNAME': '', 'SIGNAL': '','VOLTAGE': '', 'VOLTAGE_LIST': '', 'VOLTAGE_RANGE': ''})
-
-//           # Set full net name name
-//           typedInfo.NET = str(net)
-
-//           # Get schematic protocol data
-
-//           typedProtocolAndNumber = protocolData.partition('_')[0].partition('.')[0].partition('#')[2]
-//           if ('-' in typedProtocolAndNumber):
-//             typedInfo.ALTNAME = typedProtocolAndNumber.split('-')[1]
-//           else:
-//             typedInfo.ALTNAME = getProtocolNumber(typedProtocolAndNumber)
-//             if not typedInfo.ALTNAME:
-//               typedInfo.ALTNAME = '0'
-//           typedInfo.TYPE = typedProtocolAndNumber.partition(typedInfo.ALTNAME)[0].replace('#','').replace('-','')
-//           typedInfo.SIGNAL = protocolData.partition('_')[0].partition('.')[2].partition('_')[0]
-
-//           # Get voltage data and check if voltage is one number, a range or a list
-
-//           resVoltage = protocolData.partition('_')[2]
-//           resVoltage = resVoltage.replace("V", ""); # Remove all occurences of V (e.g 3.3V->3.3)
-//           if('-' in resVoltage):
-//             typedInfo.VOLTAGE_RANGE = resVoltage.split('-')
-//           elif (',' in resVoltage):
-//             typedInfo.VOLTAGE_LIST = resVoltage.split(',')
-//           else:
-//             typedInfo.VOLTAGE = resVoltage
-
-//           # Save Typed Info
-//           saveTypedInfo(typedSchematic, typedInfo, typedInfo.TYPE+"-"+typedInfo.ALTNAME)

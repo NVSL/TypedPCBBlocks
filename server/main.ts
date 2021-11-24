@@ -81,21 +81,21 @@ async function makeConnections(
       encoding: 'utf8',
     }),
   );
-  console.log(typedATMEGA328.getTsch());
-  console.log(typedATMEGA328.getVars('SPI-0'));
+  // console.log(typedATMEGA328.getTsch());
+  // console.log(typedATMEGA328.getVars('SPI-0'));
 
-  const typedFlashOne = new tsch();
-  await typedFlashOne.loadTsch(
-    fs.readFileSync(tschPath + 'flash.sch', {
-      encoding: 'utf8',
-    }),
-  );
-  console.log(typedFlashOne.getTsch());
-  console.log(typedFlashOne.getVars('SPI-0'));
+  // const typedFlashOne = new tsch();
+  // await typedFlashOne.loadTsch(
+  //   fs.readFileSync(tschPath + 'flash.sch', {
+  //     encoding: 'utf8',
+  //   }),
+  // );
+  // console.log(typedFlashOne.getTsch());
+  // console.log(typedFlashOne.getVars('SPI-0'));
 
-  await makeConnections(
-    props,
-    { protocolKey: 'SPI-0', typedSchematic: typedATMEGA328 },
-    [{ protocolKey: 'SPI-0', typedSchematic: typedFlashOne }],
-  );
+  // await makeConnections(
+  //   props,
+  //   { protocolKey: 'SPI-0', typedSchematic: typedATMEGA328 },
+  //   [{ protocolKey: 'SPI-0', typedSchematic: typedFlashOne }],
+  // );
 })();

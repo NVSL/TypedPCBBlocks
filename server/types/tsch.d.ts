@@ -18,6 +18,7 @@ declare class tsch {
     getTsch(): TypedSchematic;
     getVars(protocolKey: string): any;
     private getNetNames;
+    private getTexts;
     private appendTypedProtocol;
     private parse;
     static areEqual(protocolOne: string, protocolTwo: string): boolean;
