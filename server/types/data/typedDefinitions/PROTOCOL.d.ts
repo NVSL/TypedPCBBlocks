@@ -8,6 +8,6 @@ declare class POWER {
     constructor(props: PROPS);
 }
 interface PROTOCOL<T> {
-    connect(childs: T): boolean;
+    connect(childs: Array<T>): boolean;
 }
 export { PROTOCOL, POWER, PROPS, net };

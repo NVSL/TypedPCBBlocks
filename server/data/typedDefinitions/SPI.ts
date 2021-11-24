@@ -13,34 +13,35 @@ class SPI extends POWER implements PROTOCOL<SPI> {
 
     console.log(childs);
 
-    return true;
-
     // // ## Connection Constrains:
+    for (const child of childs) {
+      // The following nets must exist
+      if (
+        !(
+          parent.MISO &&
+          parent.MOSI &&
+          parent.SCK &&
+          child.MISO &&
+          child.MOSI &&
+          child.SCK
+        )
+      ) {
+        console.error('Missing protocol nets');
+        return false;
+      }
 
-    // // The following nets must exist
-    // if (
-    //   !(
-    //     netOne.MISO &&
-    //     netOne.MOSI &&
-    //     netOne.SCK &&
-    //     netTwo.MISO &&
-    //     netTwo.MOSI &&
-    //     netTwo.SCK
-    //   )
-    // ) {
-    //   console.error('Invalid nets');
-    //   return false;
-    // }
+      // Net voltages must be equal
+      if (parent.netVoltage) {
+        if (!(parent.netVoltage == child.netVoltage)) {
+          console.error('Net voltages are not equal');
+          return false;
+        }
+      }
+    }
 
-    // // Net voltages must be equal
-    // if (!(netOne.netVoltage == netTwo.netVoltage)) {
-    //   console.error('Net voltages are not equal');
-    //   return false;
-    // }
-
-    // // Add constrains
-    // console.log('Connected!');
-    // return true;
+    // Connected :D
+    console.log('Connected!');
+    return true;
   }
 }
 
