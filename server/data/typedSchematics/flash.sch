@@ -536,6 +536,9 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <sheet>
 <plain>
 <text x="30.48" y="7.62" size="2.54" layer="97">FLASH</text>
+<text x="83.82" y="25.4" size="1.778" layer="97">#{
+SPI:{arch:slave}
+}</text>
 </plain>
 <instances>
 <instance part="IC1" gate="G$1" x="22.86" y="22.86" smashed="yes">
@@ -633,6 +636,10 @@ You are welcome to use this library for commercial purposes. For attribution, we
 </schematic>
 </drawing>
 <compatibility>
+<note version="6.3" minversion="6.2.2" severity="warning">
+Since Version 6.2.2 text objects can contain more than one line,
+which will not be processed correctly with this version.
+</note>
 <note version="8.2" severity="warning">
 Since Version 8.2, EAGLE supports online libraries. The ids
 of those online libraries will not be understood (or retained)

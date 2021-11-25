@@ -1,9 +1,12 @@
 import { PROTOCOL, POWER, PROPS, net } from './PROTOCOL';
 
 class SPI extends POWER implements PROTOCOL<SPI> {
+  // Nets
   MISO: net = false;
   MOSI: net = false;
   SCK: net = false;
+  // Options
+  arch: string | null = null;
   constructor(props: PROPS) {
     super(props);
     console.log(props);
@@ -11,9 +14,7 @@ class SPI extends POWER implements PROTOCOL<SPI> {
   public connect(childs: Array<SPI>): boolean {
     const parent = this;
 
-    console.log(childs);
-
-    // // ## Connection Constrains:
+    // ## Connection Constrains:
     for (const child of childs) {
       // The following nets must exist
       if (
@@ -34,6 +35,28 @@ class SPI extends POWER implements PROTOCOL<SPI> {
       if (parent.netVoltage) {
         if (!(parent.netVoltage == child.netVoltage)) {
           console.error('Net voltages are not equal');
+          return false;
+        }
+      }
+
+      // Options
+      if (parent.arch == null || child.arch == null) {
+        console.warn(
+          'Unknown SPI master-slave architecture, doing nothing',
+          '- parent arch:',
+          parent.arch,
+          '- child arch:',
+          child.arch,
+        );
+      } else {
+        if (!(parent.arch == 'master' && child.arch == 'slave')) {
+          console.error(
+            'SPI parent and child architecture must be of type master-slave',
+            '- parent arch:',
+            parent.arch,
+            '- child arch:',
+            child.arch,
+          );
           return false;
         }
       }

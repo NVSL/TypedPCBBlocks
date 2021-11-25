@@ -35,10 +35,10 @@ class tsch {
     } catch (e) {
       console.error('It seems xml is not an eagle file', e);
     }
-    console.log('>> NETS: ', this.getNetNames());
-    console.log('>> TEXTS: ', this.getTexts());
+    // console.log('>> NETS: ', this.getNetNames());
+    // console.log('>> TEXTS: ', this.getTexts());
     this.parse(this.getNetNames(), this.getTexts());
-    console.log('>> TYPED SCHEMATIC: ', this.typedSchematic);
+    // console.log('>> TYPED SCHEMATIC: ', this.typedSchematic);
   }
 
   public getTsch(): TypedSchematic {

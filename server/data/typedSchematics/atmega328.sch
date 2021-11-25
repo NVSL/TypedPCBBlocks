@@ -2176,12 +2176,8 @@ SparkFun BigTime Watch Kit&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;
 <sheet>
 <plain>
 <text x="175.26" y="101.6" size="1.778" layer="97">#{
-SPI:{master:true},
-I2C:{master:true},
-}</text>
-<text x="185.42" y="88.9" size="1.778" layer="94">#{
-SPI:{master:true},
-I2C:{master:true},
+SPI:{arch:master},
+I2C:{arch:master},
 }</text>
 </plain>
 <instances>
