@@ -1,6 +1,7 @@
 import { PROPS } from './data/typedDefinitions/PROTOCOL'; // TODO: Add as a package
 import * as fs from 'fs';
 import { tsch } from './tsch';
+import { powerMat } from './tscheda';
 
 interface tschPair {
   protocolKey: string;
@@ -81,21 +82,27 @@ async function makeConnections(
       encoding: 'utf8',
     }),
   );
-  // console.log(typedATMEGA328.getTsch());
-  // console.log(typedATMEGA328.getVars('SPI-0'));
+  console.log(typedATMEGA328.getTsch());
+  console.log(typedATMEGA328.getVars('SPI-0'));
 
-  // const typedFlashOne = new tsch();
-  // await typedFlashOne.loadTsch(
-  //   fs.readFileSync(tschPath + 'flash.sch', {
-  //     encoding: 'utf8',
-  //   }),
-  // );
-  // console.log(typedFlashOne.getTsch());
-  // console.log(typedFlashOne.getVars('SPI-0'));
+  const typedFlashOne = new tsch();
+  await typedFlashOne.loadTsch(
+    fs.readFileSync(tschPath + 'flash.sch', {
+      encoding: 'utf8',
+    }),
+  );
+  console.log(typedFlashOne.getTsch());
+  console.log(typedFlashOne.getVars('SPI-0'));
 
   // await makeConnections(
   //   props,
   //   { protocolKey: 'SPI-0', typedSchematic: typedATMEGA328 },
   //   [{ protocolKey: 'SPI-0', typedSchematic: typedFlashOne }],
   // );
+
+  const power = new powerMat();
+  power.addMat('powerOne');
+  power.addMat('regulator');
+  power.addMat('regulator');
+  console.log(power.powerMats);
 })();
