@@ -1,13 +1,9 @@
 class powerMatNode {
-  tschName: string;
-  tschCtr: number;
-  matsCtr: number;
-  parent: powerMatNode | string;
+  uuid: string;
+  parent: powerMatNode | 'root';
   children: Map<string, powerMatNode>;
-  constructor(tschName, parent) {
-    this.tschName = tschName;
-    this.tschCtr = 0;
-    this.matsCtr = 0;
+  constructor(uuid, parent) {
+    this.uuid = uuid;
     this.parent = parent;
     this.children = new Map();
   }
@@ -15,21 +11,82 @@ class powerMatNode {
 
 // Power cascade
 class powerMat {
-  powerMats: powerMatNode | null;
+  matsTree: powerMatNode | null;
+  matsMap: Map<string, powerMatNode>;
   constructor() {
-    this.powerMats = null;
+    this.matsTree = null;
+    this.matsMap = new Map();
   }
-  addMat(tschName: string) {
-    if (this.powerMats == null) {
-      this.powerMats = new powerMatNode(tschName, 'root');
+
+  addMatIn(parentUuid: string, mat: powerMatNode): void {
+    if (parentUuid == null || parentUuid == 'root') {
+      if (this.matsTree == null) {
+        // Store mat in Tree
+        this.matsTree = new powerMatNode(mat.uuid, 'root');
+        // Store mat in hashmap
+        if (this.matsMap.has(this.matsTree.uuid)) {
+          console.error('Power Mats Map alrady has', this.matsTree.uuid);
+          return;
+        } else {
+          this.matsMap.set(this.matsTree.uuid, this.matsTree);
+        }
+      } else {
+        console.error('Power Mats Tree alrady has a root');
+        return;
+      }
     } else {
-      const uniqueName = tschName + this.powerMats.matsCtr;
-      this.powerMats.children[uniqueName] = new powerMatNode(
-        tschName,
-        this.powerMats,
-      );
-      this.powerMats.matsCtr++;
+      // Search for paernt
+      let parentMat: powerMatNode | undefined;
+      if (this.matsMap.has(parentUuid)) {
+        parentMat = this.matsMap.get(parentUuid);
+      } else {
+        console.error('Parent uuid', parentUuid, 'not found');
+        return;
+      }
+
+      if (parentMat) {
+        if (parentMat.children.has(mat.uuid)) {
+          console.error(
+            'New Mat with uuid',
+            mat.uuid,
+            'already exists in parent Mat',
+            parentMat.uuid,
+          );
+        } else {
+          // Store mat in Tree
+          parentMat.children.set(
+            mat.uuid,
+            new powerMatNode(mat.uuid, this.matsTree),
+          );
+          // Store mat in hashmap
+          const newMat = parentMat.children.get(mat.uuid);
+          if (newMat) this.matsMap.set(mat.uuid, newMat);
+          else console.error('New Mat Uuid', mat.uuid, 'undefined');
+        }
+      } else {
+        console.error('Parent Mat Uuid', parentUuid, 'undefined');
+      }
     }
+  }
+
+  newMat(): powerMatNode {
+    // TODO: Check if random Uuid is unique and add it to matsMap
+    return new powerMatNode(this.getRandomUuid(), null);
+  }
+
+  getRandomUuid(): string {
+    // http://www.ietf.org/rfc/rfc4122.txt
+    const s: Array<string> = [];
+    let hexDigits = '0123456789abcdef';
+    for (var i = 0; i < 36; i++) {
+      s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+    }
+    s[14] = '4'; // bits 12-15 of the time_hi_and_version field to 0010
+    s[19] = hexDigits.substr((parseInt(s[19]) & 0x3) | 0x8, 1); // bits 6-7 of the clock_seq_hi_and_reserved to 01
+    s[8] = s[13] = s[18] = s[23] = '-';
+
+    var uuid = s.join('');
+    return uuid;
   }
   // TODO: Add unique() -> ouputs unique key which will be used for the visual editor or add a hashmap 0 -> tschName
   // TODO: Check voltage structure, (add a new unique character? @ for voltage ?)

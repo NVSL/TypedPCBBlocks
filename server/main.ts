@@ -101,8 +101,16 @@ async function makeConnections(
   // );
 
   const power = new powerMat();
-  power.addMat('powerOne');
-  power.addMat('regulator');
-  power.addMat('regulator');
-  console.log(power.powerMats);
+  const MatOne = power.newMat();
+  console.log('ROOT ID:', MatOne.uuid);
+  const MatTwo = power.newMat();
+  const MatThree = power.newMat();
+  const MatFour = power.newMat();
+  power.addMatIn('root', MatOne);
+  power.addMatIn(MatOne.uuid, MatTwo);
+  power.addMatIn(MatOne.uuid, MatThree);
+  power.addMatIn(MatTwo.uuid, MatFour);
+
+  console.log(power.matsTree);
+  console.log(power.matsMap);
 })();

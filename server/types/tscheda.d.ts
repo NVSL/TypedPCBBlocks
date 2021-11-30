@@ -1,14 +1,15 @@
 declare class powerMatNode {
-    tschName: string;
-    tschCtr: number;
-    matsCtr: number;
-    parent: powerMatNode | string;
+    uuid: string;
+    parent: powerMatNode | 'root';
     children: Map<string, powerMatNode>;
-    constructor(tschName: any, parent: any);
+    constructor(uuid: any, parent: any);
 }
 declare class powerMat {
-    powerMats: powerMatNode | null;
+    matsTree: powerMatNode | null;
+    matsMap: Map<string, powerMatNode>;
     constructor();
-    addMat(tschName: string): void;
+    addMatIn(parentUuid: string, mat: powerMatNode): void;
+    newMat(): powerMatNode;
+    getRandomUuid(): string;
 }
 export { powerMat };
