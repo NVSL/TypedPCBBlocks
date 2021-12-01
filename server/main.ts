@@ -106,10 +106,10 @@ async function makeConnections(
   const MatTwo = power.newMat();
   const MatThree = power.newMat();
   const MatFour = power.newMat();
-  power.addMatIn('root', MatOne);
-  power.addMatIn(MatOne.uuid, MatTwo);
-  power.addMatIn(MatOne.uuid, MatThree);
-  power.addMatIn(MatTwo.uuid, MatFour);
+  power.addMat('root', MatOne);
+  power.addMat(MatOne.uuid, MatTwo);
+  power.addMat(MatOne.uuid, MatThree);
+  power.addMat(MatTwo.uuid, MatFour);
 
   console.log(power.matsTree);
   console.log(power.matsMap);

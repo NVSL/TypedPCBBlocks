@@ -6,9 +6,9 @@ declare class powerMatNode {
 }
 declare class powerMat {
     matsTree: powerMatNode | null;
-    matsMap: Map<string, powerMatNode>;
+    matsMap: Map<string, powerMatNode | undefined>;
     constructor();
-    addMatIn(parentUuid: string, mat: powerMatNode): void;
+    addMat(parentUuid: string, mat: powerMatNode): void;
     newMat(): powerMatNode;
     getRandomUuid(): string;
 }

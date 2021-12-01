@@ -12,21 +12,24 @@ class powerMatNode {
 // Power cascade
 class powerMat {
   matsTree: powerMatNode | null;
-  matsMap: Map<string, powerMatNode>;
+  matsMap: Map<string, powerMatNode | undefined>;
   constructor() {
     this.matsTree = null;
     this.matsMap = new Map();
   }
 
-  addMatIn(parentUuid: string, mat: powerMatNode): void {
+  addMat(parentUuid: string, mat: powerMatNode): void {
     if (parentUuid == null || parentUuid == 'root') {
       if (this.matsTree == null) {
         // Store mat in Tree
         this.matsTree = new powerMatNode(mat.uuid, 'root');
         // Store mat in hashmap
         if (this.matsMap.has(this.matsTree.uuid)) {
-          console.error('Power Mats Map alrady has', this.matsTree.uuid);
-          return;
+          if (this.matsMap.get(this.matsTree.uuid) == undefined) {
+            this.matsMap.set(this.matsTree.uuid, this.matsTree);
+          } else {
+            console.error('Power Mats Map alrady has', this.matsTree.uuid);
+          }
         } else {
           this.matsMap.set(this.matsTree.uuid, this.matsTree);
         }
@@ -70,8 +73,14 @@ class powerMat {
   }
 
   newMat(): powerMatNode {
-    // TODO: Check if random Uuid is unique and add it to matsMap
-    return new powerMatNode(this.getRandomUuid(), null);
+    // Get a unique randomUuid and save it to hashmap as undefied
+    let randomUuid = this.getRandomUuid();
+    while (this.matsMap.has(randomUuid)) {
+      randomUuid = this.getRandomUuid();
+    }
+    this.matsMap.set(randomUuid, undefined);
+
+    return new powerMatNode(randomUuid, null);
   }
 
   getRandomUuid(): string {
@@ -88,7 +97,6 @@ class powerMat {
     var uuid = s.join('');
     return uuid;
   }
-  // TODO: Add unique() -> ouputs unique key which will be used for the visual editor or add a hashmap 0 -> tschName
   // TODO: Check voltage structure, (add a new unique character? @ for voltage ?)
   // TODO: Add I2C and constrains
   // TODO: Definetely check or redo the visual blocks.
