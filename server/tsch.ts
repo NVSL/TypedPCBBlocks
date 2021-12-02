@@ -4,7 +4,12 @@ import RJSON from 'relaxed-json';
 type range = { min: number; max: number };
 type typedYType = 'power' | 'protocol';
 
-type voltage = number | range | Array<number> | 'connector' | null;
+interface voltage {
+  io: 'out' | 'in' | null;
+  isConnector: boolean;
+  type: 'number' | 'range' | 'list' | null;
+  value: number | range | Array<number> | null;
+}
 
 interface TypedPower {
   type: typedYType;
@@ -204,7 +209,12 @@ class tsch {
             altname: '0',
             typedNets: [],
             vars: {
-              voltage: null,
+              voltage: {
+                io: null,
+                isConnector: false,
+                type: null,
+                value: null,
+              },
             },
           };
 
@@ -220,6 +230,9 @@ class tsch {
             // Schematic outputs power
             if (voltageName.includes('VOUT')) {
               this.outputsPower = true;
+              power.vars.voltage.io = 'out';
+            } else {
+              power.vars.voltage.io = 'in';
             }
           } else {
             power.name = null;
@@ -241,7 +254,8 @@ class tsch {
                 min: parseFloat(voltageData.split('-')[0]),
                 max: parseFloat(voltageData.split('-')[1]),
               };
-              power.vars.voltage = voltage;
+              power.vars.voltage.type = 'range';
+              power.vars.voltage.value = voltage;
             } catch (e) {
               console.error(
                 'In typed net',
@@ -264,12 +278,14 @@ class tsch {
                 );
               }
             }
-            power.vars.voltage = voltage;
+            power.vars.voltage.type = 'list';
+            power.vars.voltage.value = voltage;
           } else if (voltageData == 'CONNECTOR') {
-            power.vars.voltage = 'connector';
+            power.vars.voltage.isConnector = true;
           } else {
             if (!isNaN(Number(voltageData))) {
-              power.vars.voltage = parseFloat(voltageData);
+              power.vars.voltage.type = 'number';
+              power.vars.voltage.value = parseFloat(voltageData);
             } else {
               console.error(
                 'In typed net',
@@ -341,7 +357,7 @@ class tsch {
       if (text.includes('#')) {
         const cleanText = text.replace('#', '');
         const json = JSON.parse(RJSON.transform(cleanText));
-        console.log(json);
+        // console.log(json);
         for (const [key, newVars] of Object.entries(json)) {
           if (!key.includes('-')) {
             // Apply to all protocols of the same protocol name
@@ -349,14 +365,14 @@ class tsch {
               if (tschKey.split('-')[0] == key) {
                 // Append new vars values:
                 Object.assign(this.typedSchematic[tschKey].vars, newVars);
-                console.log('APPENDED:', this.typedSchematic[tschKey].vars);
+                // console.log('APPENDED:', this.typedSchematic[tschKey].vars);
               }
             }
           } else {
             if (key in this.typedSchematic) {
               // Append new vars values:
               Object.assign(this.typedSchematic[key].vars, newVars);
-              console.log('APPENDED:', this.typedSchematic[key].vars);
+              // console.log('APPENDED:', this.typedSchematic[key].vars);
             }
           }
         }

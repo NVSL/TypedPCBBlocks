@@ -3,7 +3,12 @@ declare type range = {
     max: number;
 };
 declare type typedYType = 'power' | 'protocol';
-declare type voltage = number | range | Array<number> | 'connector' | null;
+interface voltage {
+    io: 'out' | 'in' | null;
+    isConnector: boolean;
+    type: 'number' | 'range' | 'list' | null;
+    value: number | range | Array<number> | null;
+}
 interface TypedPower {
     type: typedYType;
     name: string | null;
