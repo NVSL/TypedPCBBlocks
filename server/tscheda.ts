@@ -1,3 +1,5 @@
+import { tsch, voltage } from './tsch';
+
 class powerMatNode {
   uuid: string;
   parent: powerMatNode | 'root';
@@ -81,6 +83,10 @@ class powerMat {
     this.matsMap.set(randomUuid, undefined);
 
     return new powerMatNode(randomUuid, null);
+  }
+
+  isMat(tsch: tsch): boolean {
+    return tsch.outputsPower;
   }
 
   getRandomUuid(): string {

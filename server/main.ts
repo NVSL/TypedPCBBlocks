@@ -104,6 +104,8 @@ async function makeConnections(
     }),
   );
   console.log(typedPowerConnector.getTsch());
+  console.log(typedPowerConnector.outputsPower);
+  console.log(typedPowerConnector.getVars('VIN-0'));
   console.log(typedPowerConnector.getVars('VOUT-0'));
 
   // Load Power 5V
@@ -114,6 +116,9 @@ async function makeConnections(
     }),
   );
   console.log(typedPower5V.getTsch());
+  console.log(typedPower5V.outputsPower);
+  console.log(typedPower5V.getVars('VIN-0'));
+  console.log(typedPower5V.getVars('VOUT-0'));
 
   // Load Power 3.3V
   const typedPower3V3 = new tsch();
@@ -123,6 +128,9 @@ async function makeConnections(
     }),
   );
   console.log(typedPower3V3.getTsch());
+  console.log(typedPower3V3.outputsPower);
+  console.log(typedPower3V3.getVars('VIN-0'));
+  console.log(typedPower3V3.getVars('VOUT-0'));
 
   // await makeConnections(
   //   props,
@@ -131,7 +139,8 @@ async function makeConnections(
   // );
 
   // // Power mats
-  // const power = new powerMat();
+  // TODO: Add power tsch's to powerMats structure
+  const power = new powerMat();
   // const MatOne = power.newMat();
   // console.log('ROOT ID:', MatOne.uuid);
   // const MatTwo = power.newMat();

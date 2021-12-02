@@ -1,3 +1,4 @@
+import { tsch } from './tsch';
 declare class powerMatNode {
     uuid: string;
     parent: powerMatNode | 'root';
@@ -10,6 +11,7 @@ declare class powerMat {
     constructor();
     addMat(parentUuid: string, mat: powerMatNode): void;
     newMat(): powerMatNode;
+    isMat(tsch: tsch): boolean;
     getRandomUuid(): string;
 }
 export { powerMat };
