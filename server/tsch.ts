@@ -1,9 +1,24 @@
-import { error } from 'console';
 import xml2js from 'xml2js';
 import RJSON from 'relaxed-json';
 
+type range = { min: number; max: number };
+type typedYType = 'power' | 'protocol';
+
+type voltage = number | range | Array<number> | 'connector' | null;
+
+interface TypedPower {
+  type: typedYType;
+  name: string | null;
+  altname: string;
+  typedNets: string[];
+  vars: {
+    voltage: voltage;
+  };
+}
+
 interface TypedProtocol {
-  protocol: string | null;
+  type: typedYType;
+  name: string | null;
   altname: string;
   typedNets: string[];
   vars: {
@@ -13,15 +28,17 @@ interface TypedProtocol {
 }
 
 interface TypedSchematic {
-  [protocolKey: string]: TypedProtocol;
+  [protocolKey: string]: TypedProtocol | TypedPower;
 }
 
 class tsch {
   eagle: any;
   eagleVersion: string | null;
+  outputsPower: boolean;
   typedSchematic: TypedSchematic | null;
   constructor() {
     this.eagleVersion = null;
+    this.outputsPower = false;
     this.typedSchematic = null;
   }
 
@@ -41,11 +58,12 @@ class tsch {
     // console.log('>> TYPED SCHEMATIC: ', this.typedSchematic);
   }
 
-  public getTsch(): TypedSchematic {
+  public getTsch(): TypedSchematic | null {
     if (this.typedSchematic) {
       return this.typedSchematic;
     } else {
-      throw new Error('Typed Schematic is null, load a schematic first');
+      console.error('Typed Schematic is null, load a typed schematic first');
+      return null;
     }
   }
 
@@ -54,12 +72,14 @@ class tsch {
       if (protocolKey in this.typedSchematic) {
         return this.typedSchematic[protocolKey].vars;
       } else {
-        throw new Error(
+        console.error(
           `Protocol ${protocolKey} not found in Typed Schematic Dictionary`,
         );
+        return null;
       }
     } else {
-      throw new Error('Typed Schematic is null, load a schematic first');
+      console.error('Typed Schematic is null, load a typed schematic first');
+      return null;
     }
   }
 
@@ -80,53 +100,86 @@ class tsch {
   private getTexts(): string[] {
     let schTexts: string[] = [];
     const texts = this.eagle.schematic[0].sheets[0].sheet[0].plain[0].text;
-    for (const text of texts) {
-      schTexts.push(text._);
+    if (texts) {
+      for (const text of texts) {
+        schTexts.push(text._);
+      }
     }
     return schTexts;
   }
 
-  // Appends single Typed Protocol into Typed Schematic dictionary
-  private appendTypedProtocol(typedProtocol: TypedProtocol) {
+  // Appends single Typed Protocol or Typed Power into Typed Schematic dictionary
+  private appendTypedProtocol(typedProperty: TypedProtocol | TypedPower) {
     // Form dictionary key
-    const protocolAndAltame =
-      typedProtocol.protocol + '-' + typedProtocol.altname;
+    const nameAndAltame = typedProperty.name + '-' + typedProperty.altname;
 
     // Append Typed Protocol in Typed Schematic dictionary
     if (this.typedSchematic == null) {
       this.typedSchematic = {};
-      this.typedSchematic[protocolAndAltame] = typedProtocol;
+      this.typedSchematic[nameAndAltame] = typedProperty;
     } else {
-      if (protocolAndAltame in this.typedSchematic) {
-        // Merge typed nets
-        const newTypedNets = this.typedSchematic[
-          protocolAndAltame
-        ].typedNets.concat(typedProtocol.typedNets);
-        this.typedSchematic[protocolAndAltame].typedNets = newTypedNets;
+      if (nameAndAltame in this.typedSchematic) {
+        switch (typedProperty.type) {
+          case 'protocol':
+            // Merge typed nets
+            const newTypedNets = this.typedSchematic[
+              nameAndAltame
+            ].typedNets.concat(typedProperty.typedNets);
+            this.typedSchematic[nameAndAltame].typedNets = newTypedNets;
 
-        // Merge vars
-        const currentVars = this.typedSchematic[protocolAndAltame].vars;
-        let newVars = typedProtocol.vars;
-        for (let key in currentVars) {
-          if (key in newVars) {
-            console.warn(
-              'In merging typed nets',
-              this.typedSchematic[protocolAndAltame].typedNets,
-              'with',
-              typedProtocol.typedNets,
-              'Variable',
-              key,
-              'already exists',
-            );
-          } else {
-            newVars[key] = currentVars[key];
-          }
+            // Merge vars
+            const currentVars = this.typedSchematic[nameAndAltame].vars;
+            let newVars = typedProperty.vars;
+            for (let key in currentVars) {
+              if (key in newVars) {
+                console.warn(
+                  'In merging typed nets',
+                  this.typedSchematic[nameAndAltame].typedNets,
+                  'with',
+                  typedProperty.typedNets,
+                  'Variable',
+                  key,
+                  'already exists',
+                );
+              } else {
+                newVars[key] = currentVars[key];
+              }
+            }
+            this.typedSchematic[nameAndAltame].vars = newVars;
+            // console.log('MERGING');
+            // console.log(this.typedSchematic[protocolAndAltame].vars);
+            break;
+          case 'power':
+            // Only one typedNet for each power property, otherwhise error
+            if (typedProperty.typedNets.length == 1) {
+              if (
+                typedProperty.typedNets[0] !=
+                this.typedSchematic[nameAndAltame].typedNets[0]
+              ) {
+                console.error(
+                  'Typed power property key',
+                  nameAndAltame,
+                  'already exists.',
+                  typedProperty.typedNets[0],
+                  this.typedSchematic[nameAndAltame].typedNets[0],
+                );
+              } else {
+                // Is okay, is the same typedNet
+              }
+            } else {
+              console.error(
+                'Format error, typedNet should exists for power',
+                typedProperty,
+              );
+            }
+
+            break;
+          default:
+            console.error('Unknonw typedProtocol type: ', typedProperty.type);
+            break;
         }
-        this.typedSchematic[protocolAndAltame].vars = newVars;
-        // console.log('MERGING');
-        // console.log(this.typedSchematic[protocolAndAltame].vars);
       } else {
-        this.typedSchematic[protocolAndAltame] = typedProtocol;
+        this.typedSchematic[nameAndAltame] = typedProperty;
       }
     }
   }
@@ -135,6 +188,107 @@ class tsch {
   private parse(netNames: string[], schTexts: string[]) {
     // ## Parse Net Names
     for (let typedNet of netNames) {
+      // Parse Typed Power Nets
+      if (typedNet.includes('@')) {
+        const powerData = typedNet.replace('@', '').split('_');
+        if (powerData.length < 2) {
+          console.warn('Wrong typed power format in typed net', typedNet);
+        } else {
+          const voltageName = powerData[0];
+          const voltageData = powerData[1].replace(/V/g, '');
+
+          // Init protocol
+          const power: TypedPower = {
+            type: 'power',
+            name: null,
+            altname: '0',
+            typedNets: [],
+            vars: {
+              voltage: null,
+            },
+          };
+
+          // Get protocol name and altname
+          power.name = voltageName.split('-')[0];
+          if (voltageName.split('-')[1]) {
+            power.altname = voltageName.split('-')[1];
+          }
+
+          // Check if voltage type is IN or OUT
+          if (voltageName.includes('VIN') || voltageName.includes('VOUT')) {
+            power.name = voltageName;
+            // Schematic outputs power
+            if (voltageName.includes('VOUT')) {
+              this.outputsPower = true;
+            }
+          } else {
+            power.name = null;
+            console.warn(
+              'Voltage Type is not either VIN or VOUT:',
+              voltageName,
+            );
+          }
+
+          // Append typed net
+          power.typedNets.push(typedNet);
+
+          // Parse voltage data
+          if (voltageData.includes('-')) {
+            // It's voltage range
+            voltageData.split('-');
+            try {
+              const voltage: range = {
+                min: parseFloat(voltageData.split('-')[0]),
+                max: parseFloat(voltageData.split('-')[1]),
+              };
+              power.vars.voltage = voltage;
+            } catch (e) {
+              console.error(
+                'In typed net',
+                typedNet,
+                'could not parse voltage data',
+                voltageData,
+              );
+            }
+          } else if (voltageData.includes(',')) {
+            const voltage: Array<number> = [];
+            for (const v in voltageData.split(',')) {
+              try {
+                voltage.push(parseFloat(v));
+              } catch (e) {
+                console.error(
+                  'In typed net',
+                  typedNet,
+                  'could not parse voltage data',
+                  v,
+                );
+              }
+            }
+            power.vars.voltage = voltage;
+          } else if (voltageData == 'CONNECTOR') {
+            power.vars.voltage = 'connector';
+          } else {
+            if (!isNaN(Number(voltageData))) {
+              power.vars.voltage = parseFloat(voltageData);
+            } else {
+              console.error(
+                'In typed net',
+                typedNet,
+                'could not parse voltage data',
+                voltageData,
+              );
+            }
+          }
+
+          if (power.name != null) {
+            // Append typed net to typed Schematic dictionary
+            this.appendTypedProtocol(power);
+          } else {
+            console.error('Wrong typed net format', typedNet);
+          }
+        }
+      }
+      // Parse Typed Protcol Nets
       if (typedNet.includes('#')) {
         for (let protocolData of typedNet.split('||')) {
           // Remove #
@@ -143,7 +297,8 @@ class tsch {
           // Init protocol
           let protocolAndAltname = '';
           const protocol: TypedProtocol = {
-            protocol: null,
+            type: 'protocol',
+            name: null,
             altname: '0',
             typedNets: [],
             vars: {},
@@ -159,7 +314,7 @@ class tsch {
           }
 
           // Get protocol name and altname
-          protocol.protocol = protocolAndAltname.split('-')[0];
+          protocol.name = protocolAndAltname.split('-')[0];
           if (protocolAndAltname.split('-')[1]) {
             protocol.altname = protocolAndAltname.split('-')[1];
           }
@@ -168,18 +323,18 @@ class tsch {
           protocol.typedNets.push(typedNet);
 
           // Checks
-          if (protocol.protocol == '') {
-            console.error("Error, protocol is '' on typed net ", typedNet);
-          } else {
+          if (protocol.name != '') {
             // Append typed net to typed Schematic dictionary
             this.appendTypedProtocol(protocol);
+          } else {
+            console.error('Wrong typed net format', typedNet);
           }
         }
       }
     }
 
     // ## Parse Texts
-    if (this.typedSchematic == null) {
+    if (this.typedSchematic == null || schTexts.length == 0) {
       return;
     }
     for (const text of schTexts) {
@@ -248,4 +403,4 @@ class tsch {
   }
 }
 
-export { TypedSchematic, tsch };
+export { TypedSchematic, tsch, voltage };

@@ -1,5 +1,21 @@
+declare type range = {
+    min: number;
+    max: number;
+};
+declare type typedYType = 'power' | 'protocol';
+declare type voltage = number | range | Array<number> | 'connector' | null;
+interface TypedPower {
+    type: typedYType;
+    name: string | null;
+    altname: string;
+    typedNets: string[];
+    vars: {
+        voltage: voltage;
+    };
+}
 interface TypedProtocol {
-    protocol: string | null;
+    type: typedYType;
+    name: string | null;
     altname: string;
     typedNets: string[];
     vars: {
@@ -7,15 +23,16 @@ interface TypedProtocol {
     };
 }
 interface TypedSchematic {
-    [protocolKey: string]: TypedProtocol;
+    [protocolKey: string]: TypedProtocol | TypedPower;
 }
 declare class tsch {
     eagle: any;
     eagleVersion: string | null;
+    outputsPower: boolean;
     typedSchematic: TypedSchematic | null;
     constructor();
     loadTsch(eagleData: string): Promise<void>;
-    getTsch(): TypedSchematic;
+    getTsch(): TypedSchematic | null;
     getVars(protocolKey: string): any;
     private getNetNames;
     private getTexts;
@@ -24,4 +41,4 @@ declare class tsch {
     static areEqual(protocolOne: string, protocolTwo: string): boolean;
     static getProtocolName(protocolAndAltnameList: string[]): string | null;
 }
-export { TypedSchematic, tsch };
+export { TypedSchematic, tsch, voltage };

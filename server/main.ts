@@ -76,23 +76,53 @@ async function makeConnections(
 
   const tschPath = 'data/typedSchematics/';
 
+  // Load ATMEGA328
   const typedATMEGA328 = new tsch();
   await typedATMEGA328.loadTsch(
     fs.readFileSync(tschPath + 'atmega328.sch', {
       encoding: 'utf8',
     }),
   );
-  console.log(typedATMEGA328.getTsch());
-  console.log(typedATMEGA328.getVars('SPI-0'));
+  // console.log(typedATMEGA328.getTsch());
+  // console.log(typedATMEGA328.getVars('SPI-0'));
 
+  // Load FLASH
   const typedFlashOne = new tsch();
   await typedFlashOne.loadTsch(
     fs.readFileSync(tschPath + 'flash.sch', {
       encoding: 'utf8',
     }),
   );
-  console.log(typedFlashOne.getTsch());
-  console.log(typedFlashOne.getVars('SPI-0'));
+  // console.log(typedFlashOne.getTsch());
+  // console.log(typedFlashOne.getVars('SPI-0'));
+
+  // Load Power 5V12V
+  const typedPowerConnector = new tsch();
+  await typedPowerConnector.loadTsch(
+    fs.readFileSync(tschPath + 'power5V12V.sch', {
+      encoding: 'utf8',
+    }),
+  );
+  console.log(typedPowerConnector.getTsch());
+  console.log(typedPowerConnector.getVars('VOUT-0'));
+
+  // Load Power 5V
+  const typedPower5V = new tsch();
+  await typedPower5V.loadTsch(
+    fs.readFileSync(tschPath + 'power5V.sch', {
+      encoding: 'utf8',
+    }),
+  );
+  console.log(typedPower5V.getTsch());
+
+  // Load Power 3.3V
+  const typedPower3V3 = new tsch();
+  await typedPower3V3.loadTsch(
+    fs.readFileSync(tschPath + 'power3V3.sch', {
+      encoding: 'utf8',
+    }),
+  );
+  console.log(typedPower3V3.getTsch());
 
   // await makeConnections(
   //   props,
@@ -100,17 +130,18 @@ async function makeConnections(
   //   [{ protocolKey: 'SPI-0', typedSchematic: typedFlashOne }],
   // );
 
-  const power = new powerMat();
-  const MatOne = power.newMat();
-  console.log('ROOT ID:', MatOne.uuid);
-  const MatTwo = power.newMat();
-  const MatThree = power.newMat();
-  const MatFour = power.newMat();
-  power.addMat('root', MatOne);
-  power.addMat(MatOne.uuid, MatTwo);
-  power.addMat(MatOne.uuid, MatThree);
-  power.addMat(MatTwo.uuid, MatFour);
+  // // Power mats
+  // const power = new powerMat();
+  // const MatOne = power.newMat();
+  // console.log('ROOT ID:', MatOne.uuid);
+  // const MatTwo = power.newMat();
+  // const MatThree = power.newMat();
+  // const MatFour = power.newMat();
+  // power.addMat('root', MatOne);
+  // power.addMat(MatOne.uuid, MatTwo);
+  // power.addMat(MatOne.uuid, MatThree);
+  // power.addMat(MatTwo.uuid, MatFour);
 
-  console.log(power.matsTree);
-  console.log(power.matsMap);
+  // console.log(power.matsTree);
+  // console.log(power.matsMap);
 })();
