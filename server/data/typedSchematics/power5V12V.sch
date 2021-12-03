@@ -622,7 +622,7 @@ Source: &lt;a href="https://www.bourns.com/pdfs/mfmsmf.pdf"&gt; Datasheet &lt;/a
 <label x="17.78" y="38.1" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="@VOUT_12V-5V" class="0">
+<net name="@VOUT_5V-12V" class="0">
 <segment>
 <wire x1="48.26" y1="27.94" x2="40.64" y2="27.94" width="0.1524" layer="91"/>
 <pinref part="C1" gate="G$1" pin="+"/>
