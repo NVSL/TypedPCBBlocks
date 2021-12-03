@@ -39,6 +39,8 @@ declare class tsch {
     loadTsch(eagleData: string): Promise<void>;
     getTsch(): TypedSchematic | null;
     getVars(protocolKey: string): any;
+    getVin(): voltage[];
+    getVout(): voltage[];
     private getNetNames;
     private getTexts;
     private appendTypedProtocol;
@@ -46,4 +48,4 @@ declare class tsch {
     static areEqual(protocolOne: string, protocolTwo: string): boolean;
     static getProtocolName(protocolAndAltnameList: string[]): string | null;
 }
-export { TypedSchematic, tsch, voltage };
+export { TypedSchematic, tsch, voltage, range };

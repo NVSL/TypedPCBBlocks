@@ -88,6 +88,36 @@ class tsch {
     }
   }
 
+  public getVin(): voltage[] {
+    const vin: voltage[] = [];
+    if (this.typedSchematic) {
+      for (const [key, val] of Object.entries(this.typedSchematic)) {
+        if (val.type == 'power') {
+          const typedPower = <TypedPower>val;
+          if (typedPower.vars.voltage.io === 'in') {
+            vin.push(typedPower.vars.voltage);
+          }
+        }
+      }
+    }
+    return vin;
+  }
+
+  public getVout(): voltage[] {
+    const vout: voltage[] = [];
+    if (this.typedSchematic) {
+      for (const [key, val] of Object.entries(this.typedSchematic)) {
+        if (val.type == 'power') {
+          const typedPower = <TypedPower>val;
+          if (typedPower.vars.voltage.io === 'out') {
+            vout.push(typedPower.vars.voltage);
+          }
+        }
+      }
+    }
+    return vout;
+  }
+
   // Gets schematic net names
   private getNetNames(): string[] {
     let netNames: string[] = [];
@@ -161,27 +191,17 @@ class tsch {
                 typedProperty.typedNets[0] !=
                 this.typedSchematic[nameAndAltame].typedNets[0]
               ) {
-                console.error(
-                  'Typed power property key',
-                  nameAndAltame,
-                  'already exists.',
-                  typedProperty.typedNets[0],
-                  this.typedSchematic[nameAndAltame].typedNets[0],
-                );
+                throw `>> Parsing error: Typed power property key ${nameAndAltame} already exists.`;
               } else {
-                // Is okay, is the same typedNet
+                // Do nothing, is the same typedNet
               }
             } else {
-              console.error(
-                'Format error, typedNet should exists for power',
-                typedProperty,
-              );
+              throw `>> Parsing error: Format error, typedNet should exists for power:  ${typedProperty}`;
             }
 
             break;
           default:
-            console.error('Unknonw typedProtocol type: ', typedProperty.type);
-            break;
+            throw `>> Parsing error: Unknonw typedProtocol type:  ${typedProperty.type}`;
         }
       } else {
         this.typedSchematic[nameAndAltame] = typedProperty;
@@ -197,7 +217,7 @@ class tsch {
       if (typedNet.includes('@')) {
         const powerData = typedNet.replace('@', '').split('_');
         if (powerData.length < 2) {
-          console.warn('Wrong typed power format in typed net', typedNet);
+          throw `>> Parsing error: Wrong format, VIN or VOUT is missing underscore and voltage (e.g. VOUT_3.3V) ${typedNet}`;
         } else {
           const voltageName = powerData[0];
           const voltageData = powerData[1].replace(/V/g, '');
@@ -235,11 +255,7 @@ class tsch {
               power.vars.voltage.io = 'in';
             }
           } else {
-            power.name = null;
-            console.warn(
-              'Voltage Type is not either VIN or VOUT:',
-              voltageName,
-            );
+            throw `>> Parsing error: Voltage Name is not either VIN or VOUT: ${voltageName}`;
           }
 
           // Append typed net
@@ -254,15 +270,13 @@ class tsch {
                 min: parseFloat(voltageData.split('-')[0]),
                 max: parseFloat(voltageData.split('-')[1]),
               };
+              if (voltage.min > voltage.max) {
+                throw `Wrong voltage range, voltage min > voltage max, in typed net: ${typedNet}`;
+              }
               power.vars.voltage.type = 'range';
               power.vars.voltage.value = voltage;
             } catch (e) {
-              console.error(
-                'In typed net',
-                typedNet,
-                'could not parse voltage data',
-                voltageData,
-              );
+              throw '>> Parsing error: ' + e;
             }
           } else if (voltageData.includes(',')) {
             const voltage: Array<number> = [];
@@ -270,12 +284,7 @@ class tsch {
               try {
                 voltage.push(parseFloat(v));
               } catch (e) {
-                console.error(
-                  'In typed net',
-                  typedNet,
-                  'could not parse voltage data',
-                  v,
-                );
+                throw `>> Parsing error: In typed net ${typedNet}, could not parse ${v}`;
               }
             }
             power.vars.voltage.type = 'list';
@@ -287,12 +296,7 @@ class tsch {
               power.vars.voltage.type = 'number';
               power.vars.voltage.value = parseFloat(voltageData);
             } else {
-              console.error(
-                'In typed net',
-                typedNet,
-                'could not parse voltage data',
-                voltageData,
-              );
+              throw `>> Parsing error: In typed net ${typedNet}, could not parse ${voltageData}`;
             }
           }
 
@@ -300,7 +304,7 @@ class tsch {
             // Append typed net to typed Schematic dictionary
             this.appendTypedProtocol(power);
           } else {
-            console.error('Wrong typed net format', typedNet);
+            throw `>> Parsing error: Wrong format in typed net: ${typedNet}`;
           }
         }
       }
@@ -343,7 +347,7 @@ class tsch {
             // Append typed net to typed Schematic dictionary
             this.appendTypedProtocol(protocol);
           } else {
-            console.error('Wrong typed net format', typedNet);
+            throw `>> Parsing error: Wrong format in typed net: ${typedNet}`;
           }
         }
       }
@@ -419,4 +423,4 @@ class tsch {
   }
 }
 
-export { TypedSchematic, tsch, voltage };
+export { TypedSchematic, tsch, voltage, range };
