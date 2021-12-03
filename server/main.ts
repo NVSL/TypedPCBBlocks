@@ -104,7 +104,6 @@ async function makeConnections(
     }),
   );
   console.log(typedPowerConnector.getTsch());
-  console.log(typedPowerConnector.outputsPower);
   console.log(typedPowerConnector.getVars('VIN-0'));
   console.log(typedPowerConnector.getVars('VOUT-0'));
 
@@ -141,16 +140,16 @@ async function makeConnections(
   // // Power mats
   // TODO: Add power tsch's to powerMats structure
   const power = new powerMat();
-  // const MatOne = power.newMat();
-  // console.log('ROOT ID:', MatOne.uuid);
-  // const MatTwo = power.newMat();
-  // const MatThree = power.newMat();
+  const MatOne = power.newMat(typedPowerConnector);
+  const MatTwo = power.newMat(typedPower5V);
+  const MatThree = power.newMat(typedPower3V3);
   // const MatFour = power.newMat();
-  // power.addMat('root', MatOne);
-  // power.addMat(MatOne.uuid, MatTwo);
+  if (MatOne) power.addMat('root', MatOne);
+  if (MatThree) power.addMat(MatOne!.uuid, MatThree);
+  if (MatTwo) power.addMat(MatOne!.uuid, MatTwo);
   // power.addMat(MatOne.uuid, MatThree);
   // power.addMat(MatTwo.uuid, MatFour);
 
-  // console.log(power.matsTree);
+  console.log(power.matsTree);
   // console.log(power.matsMap);
 })();
