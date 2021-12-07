@@ -45,6 +45,7 @@ declare class tsch {
     private getTexts;
     private appendTypedProtocol;
     private parse;
+    private checks;
     static areEqual(protocolOne: string, protocolTwo: string): boolean;
     static getProtocolName(protocolAndAltnameList: string[]): string | null;
 }

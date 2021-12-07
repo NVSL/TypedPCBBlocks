@@ -6,9 +6,9 @@ type typedYType = 'power' | 'protocol';
 
 interface voltage {
   io: 'out' | 'in' | null;
-  isConnector: boolean;
+  isConnector: boolean; // TODO: Remove is Connector, then Only empty vin[] and a single or multiple vouts can be added to root.
   type: 'number' | 'range' | 'list' | null;
-  value: number | range | Array<number> | null;
+  value: number | range | Array<number> | null; // TODO: Remove lists? List of voltages ...what?
 }
 
 interface TypedPower {
@@ -60,6 +60,7 @@ class tsch {
     // console.log('>> NETS: ', this.getNetNames());
     // console.log('>> TEXTS: ', this.getTexts());
     this.parse(this.getNetNames(), this.getTexts());
+    this.checks();
     // console.log('>> TYPED SCHEMATIC: ', this.typedSchematic);
   }
 
@@ -198,12 +199,12 @@ class tsch {
             } else {
               throw `>> Parsing error: Format error, typedNet should exists for power:  ${typedProperty}`;
             }
-
             break;
           default:
             throw `>> Parsing error: Unknonw typedProtocol type:  ${typedProperty.type}`;
         }
       } else {
+        // Add Typed Property to Typed Schematic json
         this.typedSchematic[nameAndAltame] = typedProperty;
       }
     }
@@ -380,6 +381,23 @@ class tsch {
             }
           }
         }
+      }
+    }
+  }
+
+  private checks() {
+    // Check that only one VIN is allowed per power typed Schematic
+    if (this.outputsPower && this.typedSchematic) {
+      let vinCounter = 0;
+      for (const typedSch of Object.values(this.typedSchematic)) {
+        if (typedSch.type === 'power') {
+          if ((<TypedPower>typedSch).vars.voltage.io == 'in') {
+            vinCounter++;
+          }
+        }
+      }
+      if (vinCounter > 1) {
+        throw `>> Parsing error: Only one VIN allowed per power typed Schematic, found ${vinCounter} more`;
       }
     }
   }
