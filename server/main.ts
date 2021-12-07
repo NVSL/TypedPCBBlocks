@@ -2,7 +2,6 @@ import { PROPS } from './data/typedDefinitions/PROTOCOL'; // TODO: Add as a pack
 import * as fs from 'fs';
 import { tsch } from './tsch';
 import { powerMat } from './tscheda';
-import { stringify } from 'querystring';
 
 interface tschPair {
   protocolKey: string;
@@ -105,7 +104,6 @@ async function makeConnections(
     }),
   );
   console.log(typedPowerConnector.getTsch());
-  console.log(typedPowerConnector.getVars('VIN-0'));
   console.log(typedPowerConnector.getVars('VOUT-0'));
 
   // Load Power 5V
@@ -144,13 +142,16 @@ async function makeConnections(
   const MatOne = power.newMat(typedPowerConnector);
   const MatTwo = power.newMat(typedPower5V);
   const MatThree = power.newMat(typedPower3V3);
-  // const MatFour = power.newMat();
   if (MatOne) power.addMat('root', MatOne);
   if (MatThree) power.addMat(MatOne!.uuid, MatThree);
   if (MatTwo) power.addMat(MatOne!.uuid, MatTwo);
-  // power.addMat(MatOne.uuid, MatThree);
-  // power.addMat(MatTwo.uuid, MatFour);
 
-  console.log(power.matsTree);
-  // console.log(power.matsMap);
+  console.log('TREE', power.matsTree);
+  console.log('MAP', power.matsMap);
+  console.log('-----------');
+  console.log(power.addTsch(MatTwo!.uuid, typedATMEGA328));
+  console.log(power.addTsch(MatTwo!.uuid, typedFlashOne));
+  console.log(MatTwo?.tschMap);
+  // TODO: Test Temperature sensor and led
+  // TODO: Add class tschEDA addTsch, makeConnections and unique uuid for each tsch.
 })();

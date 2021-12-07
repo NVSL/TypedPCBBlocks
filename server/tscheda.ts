@@ -1,11 +1,15 @@
 import { tsch, voltage, range } from './tsch';
 
+type voutIndex = number;
+
 class powerMatNode {
   uuid: string;
   powerTsch: tsch;
-  vin: voltage[];
+  vin: voltage | null;
   vout: voltage[];
+  propagVout: voltage[];
   parent: powerMatNode | 'root' | null;
+  tschMap: Map<string, tsch>;
   children: Map<string, powerMatNode>;
   constructor(
     uuid: string,
@@ -14,10 +18,12 @@ class powerMatNode {
   ) {
     this.uuid = uuid;
     this.parent = parent;
-    this.children = new Map();
     this.powerTsch = powerTsch;
     this.vin = powerTsch.getVin();
     this.vout = powerTsch.getVout();
+    this.propagVout = [];
+    this.tschMap = new Map();
+    this.children = new Map();
   }
 }
 
@@ -30,21 +36,31 @@ class powerMat {
     this.matsMap = new Map();
   }
 
-  private testVoltages(
+  public newMat(powerTsch: tsch): powerMatNode | null {
+    // Get a unique randomUuid and store it to hashmap as undefied
+    let randomUuid = this.getRandomUuid();
+    while (this.matsMap.has(randomUuid)) {
+      randomUuid = this.getRandomUuid();
+    }
+    this.matsMap.set(randomUuid, undefined);
+
+    // Return a powerMatNode if tsch outputs power
+    if (powerMat.isMat(powerTsch))
+      return new powerMatNode(randomUuid, null, powerTsch);
+    else return null;
+  }
+
+  public static isMat(tsch: tsch): boolean {
+    return tsch.outputsPower;
+  }
+
+  private testMatVoltages(
     parentMat: powerMatNode,
     childMat: powerMatNode,
   ): boolean {
-    if (childMat.vin.length == 0) {
+    if (childMat.vin == null) {
       console.warn(
         'Power Mats with no voltage inputs can only be added to root',
-      );
-      return false;
-    }
-
-    if (childMat.vin.length > 1) {
-      console.warn(
-        'Power Mats can only have one voltage input, this has',
-        childMat.vin.length,
       );
       return false;
     }
@@ -55,7 +71,7 @@ class powerMat {
     }
 
     for (const vout of parentMat.vout) {
-      const vin = childMat.vin[0];
+      const vin = childMat.vin;
       let voltageOut: number | range | Array<number>;
       let voltageIn: number | range | Array<number>;
       console.log('TEST VOLTAGES', vout.value, vin.value);
@@ -169,20 +185,9 @@ class powerMat {
     if (parentUuid == 'root') {
       if (this.matsTree == null) {
         // Store mat in Tree
-        mat.parent = 'root';
-        this.matsTree = mat;
+        const childMat = this.storeMatInTree('root', mat);
         // Store mat in hashmap
-        if (this.matsMap.has(this.matsTree.uuid)) {
-          if (this.matsMap.get(this.matsTree.uuid) == undefined) {
-            this.matsMap.set(this.matsTree.uuid, this.matsTree);
-          } else {
-            console.error('Power Mats Map alrady has', this.matsTree.uuid);
-            return false;
-          }
-        } else {
-          this.matsMap.set(this.matsTree.uuid, this.matsTree);
-          return true;
-        }
+        this.storeMatInHashMap(childMat);
       } else {
         console.error('Power Mats Tree alrady has a root');
         return false;
@@ -199,7 +204,7 @@ class powerMat {
 
       if (parentMat) {
         // Test Voltages ranges between parent Mat and new Mat
-        if (!this.testVoltages(parentMat, mat)) {
+        if (!this.testMatVoltages(parentMat, mat)) {
           console.log(false, "TEST VOLTAGES: Voltages doesn't fit");
           return false;
         } else {
@@ -217,17 +222,9 @@ class powerMat {
           return false;
         } else {
           // Store mat in Tree
-          mat.parent = parentMat;
-          parentMat.children.set(mat.uuid, mat);
+          const childMat = this.storeMatInTree(parentMat, mat);
           // Store mat in hashmap
-          const newMat = parentMat.children.get(mat.uuid);
-          if (newMat) {
-            this.matsMap.set(mat.uuid, newMat);
-            return true;
-          } else {
-            console.error('New Mat Uuid', mat.uuid, 'undefined');
-            return false;
-          }
+          this.storeMatInHashMap(childMat);
         }
       } else {
         console.error('Parent Mat Uuid', parentUuid, 'undefined');
@@ -237,22 +234,118 @@ class powerMat {
     return false;
   }
 
-  public newMat(powerTsch: tsch): powerMatNode | null {
-    // Get a unique randomUuid and store it to hashmap as undefied
-    let randomUuid = this.getRandomUuid();
-    while (this.matsMap.has(randomUuid)) {
-      randomUuid = this.getRandomUuid();
+  private storeMatInTree(
+    parentMat: powerMatNode | 'root',
+    childMat: powerMatNode,
+  ): powerMatNode {
+    if (parentMat == 'root') {
+      // Store in Tree
+      childMat.parent = 'root';
+      this.matsTree = childMat;
+    } else {
+      // Store in Tree
+      childMat.parent = parentMat;
+      parentMat.children.set(childMat.uuid, childMat);
+      // Propagate vout
+      childMat.propagVout = [...childMat.vout];
+      for (const vout of parentMat.vout) {
+        childMat.propagVout.push(vout);
+      }
     }
-    this.matsMap.set(randomUuid, undefined);
-
-    // Return a powerMatNode if tsch outputs power
-    if (powerMat.isMat(powerTsch))
-      return new powerMatNode(randomUuid, null, powerTsch);
-    else return null;
+    return childMat;
   }
 
-  public static isMat(tsch: tsch): boolean {
-    return tsch.outputsPower;
+  private storeMatInHashMap(childMat: powerMatNode) {
+    if (this.matsMap.has(childMat.uuid)) {
+      if (this.matsMap.get(childMat.uuid) == undefined) {
+        this.matsMap.set(childMat.uuid, childMat);
+      } else {
+        console.error('Power Mats Map alrady has', childMat.uuid);
+        return false;
+      }
+    } else {
+      this.matsMap.set(childMat.uuid, childMat);
+      return true;
+    }
+  }
+
+  private testTschVoltages(mat: powerMatNode, tsch: tsch): voutIndex {
+    const vin = tsch.getVin();
+    if (vin == null) {
+      return -1;
+    }
+
+    for (const [voutIndex, vout] of Object.entries(mat.vout)) {
+      let voltageOut: number | range | Array<number>;
+      let voltageIn: number | range | Array<number>;
+      console.log('TEST VOLTAGES', vout.value, vin.value);
+      switch (vout.type) {
+        case 'number':
+          voltageOut = <number>vout.value;
+          switch (vin.type) {
+            case 'number':
+              voltageIn = <number>vin.value;
+              if (voltageOut == voltageIn) {
+                console.log('TEST VOLTAGES', true, 'number, number');
+                return parseInt(voutIndex);
+              }
+              break;
+            case 'range':
+              voltageIn = <range>vin.value;
+              if (voltageOut >= voltageIn.min && voltageOut <= voltageIn.max) {
+                console.log('TEST VOLTAGES', true, 'number, range');
+                return parseInt(voutIndex);
+              }
+              break;
+            default:
+              break;
+          }
+          break;
+        case 'range':
+          voltageOut = <range>vout.value;
+          switch (vin.type) {
+            case 'number':
+              // A specific voltage should not be connected to range of voltage outputs.
+              break;
+            case 'range':
+              voltageIn = <range>vin.value;
+              // voltages In ranges inside voltage Out ranges
+              if (
+                voltageIn.min >= voltageOut.min &&
+                voltageIn.max <= voltageOut.max
+              ) {
+                console.log('TEST VOLTAGES', true, 'range, range');
+                return parseInt(voutIndex);
+              }
+              break;
+            default:
+              break;
+          }
+          break;
+        default:
+          break;
+      }
+    }
+    return -1;
+  }
+
+  // Asociates a tsch to a power mat
+  // TODO: this must be outside in tschEDA to save tsch unique id
+  // TODO: Add error handling inside a class
+  // TODO: Add case for LED which doesn't have VIN
+  public addTsch(matUuid: string, tsch: tsch): voutIndex {
+    if (this.matsMap.has(matUuid)) {
+      const mat = this.matsMap.get(matUuid);
+      if (mat) {
+        const voutIndex = this.testTschVoltages(mat, tsch);
+        if (voutIndex >= 0) {
+          // Add tsch to mat
+          mat.tschMap.set(this.getRandomUuid(), tsch);
+          return voutIndex;
+        }
+      }
+    }
+    return -1; // TODO:"Improve error handling
   }
 
   private getRandomUuid(): string {
