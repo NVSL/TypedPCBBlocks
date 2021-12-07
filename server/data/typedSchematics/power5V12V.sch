@@ -611,17 +611,6 @@ Source: &lt;a href="https://www.bourns.com/pdfs/mfmsmf.pdf"&gt; Datasheet &lt;/a
 <wire x1="40.64" y1="17.78" x2="40.64" y2="15.24" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="@VIN_CONNECTOR" class="0">
-<segment>
-<pinref part="J1" gate="G$1" pin="1"/>
-<pinref part="F2" gate="G$1" pin="1"/>
-<wire x1="15.748" y1="27.94" x2="17.78" y2="27.94" width="0.1524" layer="91"/>
-<wire x1="17.78" y1="27.94" x2="20.32" y2="27.94" width="0.1524" layer="91"/>
-<wire x1="17.78" y1="27.94" x2="17.78" y2="38.1" width="0.1524" layer="91"/>
-<junction x="17.78" y="27.94"/>
-<label x="17.78" y="38.1" size="1.27" layer="95" xref="yes"/>
-</segment>
-</net>
 <net name="@VOUT_5V-12V" class="0">
 <segment>
 <wire x1="48.26" y1="27.94" x2="40.64" y2="27.94" width="0.1524" layer="91"/>
@@ -631,6 +620,13 @@ Source: &lt;a href="https://www.bourns.com/pdfs/mfmsmf.pdf"&gt; Datasheet &lt;/a
 <wire x1="38.1" y1="27.94" x2="40.64" y2="27.94" width="0.1524" layer="91"/>
 <junction x="40.64" y="27.94"/>
 <label x="48.26" y="27.94" size="1.27" layer="95" xref="yes"/>
+</segment>
+</net>
+<net name="N$1" class="0">
+<segment>
+<pinref part="J1" gate="G$1" pin="1"/>
+<pinref part="F2" gate="G$1" pin="1"/>
+<wire x1="15.748" y1="27.94" x2="20.32" y2="27.94" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
