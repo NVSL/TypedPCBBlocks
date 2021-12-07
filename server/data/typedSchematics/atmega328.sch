@@ -2158,11 +2158,9 @@ SparkFun BigTime Watch Kit&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;
 <part name="FRAME1" library="SparkFun" deviceset="FRAME-LETTER" device=""/>
 <part name="U3" library="SparkFun" deviceset="ATMEGA168" device="" value="ATMEGA328"/>
 <part name="GND5" library="SparkFun" deviceset="GND" device=""/>
-<part name="P+2" library="SparkFun" deviceset="VCC" device=""/>
 <part name="GND6" library="SparkFun" deviceset="GND" device=""/>
 <part name="P+3" library="SparkFun" deviceset="VCC" device=""/>
 <part name="JP4" library="SparkFun" deviceset="AVR_SPI_PRG_6" device="PTH" value="AVR_SPI"/>
-<part name="P+1" library="SparkFun" deviceset="VCC" device=""/>
 <part name="GND1" library="SparkFun" deviceset="GND" device=""/>
 <part name="R4" library="SparkFun-Resistors" library_urn="urn:adsk.eagle:library:532" deviceset="10KOHM" device="-0603-1/10W-1%" package3d_urn="urn:adsk.eagle:package:39650/1" value="10k"/>
 <part name="Y1" library="SparkFun" deviceset="RESONATOR" device="SMD" value="8MHz"/>
@@ -2194,9 +2192,6 @@ I2C:{arch:master},
 <instance part="GND5" gate="1" x="73.66" y="63.5" smashed="yes">
 <attribute name="VALUE" x="71.12" y="60.96" size="1.778" layer="96"/>
 </instance>
-<instance part="P+2" gate="1" x="63.5" y="139.7" smashed="yes">
-<attribute name="VALUE" x="62.484" y="143.256" size="1.778" layer="96"/>
-</instance>
 <instance part="GND6" gate="1" x="55.88" y="109.22" smashed="yes">
 <attribute name="VALUE" x="53.34" y="106.68" size="1.778" layer="96"/>
 </instance>
@@ -2206,9 +2201,6 @@ I2C:{arch:master},
 <instance part="JP4" gate="G$1" x="180.34" y="66.04" smashed="yes">
 <attribute name="NAME" x="176.022" y="71.882" size="1.778" layer="95"/>
 <attribute name="VALUE" x="176.276" y="58.42" size="1.778" layer="96"/>
-</instance>
-<instance part="P+1" gate="1" x="198.12" y="71.12" smashed="yes">
-<attribute name="VALUE" x="197.104" y="74.676" size="1.778" layer="96"/>
 </instance>
 <instance part="GND1" gate="1" x="198.12" y="58.42" smashed="yes">
 <attribute name="VALUE" x="195.58" y="55.88" size="1.778" layer="96"/>
@@ -2281,11 +2273,6 @@ I2C:{arch:master},
 </net>
 <net name="VCC" class="1">
 <segment>
-<wire x1="63.5" y1="137.16" x2="63.5" y2="139.7" width="0.1524" layer="91"/>
-<pinref part="P+2" gate="1" pin="VCC"/>
-<pinref part="R4" gate="G$1" pin="2"/>
-</segment>
-<segment>
 <wire x1="76.2" y1="114.3" x2="73.66" y2="114.3" width="0.1524" layer="91"/>
 <wire x1="73.66" y1="114.3" x2="73.66" y2="116.84" width="0.1524" layer="91"/>
 <wire x1="73.66" y1="116.84" x2="73.66" y2="119.38" width="0.1524" layer="91"/>
@@ -2298,12 +2285,6 @@ I2C:{arch:master},
 <pinref part="U3" gate="G$1" pin="VCC@1"/>
 <pinref part="U3" gate="G$1" pin="VCC@2"/>
 <pinref part="U3" gate="G$1" pin="AVCC"/>
-</segment>
-<segment>
-<wire x1="190.5" y1="68.58" x2="198.12" y2="68.58" width="0.1524" layer="91"/>
-<wire x1="198.12" y1="71.12" x2="198.12" y2="68.58" width="0.1524" layer="91"/>
-<pinref part="JP4" gate="G$1" pin="2"/>
-<pinref part="P+1" gate="1" pin="VCC"/>
 </segment>
 </net>
 <net name="#GPIO-RESET" class="0">
@@ -2420,9 +2401,9 @@ I2C:{arch:master},
 <net name="#SPI-0.MOSI||#GPIO-11" class="0">
 <segment>
 <pinref part="JP4" gate="G$1" pin="4"/>
-<wire x1="190.5" y1="66.04" x2="205.74" y2="66.04" width="0.1524" layer="91"/>
-<wire x1="205.74" y1="66.04" x2="205.74" y2="78.74" width="0.1524" layer="91"/>
-<wire x1="205.74" y1="78.74" x2="165.1" y2="78.74" width="0.1524" layer="91"/>
+<wire x1="190.5" y1="66.04" x2="210.82" y2="66.04" width="0.1524" layer="91"/>
+<wire x1="210.82" y1="66.04" x2="210.82" y2="78.74" width="0.1524" layer="91"/>
+<wire x1="210.82" y1="78.74" x2="165.1" y2="78.74" width="0.1524" layer="91"/>
 <pinref part="U3" gate="G$1" pin="PB3(MOSI/OC2)"/>
 <wire x1="165.1" y1="78.74" x2="165.1" y2="71.12" width="0.1524" layer="91"/>
 <wire x1="165.1" y1="71.12" x2="134.62" y2="71.12" width="0.1524" layer="91"/>
@@ -2529,6 +2510,20 @@ I2C:{arch:master},
 <pinref part="U3" gate="G$1" pin="PB2(SS/OC1B)"/>
 <wire x1="124.46" y1="73.66" x2="132.08" y2="73.66" width="0.1524" layer="91"/>
 <label x="132.08" y="73.66" size="1.27" layer="95" xref="yes"/>
+</segment>
+</net>
+<net name="@VIN_5V" class="0">
+<segment>
+<pinref part="R4" gate="G$1" pin="2"/>
+<wire x1="63.5" y1="137.16" x2="63.5" y2="144.78" width="0.1524" layer="91"/>
+<wire x1="63.5" y1="144.78" x2="66.04" y2="144.78" width="0.1524" layer="91"/>
+<label x="66.04" y="144.78" size="1.27" layer="95" xref="yes"/>
+</segment>
+<segment>
+<pinref part="JP4" gate="G$1" pin="2"/>
+<wire x1="190.5" y1="68.58" x2="193.04" y2="68.58" width="0.1524" layer="91"/>
+<wire x1="193.04" y1="68.58" x2="193.04" y2="73.66" width="0.1524" layer="91"/>
+<label x="193.04" y="73.66" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
 </nets>

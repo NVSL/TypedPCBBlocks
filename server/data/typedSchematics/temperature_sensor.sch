@@ -175,13 +175,6 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <packages>
 </packages>
 <symbols>
-<symbol name="3.3V" urn="urn:adsk.eagle:symbol:39411/1" library_version="1">
-<description>&lt;h3&gt;3.3V Voltage Supply&lt;/h3&gt;</description>
-<wire x1="0.762" y1="1.27" x2="0" y2="2.54" width="0.254" layer="94"/>
-<wire x1="0" y1="2.54" x2="-0.762" y2="1.27" width="0.254" layer="94"/>
-<pin name="3.3V" x="0" y="0" visible="off" length="short" direction="sup" rot="R90"/>
-<text x="0" y="2.794" size="1.778" layer="96" align="bottom-center">&gt;VALUE</text>
-</symbol>
 <symbol name="DGND" urn="urn:adsk.eagle:symbol:39415/1" library_version="1">
 <description>&lt;h3&gt;Digital Ground Supply&lt;/h3&gt;</description>
 <wire x1="-1.905" y1="0" x2="1.905" y2="0" width="0.254" layer="94"/>
@@ -190,20 +183,6 @@ You are welcome to use this library for commercial purposes. For attribution, we
 </symbol>
 </symbols>
 <devicesets>
-<deviceset name="3.3V" urn="urn:adsk.eagle:component:39435/1" prefix="SUPPLY" library_version="1">
-<description>&lt;h3&gt;3.3V Supply Symbol&lt;/h3&gt;
-&lt;p&gt;Power supply symbol for a specifically-stated 3.3V source.&lt;/p&gt;</description>
-<gates>
-<gate name="G$1" symbol="3.3V" x="0" y="0"/>
-</gates>
-<devices>
-<device name="">
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-</devices>
-</deviceset>
 <deviceset name="GND" urn="urn:adsk.eagle:component:39439/1" prefix="GND" library_version="1">
 <description>&lt;h3&gt;Ground Supply Symbol&lt;/h3&gt;
 &lt;p&gt;Generic signal ground supply symbol.&lt;/p&gt;</description>
@@ -314,7 +293,6 @@ You are welcome to use this library for commercial purposes. For attribution, we
 </classes>
 <parts>
 <part name="GND1" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
-<part name="SUPPLY4" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="3.3V" device=""/>
 <part name="U1" library="MCP9808" deviceset="MCP9808" device=""/>
 </parts>
 <sheets>
@@ -324,9 +302,6 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <instances>
 <instance part="GND1" gate="1" x="-5.08" y="-20.32" smashed="yes">
 <attribute name="VALUE" x="-5.08" y="-20.574" size="1.778" layer="96" align="top-center"/>
-</instance>
-<instance part="SUPPLY4" gate="G$1" x="-12.7" y="-17.78" smashed="yes" rot="R180">
-<attribute name="VALUE" x="-12.7" y="-20.574" size="1.778" layer="96" rot="R180" align="bottom-center"/>
 </instance>
 <instance part="U1" gate="G$1" x="0" y="0" smashed="yes">
 <attribute name="NAME" x="-10.16" y="7.62" size="1.27" layer="95"/>
@@ -341,14 +316,6 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <pinref part="U1" gate="G$1" pin="GND"/>
 <pinref part="GND1" gate="1" pin="GND"/>
 <wire x1="-5.08" y1="-10.16" x2="-5.08" y2="-17.78" width="0.1524" layer="91"/>
-</segment>
-</net>
-<net name="3.3V" class="0">
-<segment>
-<pinref part="SUPPLY4" gate="G$1" pin="3.3V"/>
-<wire x1="-12.7" y1="-17.78" x2="-12.7" y2="-10.16" width="0.1524" layer="91"/>
-<pinref part="U1" gate="G$1" pin="VDD"/>
-<wire x1="-12.7" y1="-10.16" x2="-7.62" y2="-10.16" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="#I2C-0.SCL" class="0">
@@ -373,6 +340,14 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <wire x1="2.54" y1="-10.16" x2="2.54" y2="-12.7" width="0.1524" layer="91"/>
 <wire x1="2.54" y1="-12.7" x2="5.08" y2="-12.7" width="0.1524" layer="91"/>
 <label x="5.08" y="-12.7" size="1.27" layer="95" xref="yes"/>
+</segment>
+</net>
+<net name="@VIN_3.3V" class="0">
+<segment>
+<wire x1="-12.7" y1="-17.78" x2="-12.7" y2="-10.16" width="0.1524" layer="91"/>
+<pinref part="U1" gate="G$1" pin="VDD"/>
+<wire x1="-12.7" y1="-10.16" x2="-7.62" y2="-10.16" width="0.1524" layer="91"/>
+<label x="-12.7" y="-17.78" size="1.27" layer="95" rot="R180" xref="yes"/>
 </segment>
 </net>
 </nets>
