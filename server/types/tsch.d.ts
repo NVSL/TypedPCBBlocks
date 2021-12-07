@@ -39,7 +39,7 @@ declare class tsch {
     loadTsch(eagleData: string): Promise<void>;
     getTsch(): TypedSchematic | null;
     getVars(protocolKey: string): any;
-    getVin(): voltage[];
+    getVin(): voltage | null;
     getVout(): voltage[];
     private getNetNames;
     private getTexts;

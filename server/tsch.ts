@@ -39,7 +39,7 @@ interface TypedSchematic {
 class tsch {
   eagle: any;
   eagleVersion: string | null;
-  outputsPower: boolean;
+  outputsPower: boolean; // TODO: change for isMat
   typedSchematic: TypedSchematic | null;
   constructor() {
     this.eagleVersion = null;
@@ -89,19 +89,18 @@ class tsch {
     }
   }
 
-  public getVin(): voltage[] {
-    const vin: voltage[] = [];
+  public getVin(): voltage | null {
     if (this.typedSchematic) {
       for (const [key, val] of Object.entries(this.typedSchematic)) {
         if (val.type == 'power') {
           const typedPower = <TypedPower>val;
           if (typedPower.vars.voltage.io === 'in') {
-            vin.push(typedPower.vars.voltage);
+            return typedPower.vars.voltage;
           }
         }
       }
     }
-    return vin;
+    return null;
   }
 
   public getVout(): voltage[] {
@@ -386,8 +385,8 @@ class tsch {
   }
 
   private checks() {
-    // Check that only one VIN is allowed per power typed Schematic
-    if (this.outputsPower && this.typedSchematic) {
+    // Check that only one VIN is allowed per typed Schematic
+    if (this.typedSchematic) {
       let vinCounter = 0;
       for (const typedSch of Object.values(this.typedSchematic)) {
         if (typedSch.type === 'power') {
