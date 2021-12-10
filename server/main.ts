@@ -1,157 +1,46 @@
-import { PROPS } from './data/typedDefinitions/PROTOCOL'; // TODO: Add as a package
 import * as fs from 'fs';
-import { tsch } from './tsch';
-import { powerMat } from './tscheda';
+import { tschEDA } from './tscheda';
 
-interface tschPair {
-  protocolKey: string;
-  typedSchematic: tsch;
-}
-
-function loadConstrains(protocol: any, typedJson: any) {
-  const loadedProtocol = Object.assign(protocol, typedJson);
-  return loadedProtocol;
-}
-
-async function makeConnections(
-  props: PROPS,
-  tschParent: tschPair,
-  tschChilds: tschPair[],
-) {
-  const path = './data/typedDefinitions/';
-  // Checks
-  if (tschChilds.length < 1) {
-    console.error('Typed Schematic child list must be greater than one');
-    return;
-  }
-
-  // Get protocol name from protocol-altname, returns SPI, I2C, etc
-  const protocolKeysList = [tschParent.protocolKey].concat(
-    tschChilds.map((e) => {
-      return e.protocolKey;
-    }),
-  );
-  const protocolName = tsch.getProtocolName(protocolKeysList);
-  if (protocolName == null) {
-    console.error('Protoco Name could nor be defined from');
-    return;
-  }
-
-  try {
-    // Dynamically import protcol class
-    const protocolClass = await import(path + protocolName);
-    console.log(protocolClass);
-
-    // Load tsch Parent Class
-    const tschClassParent: typeof protocolClass = loadConstrains(
-      new protocolClass[protocolName](props),
-      tschParent.typedSchematic.getVars(tschParent.protocolKey),
-    );
-    console.log('PARENT >> \n', tschClassParent);
-
-    // Load tsch Childs Class
-    const tschClassChilds: typeof protocolClass = [];
-    for (const tschChild of tschChilds) {
-      const tschClass = loadConstrains(
-        new protocolClass[protocolName](props),
-        tschChild.typedSchematic.getVars(tschChild.protocolKey),
-      );
-      tschClassChilds.push(tschClass);
-      console.log('CHILD >> \n', tschClass);
-    }
-
-    // Connect:
-    tschClassParent.connect(tschClassChilds);
-  } catch (e) {
-    console.error(e);
-  }
+function eagelFile(fileName: string): string {
+  const tschPath = 'data/typedSchematics/';
+  const eagleFile = fs.readFileSync(tschPath + fileName, {
+    encoding: 'utf8',
+  });
+  return eagleFile;
 }
 
 // Main program
 (async () => {
-  // Global propagation properties
-  const props: PROPS = {
-    sourceVoltage: 3.3,
-  };
+  const tscheda = new tschEDA();
 
-  const tschPath = 'data/typedSchematics/';
+  const atmega328 = await tscheda.use(eagelFile('atmega328.sch'));
+  const flash = await tscheda.use(eagelFile('flash.sch'));
+  const power5V12V = await tscheda.use(eagelFile('power5V12V.sch'));
+  const power5V = await tscheda.use(eagelFile('power5V.sch'));
+  const power3V3 = await tscheda.use(eagelFile('power3V3.sch'));
 
-  // Load ATMEGA328
-  const typedATMEGA328 = new tsch();
-  await typedATMEGA328.loadTsch(
-    fs.readFileSync(tschPath + 'atmega328.sch', {
-      encoding: 'utf8',
-    }),
-  );
-  // console.log(typedATMEGA328.getTsch());
-  // console.log(typedATMEGA328.getVars('SPI-0'));
+  const MatOne = tscheda.newMat(power5V12V);
+  const MatTwo = tscheda.newMat(power5V);
+  const MatThree = tscheda.newMat(power3V3);
 
-  // Load FLASH
-  const typedFlashOne = new tsch();
-  await typedFlashOne.loadTsch(
-    fs.readFileSync(tschPath + 'flash.sch', {
-      encoding: 'utf8',
-    }),
-  );
-  // console.log(typedFlashOne.getTsch());
-  // console.log(typedFlashOne.getVars('SPI-0'));
+  tscheda.addMat('root', MatOne!);
+  tscheda.addMat(MatOne!.uuid, MatThree!);
+  tscheda.addMat(MatOne!.uuid, MatTwo!);
 
-  // Load Power 5V12V
-  const typedPowerConnector = new tsch();
-  await typedPowerConnector.loadTsch(
-    fs.readFileSync(tschPath + 'power5V12V.sch', {
-      encoding: 'utf8',
-    }),
-  );
-  console.log(typedPowerConnector.getTsch());
-  console.log(typedPowerConnector.getVars('VOUT-0'));
-
-  // Load Power 5V
-  const typedPower5V = new tsch();
-  await typedPower5V.loadTsch(
-    fs.readFileSync(tschPath + 'power5V.sch', {
-      encoding: 'utf8',
-    }),
-  );
-  console.log(typedPower5V.getTsch());
-  console.log(typedPower5V.outputsPower);
-  console.log(typedPower5V.getVars('VIN-0'));
-  console.log(typedPower5V.getVars('VOUT-0'));
-
-  // Load Power 3.3V
-  const typedPower3V3 = new tsch();
-  await typedPower3V3.loadTsch(
-    fs.readFileSync(tschPath + 'power3V3.sch', {
-      encoding: 'utf8',
-    }),
-  );
-  console.log(typedPower3V3.getTsch());
-  console.log(typedPower3V3.outputsPower);
-  console.log(typedPower3V3.getVars('VIN-0'));
-  console.log(typedPower3V3.getVars('VOUT-0'));
-
-  // await makeConnections(
-  //   props,
-  //   { protocolKey: 'SPI-0', typedSchematic: typedATMEGA328 },
-  //   [{ protocolKey: 'SPI-0', typedSchematic: typedFlashOne }],
-  // );
-
-  // // Power mats
-  // TODO: Add power tsch's to powerMats structure
-  const power = new powerMat();
-  const MatOne = power.newMat(typedPowerConnector);
-  const MatTwo = power.newMat(typedPower5V);
-  const MatThree = power.newMat(typedPower3V3);
-  if (MatOne) power.addMat('root', MatOne);
-  if (MatThree) power.addMat(MatOne!.uuid, MatThree);
-  if (MatTwo) power.addMat(MatOne!.uuid, MatTwo);
-
-  console.log('TREE', power.matsTree);
-  console.log('MAP', power.matsMap);
-  console.log('-----------');
-  console.log(power.addTsch(MatTwo!.uuid, typedATMEGA328));
-  console.log(power.addTsch(MatTwo!.uuid, typedFlashOne));
+  // console.log('TREE', tscheda.matsTree);
+  // console.log('MAP', tscheda.matsMap);
+  // console.log('-----------');
+  tscheda.addTschToMat(MatTwo!.uuid, atmega328);
+  tscheda.addTschToMat(MatTwo!.uuid, flash);
   console.log(MatTwo?.tschMap);
-  // TODO: Test Temperature sensor and led
-  // TODO: Add class tschEDA addTsch, makeConnections and unique uuid for each tsch.
+
+  await tscheda.connect(
+    {
+      sourceVoltage: 3.3,
+    },
+    { uuid: atmega328, protocol: 'SPI-0' },
+    [{ uuid: flash, protocol: 'SPI-0' }],
+  );
+
+  console.log(tscheda.connections);
 })();
