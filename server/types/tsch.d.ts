@@ -46,7 +46,5 @@ declare class tsch {
     private appendTypedProtocol;
     private parse;
     private checks;
-    static areEqual(protocolOne: string, protocolTwo: string): boolean;
-    static getProtocolName(protocolAndAltnameList: string[]): string | null;
 }
 export { TypedSchematic, tsch, voltage, range };

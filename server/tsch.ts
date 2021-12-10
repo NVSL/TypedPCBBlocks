@@ -55,7 +55,7 @@ class tsch {
       this.eagle = xml.eagle.drawing[0];
       this.eagleVersion = xml.eagle.version[0];
     } catch (e) {
-      console.error('It seems xml is not an eagle file', e);
+      throw `>> Parsing error: 'It seems xml is not an eagle file', ${e}`;
     }
     // console.log('>> NETS: ', this.getNetNames());
     // console.log('>> TEXTS: ', this.getTexts());
@@ -397,44 +397,6 @@ class tsch {
       }
       if (vinCounter > 1) {
         throw `>> Parsing error: Only one VIN allowed per power typed Schematic, found ${vinCounter} more`;
-      }
-    }
-  }
-
-  // ###### UTILS
-
-  public static areEqual(protocolOne: string, protocolTwo: string): boolean {
-    if (protocolOne.split('-')[0] === protocolTwo.split('-')[0]) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  // Get protocol name from protocol-altname
-  // Input examples: GPIO-1, I2C-0, GPIO-RESET, ...
-  // Return examples: GPIO, I2C, GPIO
-  public static getProtocolName(
-    protocolAndAltnameList: string[],
-  ): string | null {
-    if (protocolAndAltnameList.length == 0) {
-      console.warn('Protocol and Altname List is zero');
-      return null;
-    } else {
-      const protocolName = protocolAndAltnameList[0].split('-')[0];
-      if (protocolAndAltnameList.length == 1) {
-        return protocolAndAltnameList[0].split('-')[0];
-      } else {
-        for (const name of protocolAndAltnameList) {
-          if (!this.areEqual(protocolName, name)) {
-            console.warn(
-              'Protocol and Altname List names are not equal:',
-              protocolAndAltnameList,
-            );
-            return null;
-          }
-        }
-        return protocolName;
       }
     }
   }
