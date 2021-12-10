@@ -1,7 +1,15 @@
-import { tsch, voltage, range } from './tsch';
+import { PROPS } from './data/typedDefinitions/PROTOCOL'; // TODO: Add as a package
+import { tsch, voltage, range, TypedSchematic } from './tsch';
 
 type voutIndex = number;
+type uuid = string;
 
+interface typedProtocol {
+  uuid: uuid;
+  protocol: string;
+}
+
+// TODO: Move powerMat and powerMat node to another file
 class powerMatNode {
   uuid: string;
   powerTsch: tsch;
@@ -28,30 +36,144 @@ class powerMatNode {
 }
 
 // Power cascade
-class powerMat {
-  matsTree: powerMatNode | null;
+class tschEDA {
+  tschs: Map<string, tsch>;
   matsMap: Map<string, powerMatNode | undefined>;
+  matsTree: powerMatNode | null;
+  connections: Map<typedProtocol, typedProtocol[]>;
   constructor() {
-    this.matsTree = null;
+    this.tschs = new Map();
     this.matsMap = new Map();
+    this.matsTree = null;
+    this.connections = new Map();
   }
 
-  public newMat(powerTsch: tsch): powerMatNode | null {
-    // Get a unique randomUuid and store it to hashmap as undefied
+  ///// TSCHS
+
+  public async use(eagleFile: string): Promise<uuid> {
+    const Tsch = new tsch();
+    await Tsch.loadTsch(eagleFile);
+    return this.newTsch(Tsch);
+  }
+
+  public newTsch(tsch: tsch): uuid {
+    // Generate new ID
     let randomUuid = this.getRandomUuid();
-    while (this.matsMap.has(randomUuid)) {
+    while (this.tschs.has(randomUuid)) {
       randomUuid = this.getRandomUuid();
     }
-    this.matsMap.set(randomUuid, undefined);
-
-    // Return a powerMatNode if tsch outputs power
-    if (powerMat.isMat(powerTsch))
-      return new powerMatNode(randomUuid, null, powerTsch);
-    else return null;
+    this.tschs.set(randomUuid, tsch);
+    return randomUuid;
   }
 
-  public static isMat(tsch: tsch): boolean {
-    return tsch.outputsPower;
+  public get(uuid: string): tsch | null {
+    if (this.tschs.has(uuid)) {
+      const Tsch = this.tschs.get(uuid);
+      if (Tsch) return Tsch;
+      else return null;
+    }
+    return null;
+  }
+
+  public isTsch(tschOrUuid: any): boolean {
+    if (typeof tschOrUuid === 'string') {
+      if (this.get(tschOrUuid)) {
+        return true;
+      }
+    }
+
+    if (tschOrUuid.eagle !== undefined) {
+      return true;
+    }
+
+    return false;
+  }
+
+  public typedSch(uuid: uuid): TypedSchematic | null {
+    const Tsch = this.get(uuid);
+    if (Tsch) {
+      return Tsch.typedSchematic;
+    }
+    return null;
+  }
+
+  public typedSchVars(uuid: uuid, key: string): any | null {
+    const Tsch = this.get(uuid);
+    if (Tsch) {
+      return Tsch.getVars(key);
+    }
+    return null;
+  }
+
+  // Asociates a tsch to a power mat
+  // TODO: this must be outside in tschEDA to save tsch unique id
+  // TODO: Add error handling inside a class
+  // TODO: Add case for LED which doesn't have VIN
+  public addTschToMat(matUuid: string, tschUuid: uuid): voutIndex {
+    const Tsch = this.get(tschUuid);
+    if (Tsch) {
+      const Mat = this.getMat(matUuid);
+      if (Mat) {
+        const voutIndex = this.testTschVoltages(Mat, Tsch);
+        if (voutIndex >= 0) {
+          // Add tsch to mat
+          Mat.tschMap.set(this.getRandomUuid(), Tsch);
+          return voutIndex;
+        }
+      }
+    }
+    return -1; // TODO:"Improve error handling
+  }
+
+  //// POWER MATS
+
+  // TODO: Use should automatically create mat if tsch is mat?
+  public newMat(powerTschUuid: uuid): powerMatNode | null {
+    if (this.isMat(powerTschUuid)) {
+      const powerTsch = this.get(powerTschUuid);
+      if (powerTsch) {
+        // Get a unique randomUuid and store it to hashmap as undefied
+        let randomUuid = this.getRandomUuid();
+        while (this.matsMap.has(randomUuid)) {
+          randomUuid = this.getRandomUuid();
+        }
+        this.matsMap.set(randomUuid, undefined);
+
+        // Return a powerMatNode
+        return new powerMatNode(randomUuid, null, powerTsch);
+      }
+    }
+    return null;
+  }
+
+  public getMat(uuid: uuid): powerMatNode | null {
+    if (this.matsMap.has(uuid)) {
+      const mat = this.matsMap.get(uuid);
+      if (mat) return mat;
+      else return null;
+    }
+    return null;
+  }
+
+  public isMat(tschOrUuid: any): boolean {
+    // is Tsch
+    if (this.isTsch(tschOrUuid)) {
+      if ((<tsch>tschOrUuid).outputsPower) {
+        return true;
+      }
+    }
+
+    // is uuid
+    if (typeof tschOrUuid === 'string') {
+      const tsch = this.get(tschOrUuid);
+      if (tsch) {
+        if (tsch.outputsPower) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   private testMatVoltages(
@@ -329,25 +451,6 @@ class powerMat {
     return -1;
   }
 
-  // Asociates a tsch to a power mat
-  // TODO: this must be outside in tschEDA to save tsch unique id
-  // TODO: Add error handling inside a class
-  // TODO: Add case for LED which doesn't have VIN
-  public addTsch(matUuid: string, tsch: tsch): voutIndex {
-    if (this.matsMap.has(matUuid)) {
-      const mat = this.matsMap.get(matUuid);
-      if (mat) {
-        const voutIndex = this.testTschVoltages(mat, tsch);
-        if (voutIndex >= 0) {
-          // Add tsch to mat
-          mat.tschMap.set(this.getRandomUuid(), tsch);
-          return voutIndex;
-        }
-      }
-    }
-    return -1; // TODO:"Improve error handling
-  }
-
   private getRandomUuid(): string {
     // Random 11 characters uuid
     const s: Array<string> = [];
@@ -363,9 +466,125 @@ class powerMat {
   // TODO: Check voltage structure, (add a new unique character? @ for voltage ?)
   // TODO: Add I2C and constrains
   // TODO: Definetely check or redo the visual blocks.
+
+  ///// Constrain connectins
+
+  private loadConstrains(protocol: any, typedJson: any) {
+    const loadedProtocol = Object.assign(protocol, typedJson);
+    return loadedProtocol;
+  }
+
+  // TODO: Add a check if tsch's are on design or not
+  public async connect(
+    props: PROPS,
+    parent: typedProtocol,
+    childs: typedProtocol[],
+  ): Promise<boolean> {
+    const path = './data/typedDefinitions/'; // TODO: Add when class tschEDA is created
+    // Checks
+    if (childs.length < 1) {
+      console.error('Typed Schematic child list must be greater than one');
+      return false;
+    }
+    // TODO: Must check if TSCH is in design or not
+    // TODO: Maybe check if typed protocols Constranis exists (Must load when new tschEDA)
+
+    // Check: Only protocols or the same type can be connected
+    const protocolName = this.protocolListAreSame(parent, childs);
+    if (protocolName == null) {
+      console.error('Protocol Names are not equal', protocolName);
+      return false;
+    }
+
+    try {
+      // Dynamically import protcol class
+      const protocolClass = await import(path + protocolName);
+      console.log(protocolClass);
+
+      // Load tsch Parent Class
+      const tschClassParent: typeof protocolClass = this.loadConstrains(
+        new protocolClass[protocolName](props),
+        this.typedSchVars(parent.uuid, parent.protocol),
+      );
+      console.log('PARENT >> \n', tschClassParent);
+
+      // Load tsch Childs Class
+      const tschClassChilds: typeof protocolClass = [];
+      for (const child of childs) {
+        const tschClass = this.loadConstrains(
+          new protocolClass[protocolName](props),
+          this.typedSchVars(child.uuid, child.protocol),
+        );
+        tschClassChilds.push(tschClass);
+        console.log('CHILD >> \n', tschClass);
+      }
+
+      // Connect:
+      const result = tschClassParent.connect(tschClassChilds);
+      if (result) {
+        this.addConnection(parent, childs);
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  }
+
+  private addConnection(parent: typedProtocol, childs: typedProtocol[]) {
+    this.connections.set(parent, childs);
+  }
+
+  // Two protocols are equal
+  // Input example: GPIO, GPIO
+  // Output: true
+  private protocolsAreEqual(protocolOne: string, protocolTwo: string): boolean {
+    if (protocolOne.split('-')[0] === protocolTwo.split('-')[0]) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  // Checks that all protocols in array are the same, if are, returns friendly name
+  // Input example: [GPIO-1, GPIO-0, GPIO-RESET]
+  // Return examples: GPIO
+  private protocolListAreSame(
+    parent: typedProtocol,
+    childs: typedProtocol[],
+  ): string | null {
+    const protocolAndAltnameList = [parent.protocol].concat(
+      childs.map((e) => {
+        return e.protocol;
+      }),
+    );
+
+    if (protocolAndAltnameList.length == 0) {
+      console.warn('Protocol and Altname List is zero');
+      return null;
+    } else {
+      const protocolName = protocolAndAltnameList[0].split('-')[0];
+      if (protocolAndAltnameList.length == 1) {
+        return protocolAndAltnameList[0].split('-')[0];
+      } else {
+        for (const name of protocolAndAltnameList) {
+          if (!this.protocolsAreEqual(protocolName, name)) {
+            console.warn(
+              'Protocol and Altname List names are not equal:',
+              protocolAndAltnameList,
+            );
+            return null;
+          }
+        }
+        return protocolName;
+      }
+    }
+  }
 }
 
-export { powerMat };
+export { tschEDA };
 
 // class tschEDA {
 //   constructor() {}
