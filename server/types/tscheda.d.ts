@@ -1,6 +1,4 @@
-import { PROPS } from './data/typedDefinitions/PROTOCOL';
 import { tsch, voltage, TypedSchematic } from './tsch';
-declare type voutIndex = number;
 declare type uuid = string;
 interface typedProtocol {
     uuid: uuid;
@@ -25,14 +23,17 @@ declare class tschEDA {
     constructor();
     use(eagleFile: string): Promise<uuid>;
     newTsch(tsch: tsch): uuid;
-    get(uuid: string): tsch | null;
-    isTsch(tschOrUuid: any): boolean;
-    typedSch(uuid: uuid): TypedSchematic | null;
-    typedSchVars(uuid: uuid, key: string): any | null;
-    addTschToMat(matUuid: string, tschUuid: uuid): voutIndex;
-    newMat(powerTschUuid: uuid): powerMatNode | null;
-    getMat(uuid: uuid): powerMatNode | null;
-    isMat(tschOrUuid: any): boolean;
+    get(tschUuid: string): tsch | null;
+    getTschSourceVoltage(tschUuid: string): voltage | null;
+    isInDesing(tschUuid: string): boolean;
+    isTsch(tschOrTschUuid: any): boolean;
+    typedSch(tschUuid: uuid): TypedSchematic | null;
+    typedSchVars(tschUuid: uuid, key: string): any | null;
+    addTschToMat(matUuid: string, tschUuid: uuid): boolean;
+    newMat(tschUuid: uuid): powerMatNode | null;
+    getMat(matUuid: uuid): powerMatNode | null;
+    getTschMat(tschUuid: string): powerMatNode | null;
+    isMat(tschOrTschUuid: any): boolean;
     private testMatVoltages;
     addMat(parentUuid: string | 'root', mat: powerMatNode): boolean;
     private storeMatInTree;
@@ -40,7 +41,7 @@ declare class tschEDA {
     private testTschVoltages;
     private getRandomUuid;
     private loadConstrains;
-    connect(props: PROPS, parent: typedProtocol, childs: typedProtocol[]): Promise<boolean>;
+    connect(parent: typedProtocol, childs: typedProtocol[]): Promise<boolean>;
     private addConnection;
     private protocolsAreEqual;
     private protocolListAreSame;

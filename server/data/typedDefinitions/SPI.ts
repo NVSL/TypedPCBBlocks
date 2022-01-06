@@ -1,4 +1,4 @@
-import { PROTOCOL, POWER, PROPS, net } from './PROTOCOL';
+import { PROTOCOL, POWER, net, voltage } from './PROTOCOL';
 
 class SPI extends POWER implements PROTOCOL<SPI> {
   // Nets
@@ -7,9 +7,9 @@ class SPI extends POWER implements PROTOCOL<SPI> {
   SCK: net = false;
   // Options
   arch: string | null = null;
-  constructor(props: PROPS) {
-    super(props);
-    console.log(props);
+  constructor(sourceVoltage: voltage) {
+    super(sourceVoltage);
+    console.log(sourceVoltage);
   }
   public connect(childs: Array<SPI>): boolean {
     const parent = this;
@@ -35,6 +35,17 @@ class SPI extends POWER implements PROTOCOL<SPI> {
       if (parent.netVoltage) {
         if (!(parent.netVoltage == child.netVoltage)) {
           console.error('Net voltages are not equal');
+          return false;
+        }
+      } else {
+        // Net voltages same as Source voltages. Source voltages must fit
+        if (parent.sourceVoltage && child.sourceVoltage) {
+          if (!this.voltagesFit(parent.sourceVoltage, child.sourceVoltage)) {
+            console.error('Source voltages dont fit');
+            return false;
+          }
+        } else {
+          console.error('Source voltage not found');
           return false;
         }
       }

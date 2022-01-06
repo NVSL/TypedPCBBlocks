@@ -1,10 +1,10 @@
-import { PROTOCOL, POWER, PROPS, net } from './PROTOCOL';
+import { PROTOCOL, POWER, net, voltage } from './PROTOCOL';
 declare class SPI extends POWER implements PROTOCOL<SPI> {
     MISO: net;
     MOSI: net;
     SCK: net;
     arch: string | null;
-    constructor(props: PROPS);
+    constructor(sourceVoltage: voltage);
     connect(childs: Array<SPI>): boolean;
 }
 export { SPI };

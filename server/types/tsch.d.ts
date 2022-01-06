@@ -35,6 +35,8 @@ declare class tsch {
     eagleVersion: string | null;
     outputsPower: boolean;
     typedSchematic: TypedSchematic | null;
+    inDesign: boolean;
+    sourceVoltage: voltage | null;
     constructor();
     loadTsch(eagleData: string): Promise<void>;
     getTsch(): TypedSchematic | null;

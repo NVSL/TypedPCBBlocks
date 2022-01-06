@@ -1,4 +1,3 @@
-import { PROPS } from './data/typedDefinitions/PROTOCOL'; // TODO: Add as a package
 import { tsch, voltage, range, TypedSchematic } from './tsch';
 
 type voutIndex = number;
@@ -66,39 +65,55 @@ class tschEDA {
     return randomUuid;
   }
 
-  public get(uuid: string): tsch | null {
-    if (this.tschs.has(uuid)) {
-      const Tsch = this.tschs.get(uuid);
+  public get(tschUuid: string): tsch | null {
+    if (this.tschs.has(tschUuid)) {
+      const Tsch = this.tschs.get(tschUuid);
       if (Tsch) return Tsch;
       else return null;
     }
     return null;
   }
 
-  public isTsch(tschOrUuid: any): boolean {
-    if (typeof tschOrUuid === 'string') {
-      if (this.get(tschOrUuid)) {
+  public getTschSourceVoltage(tschUuid: string): voltage | null {
+    const Tsch = this.get(tschUuid);
+    if (Tsch) {
+      return Tsch.sourceVoltage;
+    }
+    return null;
+  }
+
+  public isInDesing(tschUuid: string): boolean {
+    const Tsch = this.get(tschUuid);
+    if (Tsch) {
+      return Tsch.inDesign;
+    }
+    return false;
+  }
+
+  public isTsch(tschOrTschUuid: any): boolean {
+    if (typeof tschOrTschUuid === 'string') {
+      if (this.get(tschOrTschUuid)) {
         return true;
       }
     }
 
-    if (tschOrUuid.eagle !== undefined) {
+    if (tschOrTschUuid.eagle !== undefined) {
       return true;
     }
 
     return false;
   }
 
-  public typedSch(uuid: uuid): TypedSchematic | null {
-    const Tsch = this.get(uuid);
+  public typedSch(tschUuid: uuid): TypedSchematic | null {
+    const Tsch = this.get(tschUuid);
     if (Tsch) {
       return Tsch.typedSchematic;
     }
     return null;
   }
 
-  public typedSchVars(uuid: uuid, key: string): any | null {
-    const Tsch = this.get(uuid);
+  public typedSchVars(tschUuid: uuid, key: string): any | null {
+    const Tsch = this.get(tschUuid);
     if (Tsch) {
       return Tsch.getVars(key);
     }
@@ -106,31 +121,32 @@ class tschEDA {
   }
 
   // Asociates a tsch to a power mat
-  // TODO: this must be outside in tschEDA to save tsch unique id
   // TODO: Add error handling inside a class
   // TODO: Add case for LED which doesn't have VIN
-  public addTschToMat(matUuid: string, tschUuid: uuid): voutIndex {
+  public addTschToMat(matUuid: string, tschUuid: uuid): boolean {
     const Tsch = this.get(tschUuid);
-    if (Tsch) {
-      const Mat = this.getMat(matUuid);
-      if (Mat) {
-        const voutIndex = this.testTschVoltages(Mat, Tsch);
-        if (voutIndex >= 0) {
-          // Add tsch to mat
-          Mat.tschMap.set(this.getRandomUuid(), Tsch);
-          return voutIndex;
-        }
-      }
+    if (!Tsch) return false;
+    const Mat = this.getMat(matUuid);
+    if (!Mat) return false;
+
+    const voutIndex = this.testTschVoltages(Mat, Tsch);
+    if (voutIndex >= 0) {
+      // Add tsch to mat
+      Mat.tschMap.set(this.getRandomUuid(), Tsch);
+      Tsch.inDesign = true;
+      // Set Tsch inDesignVout
+      Tsch.sourceVoltage = Mat.vout[voutIndex];
+      return true;
     }
-    return -1; // TODO:"Improve error handling
+    return false; // TODO:"Improve error handling
   }
 
   //// POWER MATS
 
   // TODO: Use should automatically create mat if tsch is mat?
-  public newMat(powerTschUuid: uuid): powerMatNode | null {
-    if (this.isMat(powerTschUuid)) {
-      const powerTsch = this.get(powerTschUuid);
+  public newMat(tschUuid: uuid): powerMatNode | null {
+    if (this.isMat(tschUuid)) {
+      const powerTsch = this.get(tschUuid);
       if (powerTsch) {
         // Get a unique randomUuid and store it to hashmap as undefied
         let randomUuid = this.getRandomUuid();
@@ -146,26 +162,41 @@ class tschEDA {
     return null;
   }
 
-  public getMat(uuid: uuid): powerMatNode | null {
-    if (this.matsMap.has(uuid)) {
-      const mat = this.matsMap.get(uuid);
+  public getMat(matUuid: uuid): powerMatNode | null {
+    if (this.matsMap.has(matUuid)) {
+      const mat = this.matsMap.get(matUuid);
       if (mat) return mat;
       else return null;
     }
     return null;
   }
 
-  public isMat(tschOrUuid: any): boolean {
+  public getTschMat(tschUuid: string): powerMatNode | null {
+    if (this.isInDesing(tschUuid)) {
+      for (const Mat of this.matsMap.values()) {
+        if (Mat) {
+          for (const tschUuidInMat of Mat.tschMap.keys()) {
+            if (tschUuidInMat == tschUuid) {
+              return Mat;
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  public isMat(tschOrTschUuid: any): boolean {
     // is Tsch
-    if (this.isTsch(tschOrUuid)) {
-      if ((<tsch>tschOrUuid).outputsPower) {
+    if (this.isTsch(tschOrTschUuid)) {
+      if ((<tsch>tschOrTschUuid).outputsPower) {
         return true;
       }
     }
 
     // is uuid
-    if (typeof tschOrUuid === 'string') {
-      const tsch = this.get(tschOrUuid);
+    if (typeof tschOrTschUuid === 'string') {
+      const tsch = this.get(tschOrTschUuid);
       if (tsch) {
         if (tsch.outputsPower) {
           return true;
@@ -347,6 +378,8 @@ class tschEDA {
           const childMat = this.storeMatInTree(parentMat, mat);
           // Store mat in hashmap
           this.storeMatInHashMap(childMat);
+          // Set in design
+          childMat.powerTsch.inDesign = true;
         }
       } else {
         console.error('Parent Mat Uuid', parentUuid, 'undefined');
@@ -474,9 +507,7 @@ class tschEDA {
     return loadedProtocol;
   }
 
-  // TODO: Add a check if tsch's are on design or not
   public async connect(
-    props: PROPS,
     parent: typedProtocol,
     childs: typedProtocol[],
   ): Promise<boolean> {
@@ -486,8 +517,13 @@ class tschEDA {
       console.error('Typed Schematic child list must be greater than one');
       return false;
     }
-    // TODO: Must check if TSCH is in design or not
-    // TODO: Maybe check if typed protocols Constranis exists (Must load when new tschEDA)
+    // Check if parent TSCH and child TSCHs are in design
+    if (!this.isInDesing(parent.uuid)) return false;
+    for (const child of childs) {
+      if (!this.isInDesing(child.uuid)) return false;
+    }
+
+    // TODO: Maybe check if typed protocols Constranis file exists (Must load when new tschEDA)
 
     // Check: Only protocols or the same type can be connected
     const protocolName = this.protocolListAreSame(parent, childs);
@@ -502,8 +538,9 @@ class tschEDA {
       console.log(protocolClass);
 
       // Load tsch Parent Class
+      const parentSourceVoltage = this.getTschSourceVoltage(parent.uuid);
       const tschClassParent: typeof protocolClass = this.loadConstrains(
-        new protocolClass[protocolName](props),
+        new protocolClass[protocolName](parentSourceVoltage),
         this.typedSchVars(parent.uuid, parent.protocol),
       );
       console.log('PARENT >> \n', tschClassParent);
@@ -511,8 +548,9 @@ class tschEDA {
       // Load tsch Childs Class
       const tschClassChilds: typeof protocolClass = [];
       for (const child of childs) {
+        const childSourceVoltage = this.getTschSourceVoltage(parent.uuid);
         const tschClass = this.loadConstrains(
-          new protocolClass[protocolName](props),
+          new protocolClass[protocolName](childSourceVoltage),
           this.typedSchVars(child.uuid, child.protocol),
         );
         tschClassChilds.push(tschClass);

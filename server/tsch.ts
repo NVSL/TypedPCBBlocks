@@ -41,10 +41,15 @@ class tsch {
   eagleVersion: string | null;
   outputsPower: boolean; // TODO: change for isMat
   typedSchematic: TypedSchematic | null;
+  inDesign: boolean;
+  sourceVoltage: voltage | null;
   constructor() {
     this.eagleVersion = null;
     this.outputsPower = false;
     this.typedSchematic = null;
+    // Modified when added to design
+    this.inDesign = false;
+    this.sourceVoltage = null; // voltage[voutIndex] from Mat vout: voltage[]
   }
 
   // Parses eagle schematic XML and load nets
