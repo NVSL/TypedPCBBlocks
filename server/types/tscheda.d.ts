@@ -4,6 +4,10 @@ interface typedProtocol {
     uuid: uuid;
     protocol: string;
 }
+interface eagle {
+    data: string;
+    filename: string;
+}
 declare class powerMatNode {
     uuid: string;
     powerTsch: tsch;
@@ -21,7 +25,7 @@ declare class tschEDA {
     matsTree: powerMatNode | null;
     connections: Map<typedProtocol, typedProtocol[]>;
     constructor();
-    use(eagleFile: string): Promise<uuid>;
+    use(eagle: eagle): Promise<uuid>;
     newTsch(tsch: tsch): uuid;
     get(tschUuid: string): tsch | null;
     getTschSourceVoltage(tschUuid: string): voltage | null;
@@ -29,7 +33,7 @@ declare class tschEDA {
     isTsch(tschOrTschUuid: any): boolean;
     typedSch(tschUuid: uuid): TypedSchematic | null;
     typedSchVars(tschUuid: uuid, key: string): any | null;
-    addTschToMat(matUuid: string, tschUuid: uuid): boolean;
+    addTsch(matUuid: string, tschUuid: uuid): boolean;
     newMat(tschUuid: uuid): powerMatNode | null;
     getMat(matUuid: uuid): powerMatNode | null;
     getTschMat(tschUuid: string): powerMatNode | null;
@@ -38,7 +42,10 @@ declare class tschEDA {
     addMat(parentUuid: string | 'root', mat: powerMatNode): boolean;
     private storeMatInTree;
     private storeMatInHashMap;
+    private setInstance;
     private testTschVoltages;
+    generateJson(): any;
+    static getFriendlyName(protocol: string): string;
     private getRandomUuid;
     private loadConstrains;
     connect(parent: typedProtocol, childs: typedProtocol[]): Promise<boolean>;

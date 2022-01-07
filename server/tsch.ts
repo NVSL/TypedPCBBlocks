@@ -39,26 +39,34 @@ interface TypedSchematic {
 class tsch {
   eagle: any;
   eagleVersion: string | null;
+  eagleFileName: string;
   outputsPower: boolean; // TODO: change for isMat
   typedSchematic: TypedSchematic | null;
   inDesign: boolean;
   sourceVoltage: voltage | null;
+  instance: number | null;
   constructor() {
     this.eagleVersion = null;
+    this.eagleFileName = '';
     this.outputsPower = false;
     this.typedSchematic = null;
     // Modified when added to design
     this.inDesign = false;
     this.sourceVoltage = null; // voltage[voutIndex] from Mat vout: voltage[]
+    this.instance = null; // If same schematic, instance + 1
   }
 
   // Parses eagle schematic XML and load nets
-  public async loadTsch(eagleData: string): Promise<void> {
+  public async loadTsch(
+    eagleData: string,
+    eagleFileName: string,
+  ): Promise<void> {
     const parser2 = new xml2js.Parser({ mergeAttrs: true });
     try {
       const xml = await parser2.parseStringPromise(eagleData);
       this.eagle = xml.eagle.drawing[0];
       this.eagleVersion = xml.eagle.version[0];
+      this.eagleFileName = eagleFileName;
     } catch (e) {
       throw `>> Parsing error: 'It seems xml is not an eagle file', ${e}`;
     }
@@ -78,13 +86,13 @@ class tsch {
     }
   }
 
-  public getVars(protocolKey: string): any {
+  public getVars(protocol: string): any {
     if (this.typedSchematic) {
-      if (protocolKey in this.typedSchematic) {
-        return this.typedSchematic[protocolKey].vars;
+      if (protocol in this.typedSchematic) {
+        return this.typedSchematic[protocol].vars;
       } else {
         console.error(
-          `Protocol ${protocolKey} not found in Typed Schematic Dictionary`,
+          `Protocol ${protocol} not found in Typed Schematic Dictionary`,
         );
         return null;
       }
@@ -104,6 +112,21 @@ class tsch {
           }
         }
       }
+    }
+    return null;
+  }
+
+  public getFileName(): string {
+    return this.eagleFileName;
+  }
+
+  public getInstance(): number | null {
+    return this.instance;
+  }
+
+  public getNets(protocol: string): Array<string> | null {
+    if (this.typedSchematic) {
+      return this.typedSchematic[protocol].typedNets;
     }
     return null;
   }

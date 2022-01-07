@@ -33,15 +33,19 @@ interface TypedSchematic {
 declare class tsch {
     eagle: any;
     eagleVersion: string | null;
+    eagleFileName: string;
     outputsPower: boolean;
     typedSchematic: TypedSchematic | null;
     inDesign: boolean;
     sourceVoltage: voltage | null;
+    instance: number | null;
     constructor();
-    loadTsch(eagleData: string): Promise<void>;
+    loadTsch(eagleData: string, eagleFileName: string): Promise<void>;
     getTsch(): TypedSchematic | null;
     getVars(protocolKey: string): any;
     getVin(): voltage | null;
+    getFileName(): string;
+    getInstance(): number | null;
     getVout(): voltage[];
     private getNetNames;
     private getTexts;

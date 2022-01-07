@@ -3,9 +3,23 @@ import { tsch, voltage, range, TypedSchematic } from './tsch';
 type voutIndex = number;
 type uuid = string;
 
+interface connectionOutputFormat {
+  type: string;
+  connect: Array<{
+    schematic: string;
+    instance: number;
+    nets: Array<string>;
+  }>;
+}
+
 interface typedProtocol {
   uuid: uuid;
   protocol: string;
+}
+
+interface eagle {
+  data: string;
+  filename: string;
 }
 
 // TODO: Move powerMat and powerMat node to another file
@@ -49,9 +63,9 @@ class tschEDA {
 
   ///// TSCHS
 
-  public async use(eagleFile: string): Promise<uuid> {
+  public async use(eagle: eagle): Promise<uuid> {
     const Tsch = new tsch();
-    await Tsch.loadTsch(eagleFile);
+    await Tsch.loadTsch(eagle.data, eagle.filename);
     return this.newTsch(Tsch);
   }
 
@@ -62,6 +76,8 @@ class tschEDA {
       randomUuid = this.getRandomUuid();
     }
     this.tschs.set(randomUuid, tsch);
+    // Update tsch instance number
+    this.setInstance(tsch);
     return randomUuid;
   }
 
@@ -123,7 +139,7 @@ class tschEDA {
   // Asociates a tsch to a power mat
   // TODO: Add error handling inside a class
   // TODO: Add case for LED which doesn't have VIN
-  public addTschToMat(matUuid: string, tschUuid: uuid): boolean {
+  public addTsch(matUuid: string, tschUuid: uuid): boolean {
     const Tsch = this.get(tschUuid);
     if (!Tsch) return false;
     const Mat = this.getMat(matUuid);
@@ -341,6 +357,8 @@ class tschEDA {
         const childMat = this.storeMatInTree('root', mat);
         // Store mat in hashmap
         this.storeMatInHashMap(childMat);
+        // Set in design
+        childMat.powerTsch.inDesign = true;
       } else {
         console.error('Power Mats Tree alrady has a root');
         return false;
@@ -424,6 +442,20 @@ class tschEDA {
     }
   }
 
+  private setInstance(tsch: tsch) {
+    let instanceCounter = 0;
+    if (this.isTsch(tsch)) {
+      for (const storedTsch of this.tschs.values()) {
+        if (storedTsch) {
+          if (tsch.eagleFileName == storedTsch.eagleFileName) {
+            instanceCounter++;
+          }
+        }
+      }
+      tsch.instance = instanceCounter;
+    }
+  }
+
   private testTschVoltages(mat: powerMatNode, tsch: tsch): voutIndex {
     const vin = tsch.getVin();
     if (vin == null) {
@@ -482,6 +514,29 @@ class tschEDA {
       }
     }
     return -1;
+  }
+
+  // Generate connections list in JSON format
+  public generateJson(): any {
+    const outputFormat: Array<connectionOutputFormat> = [];
+    if (this.connections.size > 0) {
+      for (const [key, val] of this.connections.entries()) {
+        const tsch = this.get(key.uuid);
+        console.log(tsch!.typedSchematic);
+        // const format: connectionOutputFormat = {
+        //   type: tschEDA.getFriendlyName(key.protocol),
+        //   connect: []
+        // }
+        // format.connect.push({schematic: tsch!.getFileName(), instance: tsch!.getInstance()!, net: })
+        // outputFormat.push{
+        // }
+      }
+    }
+  }
+
+  public static getFriendlyName(protocol: string): string {
+    const friendlyName = protocol.split('-')[0];
+    return friendlyName ? friendlyName : '';
   }
 
   private getRandomUuid(): string {
