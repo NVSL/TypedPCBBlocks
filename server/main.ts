@@ -1,12 +1,12 @@
 import * as fs from 'fs';
 import { tschEDA } from './tscheda';
 
-function eagelFile(fileName: string): string {
+function eagelFile(filename: string): { data: string; filename: string } {
   const tschPath = 'data/typedSchematics/';
-  const eagleFile = fs.readFileSync(tschPath + fileName, {
+  const data = fs.readFileSync(tschPath + filename, {
     encoding: 'utf8',
   });
-  return eagleFile;
+  return { data: data, filename: filename };
 }
 
 // Main program
@@ -32,15 +32,15 @@ function eagelFile(fileName: string): string {
   // console.log('TREE', tscheda.matsTree);
   // console.log('MAP', tscheda.matsMap);
   // console.log('-----------');
-  tscheda.addTschToMat(MatTwo!.uuid, atmega328);
-  tscheda.addTschToMat(MatTwo!.uuid, flash);
-  console.log(MatTwo?.tschMap);
+  tscheda.addTsch(MatTwo!.uuid, atmega328);
+  tscheda.addTsch(MatTwo!.uuid, flash);
+  console.log(tscheda.tschs);
 
   await tscheda.connect({ uuid: atmega328, protocol: 'SPI-0' }, [
     { uuid: flash, protocol: 'SPI-0' },
   ]);
 
-  console.log(tscheda.connections);
+  tscheda.generateJson();
 })();
 
 // TODO NEXT:
