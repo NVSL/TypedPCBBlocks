@@ -3,13 +3,14 @@ import { tsch, voltage, range, TypedSchematic } from './tsch';
 type voutIndex = number;
 type uuid = string;
 
+type connect = {
+  schematic: string;
+  instance: number;
+  nets: Array<string>;
+};
 interface connectionOutputFormat {
   type: string;
-  connect: Array<{
-    schematic: string;
-    instance: number;
-    nets: Array<string>;
-  }>;
+  connect: Array<connect>;
 }
 
 interface typedProtocol {
@@ -521,17 +522,27 @@ class tschEDA {
     const outputFormat: Array<connectionOutputFormat> = [];
     if (this.connections.size > 0) {
       for (const [key, val] of this.connections.entries()) {
-        const tsch = this.get(key.uuid);
-        console.log(tsch!.typedSchematic);
-        // const format: connectionOutputFormat = {
-        //   type: tschEDA.getFriendlyName(key.protocol),
-        //   connect: []
-        // }
-        // format.connect.push({schematic: tsch!.getFileName(), instance: tsch!.getInstance()!, net: })
-        // outputFormat.push{
-        // }
+        const protocol = key.protocol;
+        const uuids = [key.uuid].concat(val.map((e) => e.uuid));
+        const connections: Array<connect> = [];
+        for (const uuid of uuids) {
+          const tsch = this.get(uuid);
+          if (tsch) {
+            connections.push({
+              schematic: tsch.getFileName(),
+              instance: tsch.getInstance()!,
+              nets: tsch.getNets(protocol),
+            });
+          }
+        }
+        const format: connectionOutputFormat = {
+          type: tschEDA.getFriendlyName(key.protocol),
+          connect: connections,
+        };
+        outputFormat.push(format);
       }
     }
+    console.log(JSON.stringify(outputFormat, null, 2));
   }
 
   public static getFriendlyName(protocol: string): string {

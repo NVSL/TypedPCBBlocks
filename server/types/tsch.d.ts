@@ -42,10 +42,11 @@ declare class tsch {
     constructor();
     loadTsch(eagleData: string, eagleFileName: string): Promise<void>;
     getTsch(): TypedSchematic | null;
-    getVars(protocolKey: string): any;
+    getVars(protocol: string): any;
     getVin(): voltage | null;
     getFileName(): string;
     getInstance(): number | null;
+    getNets(protocol: string): Array<string>;
     getVout(): voltage[];
     private getNetNames;
     private getTexts;

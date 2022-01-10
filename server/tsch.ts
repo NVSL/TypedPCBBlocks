@@ -124,11 +124,11 @@ class tsch {
     return this.instance;
   }
 
-  public getNets(protocol: string): Array<string> | null {
+  public getNets(protocol: string): Array<string> {
     if (this.typedSchematic) {
       return this.typedSchematic[protocol].typedNets;
     }
-    return null;
+    return [];
   }
 
   public getVout(): voltage[] {
