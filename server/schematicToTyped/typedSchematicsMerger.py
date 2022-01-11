@@ -4,11 +4,12 @@ Typed Schematics merger.
 Generates full schematics from typed schematic blocks.
 
 Usage:
-  mergeTypedSchematics.py [--debug] [-i] JSON_FILE
+  mergeTypedSchematics.py [--debug] [-i] JSON_FILE [-p] TSCHS_PATH
 
 Options:
   --debug    Debugging output.
   -i         Next argument is json input as comandline.
+  -p         Typed Schematics path
 """
 
 
@@ -23,6 +24,8 @@ _debugMode = False
 _arguments = ""
 _uniquePrefix = "__u"
 _mergedSchematicName = "Combined.sch"
+_schematicsPath = "/"
+_templatesPath = 'templates/'
 _reservedNets = ["GND"]
 
 def eprint(*args, **kwargs):
@@ -183,6 +186,11 @@ def main(arguments):
         with open(arguments['JSON_FILE'], 'r') as f:
             deviceConnections = json.loads(f.read())
 
+    if arguments['-p'] is True:
+         _schematicsPath = arguments['TSCHS_PATH']
+
+    print(_schematicsPath)
+
     # Get unique schematics and give them a unique number
     unique_schematics = {}
     unique_counter = 0
@@ -203,7 +211,7 @@ def main(arguments):
     schematic_data= {}
     for prefix, dicValue in unique_schematics.items():
         schematic = dicValue["schematic"]
-        data = Swoop.EagleFile.from_file(pyPath + "typedSchematics/" + schematic + '.sch')
+        data = Swoop.EagleFile.from_file(pyPath + _schematicsPath + schematic)
         schematic_data[prefix] = data
     debug_print(">> Schematic data: \n", schematic_data)
 
@@ -285,7 +293,7 @@ def main(arguments):
 
     ## Merge schematics into schematic template
     debug_print(">> Writing")
-    emptySchematic = Swoop.EagleFile.from_file(pyPath + 'typedSchematics/_emptyTemplate.sch')
+    emptySchematic = Swoop.EagleFile.from_file(pyPath + _templatesPath + '_emptyTemplate.sch')
     for prefix, dicValue in unique_schematics.items():
         debug_print(dicValue['schematic'],":")
         sheets = schematic_data[prefix].get_sheets()
@@ -302,7 +310,7 @@ def main(arguments):
             emptySchematic.add_library(library)
 
     # Save new schematic
-    # emptySchematic.write(pyPath + _mergedSchematicName)
+    emptySchematic.write(pyPath + _mergedSchematicName)
     debug_print(">> Schematic write succesfully!")
 
 
@@ -311,28 +319,28 @@ def main(arguments):
 
 
 
-    # Make board from schematic
-    brdTemplate = Swoop.EagleFile.from_file(pyPath + 'typedSchematics/_emptyTemplate.brd')
-    board = build_board_from_schematic(emptySchematic, brdTemplate)
+    # # Make board from schematic
+    # brdTemplate = Swoop.EagleFile.from_file(pyPath + _templatesPath + '_emptyTemplate.brd')
+    # board = build_board_from_schematic(emptySchematic, brdTemplate)
 
-    # Transfer modules designs
-    for prefix, dicValue in unique_schematics.items():
-        schematic = dicValue["schematic"]
-        debug_print(dicValue['schematic'], prefix,":")
-        moduleBrd = Swoop.EagleFile.from_file(pyPath + 'typedSchematics/'+ schematic +'.brd')
-        for moduleEleName,moduleEle in moduleBrd.elements.items():
-            print(moduleEleName, moduleEle.name, moduleEle.x, moduleEle.y)
-            for boardEleName,boardEle in board.elements.items():
-                if (boardEleName == moduleEleName+prefix ):
-                    print("Found!", boardEleName)
-                    # Copy element postions
-                    boardEle.x = moduleEle.x
-                    boardEle.y = moduleEle.y
-                    boardEle.rot = moduleEle.rot
-            # TODO: Add signals, attribute names and define a X position (maybe from json)
+    # # Transfer modules designs
+    # for prefix, dicValue in unique_schematics.items():
+    #     schematic = dicValue["schematic"]
+    #     debug_print(dicValue['schematic'], prefix,":")
+    #     moduleBrd = Swoop.EagleFile.from_file(pyPath + _schematicsPath + schematic +'.brd')
+    #     for moduleEleName,moduleEle in moduleBrd.elements.items():
+    #         print(moduleEleName, moduleEle.name, moduleEle.x, moduleEle.y)
+    #         for boardEleName,boardEle in board.elements.items():
+    #             if (boardEleName == moduleEleName+prefix ):
+    #                 print("Found!", boardEleName)
+    #                 # Copy element postions
+    #                 boardEle.x = moduleEle.x
+    #                 boardEle.y = moduleEle.y
+    #                 boardEle.rot = moduleEle.rot
+    #         # TODO: Add signals, attribute names and define a X position (maybe from json)
     
-    # Write final board file
-    board.write(pyPath + 'COMBINED.brd')
+    # # Write final board file
+    # board.write(pyPath + 'COMBINED.brd')
 
     
 

@@ -44,8 +44,9 @@ declare class tschEDA {
     private storeMatInHashMap;
     private setInstance;
     private testTschVoltages;
-    generateJson(): any;
+    generateJson(): string;
     static getFriendlyName(protocol: string): string;
+    static getWires(protocolFriedlyName: string, nets: Array<string>): Array<string>;
     private getRandomUuid;
     private loadConstrains;
     connect(parent: typedProtocol, childs: typedProtocol[]): Promise<boolean>;

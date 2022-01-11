@@ -9,6 +9,16 @@ function eagelFile(filename: string): { data: string; filename: string } {
   return { data: data, filename: filename };
 }
 
+function outputFile(jsonData: string) {
+  const outputPath = 'output/tscheda.json';
+  // Delete file if exists
+  if (fs.existsSync(outputPath)) {
+    fs.unlinkSync(outputPath);
+  }
+  // Write file
+  fs.writeFileSync(outputPath, jsonData);
+}
+
 // Main program
 (async () => {
   const tscheda = new tschEDA();
@@ -40,10 +50,12 @@ function eagelFile(filename: string): { data: string; filename: string } {
     { uuid: flash, protocol: 'SPI-0' },
   ]);
 
-  tscheda.generateJson();
+  const jsonData = tscheda.generateJson();
+  console.log(jsonData);
+  outputFile(jsonData);
 })();
 
 // TODO NEXT:
-// -- Generate schematic connections and voltages connections map.
+// -- Generate schematic connections and voltages connections map. [Missing voltages]
 // -- Fix addMat and newMat returns, must use uuids.
 // -- Add multiple designs?

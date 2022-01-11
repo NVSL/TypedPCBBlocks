@@ -1,3 +1,4 @@
+import { json } from 'stream/consumers';
 import { tsch, voltage, range, TypedSchematic } from './tsch';
 
 type voutIndex = number;
@@ -6,10 +7,11 @@ type uuid = string;
 type connect = {
   schematic: string;
   instance: number;
-  nets: Array<string>;
+  net: string;
 };
 interface connectionOutputFormat {
   type: string;
+  wire: string;
   connect: Array<connect>;
 }
 
@@ -518,36 +520,87 @@ class tschEDA {
   }
 
   // Generate connections list in JSON format
-  public generateJson(): any {
+  public generateJson(): string {
     const outputFormat: Array<connectionOutputFormat> = [];
+    const mapHelper: Map<string, Array<connect>> = new Map();
     if (this.connections.size > 0) {
       for (const [key, val] of this.connections.entries()) {
+        const type = tschEDA.getFriendlyName(key.protocol);
         const protocol = key.protocol;
         const uuids = [key.uuid].concat(val.map((e) => e.uuid));
-        const connections: Array<connect> = [];
+        const wires = tschEDA.getWires(
+          type,
+          this.get(key.uuid)!.getNets(protocol),
+        );
         for (const uuid of uuids) {
           const tsch = this.get(uuid);
           if (tsch) {
-            connections.push({
-              schematic: tsch.getFileName(),
-              instance: tsch.getInstance()!,
-              nets: tsch.getNets(protocol),
-            });
+            if (wires) {
+              // Connect by wire
+              for (const wire of wires) {
+                console.log(wire);
+                const net = tsch
+                  .getNets(protocol)
+                  .filter((e) => e.includes(wire))[0];
+                console.log(net);
+                // Set connect
+                const connect: connect = {
+                  schematic: tsch.getFileName(),
+                  instance: tsch.getInstance()!,
+                  net: net,
+                };
+                // Add to map helper
+                const multiKey = JSON.stringify({
+                  type,
+                  wire,
+                });
+                if (mapHelper.has(multiKey)) {
+                  let val: Array<connect> | undefined = mapHelper.get(multiKey);
+                  if (val) {
+                    val.push(connect);
+                  }
+                } else {
+                  mapHelper.set(multiKey, [connect]);
+                }
+              }
+            }
           }
         }
-        const format: connectionOutputFormat = {
-          type: tschEDA.getFriendlyName(key.protocol),
-          connect: connections,
-        };
-        outputFormat.push(format);
+        // Final format from map helper
+        for (const [key, val] of mapHelper.entries()) {
+          const index: { type: string; wire: string } = JSON.parse(key);
+          const format: connectionOutputFormat = {
+            type: index.type,
+            wire: index.wire,
+            connect: val,
+          };
+          outputFormat.push(format);
+        }
       }
     }
-    console.log(JSON.stringify(outputFormat, null, 2));
+    return JSON.stringify(outputFormat, null, 2);
   }
 
   public static getFriendlyName(protocol: string): string {
     const friendlyName = protocol.split('-')[0];
     return friendlyName ? friendlyName : '';
+  }
+
+  public static getWires(
+    protocolFriedlyName: string,
+    nets: Array<string>,
+  ): Array<string> {
+    const wires: Array<string> = [];
+    const typednets = nets;
+    for (const tyepnet of typednets) {
+      for (const net of tyepnet.split('||')) {
+        if (net.includes(protocolFriedlyName) && net.includes('.')) {
+          const wire = net.split('.')[1];
+          wires.push(wire);
+        }
+      }
+    }
+    return wires;
   }
 
   private getRandomUuid(): string {
