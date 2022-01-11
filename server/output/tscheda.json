@@ -1,0 +1,50 @@
+[
+  {
+    "type": "SPI",
+    "wire": "MOSI",
+    "connect": [
+      {
+        "schematic": "atmega328.sch",
+        "instance": 1,
+        "net": "#SPI-0.MOSI||#GPIO-11"
+      },
+      {
+        "schematic": "flash.sch",
+        "instance": 1,
+        "net": "#SPI.MOSI"
+      }
+    ]
+  },
+  {
+    "type": "SPI",
+    "wire": "MISO",
+    "connect": [
+      {
+        "schematic": "atmega328.sch",
+        "instance": 1,
+        "net": "#SPI-0.MISO||#GPIO-12"
+      },
+      {
+        "schematic": "flash.sch",
+        "instance": 1,
+        "net": "#SPI.MISO"
+      }
+    ]
+  },
+  {
+    "type": "SPI",
+    "wire": "SCK",
+    "connect": [
+      {
+        "schematic": "atmega328.sch",
+        "instance": 1,
+        "net": "#SPI-0.SCK||#GPIO-13"
+      },
+      {
+        "schematic": "flash.sch",
+        "instance": 1,
+        "net": "#SPI.SCK"
+      }
+    ]
+  }
+]
