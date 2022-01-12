@@ -44,6 +44,8 @@ declare class tschEDA {
     private storeMatInHashMap;
     private setInstance;
     private testTschVoltages;
+    private generateNetConnections;
+    private generatePowerConnections;
     generateJson(): string;
     static getFriendlyName(protocol: string): string;
     static getWires(protocolFriedlyName: string, nets: Array<string>): Array<string>;
@@ -54,4 +56,4 @@ declare class tschEDA {
     private protocolsAreEqual;
     private protocolListAreSame;
 }
-export { tschEDA };
+export { tschEDA, powerMatNode };

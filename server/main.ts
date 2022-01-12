@@ -30,20 +30,20 @@ function outputFile(jsonData: string) {
   const power3V3 = await tscheda.use(eagelFile('power3V3.sch'));
 
   // TODO: Make new mat return string uuid or "", add unitialized Mat somewhere
-  const MatOne = tscheda.newMat(power5V12V);
-  const MatTwo = tscheda.newMat(power5V);
-  const MatThree = tscheda.newMat(power3V3);
+  const Mat5V12V = tscheda.newMat(power5V12V);
+  const Mat5V = tscheda.newMat(power5V);
+  const Mat3V3 = tscheda.newMat(power3V3);
 
   // TODO: second parameter should be string uuid, the mat should be searched and initialized
-  tscheda.addMat('root', MatOne!);
-  tscheda.addMat(MatOne!.uuid, MatThree!);
-  tscheda.addMat(MatOne!.uuid, MatTwo!);
+  tscheda.addMat('root', Mat5V12V!);
+  tscheda.addMat(Mat5V12V!.uuid, Mat3V3!);
+  tscheda.addMat(Mat5V12V!.uuid, Mat5V!);
 
   // console.log('TREE', tscheda.matsTree);
   // console.log('MAP', tscheda.matsMap);
   // console.log('-----------');
-  tscheda.addTsch(MatTwo!.uuid, atmega328);
-  tscheda.addTsch(MatTwo!.uuid, flash);
+  tscheda.addTsch(Mat5V!.uuid, atmega328);
+  tscheda.addTsch(Mat5V!.uuid, flash);
   console.log(tscheda.tschs);
 
   await tscheda.connect({ uuid: atmega328, protocol: 'SPI-0' }, [
@@ -51,7 +51,7 @@ function outputFile(jsonData: string) {
   ]);
 
   const jsonData = tscheda.generateJson();
-  console.log(jsonData);
+  // console.log(jsonData);
   outputFile(jsonData);
 })();
 

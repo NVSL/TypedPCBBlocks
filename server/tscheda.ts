@@ -1,4 +1,5 @@
 import { json } from 'stream/consumers';
+import { Queue } from './utils';
 import { tsch, voltage, range, TypedSchematic } from './tsch';
 
 type voutIndex = number;
@@ -226,6 +227,8 @@ class tschEDA {
     return false;
   }
 
+  // TODO: This must return VOUT-X connected to what VIN so we can add the connections
+  // TODO: Remove Bread first search
   private testMatVoltages(
     parentMat: powerMatNode,
     childMat: powerMatNode,
@@ -242,6 +245,7 @@ class tschEDA {
       return false;
     }
 
+    // for (const [voutIndex, vout] of Object.entries(mat.vout)) {
     for (const vout of parentMat.vout) {
       const vin = childMat.vin;
       let voltageOut: number | range | Array<number>;
@@ -519,8 +523,7 @@ class tschEDA {
     return -1;
   }
 
-  // Generate connections list in JSON format
-  public generateJson(): string {
+  private generateNetConnections(): connectionOutputFormat[] {
     const outputFormat: Array<connectionOutputFormat> = [];
     const mapHelper: Map<string, Array<connect>> = new Map();
     if (this.connections.size > 0) {
@@ -578,7 +581,35 @@ class tschEDA {
         }
       }
     }
-    return JSON.stringify(outputFormat, null, 2);
+    return outputFormat;
+  }
+
+  private generatePowerConnections() {
+    // Traverse matNodes Tree by level
+    let queue = new Queue();
+    let nextLevel = new Queue();
+    let level = 0;
+    queue.enqueue(this.matsTree);
+    while (!queue.isEmpty()) {
+      let matNode: powerMatNode | undefined = queue.dequeue();
+      console.log('BFS level', level, 'value: ', matNode);
+      if (matNode) {
+        for (const childs of matNode.children.values()) {
+          nextLevel.enqueue(childs);
+        }
+      }
+      if (queue.isEmpty()) {
+        queue = nextLevel;
+        nextLevel = new Queue();
+        level++;
+      }
+    }
+  }
+
+  // Generate connections list in JSON format
+  public generateJson(): string {
+    this.generatePowerConnections();
+    return JSON.stringify(this.generateNetConnections(), null, 2);
   }
 
   public static getFriendlyName(protocol: string): string {
@@ -741,7 +772,7 @@ class tschEDA {
   }
 }
 
-export { tschEDA };
+export { tschEDA, powerMatNode };
 
 // class tschEDA {
 //   constructor() {}
