@@ -5,6 +5,7 @@ type range = { min: number; max: number };
 type typedYType = 'power' | 'protocol';
 
 interface voltage {
+  protocol: string;
   io: 'out' | 'in' | null;
   isConnector: boolean; // TODO: Remove is Connector, then Only empty vin[] and a single or multiple vouts can be added to root.
   type: 'number' | 'range' | 'list' | null;
@@ -131,19 +132,34 @@ class tsch {
     return [];
   }
 
-  public getVout(): voltage[] {
+  public getVouts(): voltage[] {
     const vout: voltage[] = [];
     if (this.typedSchematic) {
-      for (const [key, val] of Object.entries(this.typedSchematic)) {
+      for (const val of Object.values(this.typedSchematic)) {
         if (val.type == 'power') {
-          const typedPower = <TypedPower>val;
-          if (typedPower.vars.voltage.io === 'out') {
-            vout.push(typedPower.vars.voltage);
+          const voltage = (<TypedPower>val).vars.voltage;
+          if (voltage.io === 'out') {
+            vout.push(voltage);
           }
         }
       }
     }
     return vout;
+  }
+
+  public getVout(protocol: string): voltage | null {
+    const vout: voltage[] | null = [];
+    if (this.typedSchematic) {
+      for (const val of Object.values(this.typedSchematic)) {
+        if (val.type == 'power') {
+          const voltage = (<TypedPower>val).vars.voltage;
+          if (voltage.io === 'out' && voltage.protocol == protocol) {
+            return voltage;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   // Gets schematic net names
@@ -258,6 +274,7 @@ class tsch {
             typedNets: [],
             vars: {
               voltage: {
+                protocol: '',
                 io: null,
                 isConnector: false,
                 type: null,
@@ -271,6 +288,9 @@ class tsch {
           if (voltageName.split('-')[1]) {
             power.altname = voltageName.split('-')[1];
           }
+
+          // Set protocol aka voltageName + altmane
+          power.vars.voltage.protocol = power.name + '-' + power.altname;
 
           // Check if voltage type is IN or OUT
           if (voltageName.includes('VIN') || voltageName.includes('VOUT')) {

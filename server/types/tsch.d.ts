@@ -4,6 +4,7 @@ declare type range = {
 };
 declare type typedYType = 'power' | 'protocol';
 interface voltage {
+    protocol: string;
     io: 'out' | 'in' | null;
     isConnector: boolean;
     type: 'number' | 'range' | 'list' | null;
@@ -47,7 +48,8 @@ declare class tsch {
     getFileName(): string;
     getInstance(): number | null;
     getNets(protocol: string): Array<string>;
-    getVout(): voltage[];
+    getVouts(): voltage[];
+    getVout(protocol: string): voltage | null;
     private getNetNames;
     private getTexts;
     private appendTypedProtocol;
