@@ -50,6 +50,7 @@ function outputFile(jsonData: string) {
     { uuid: flash, protocol: 'SPI-0' },
   ]);
 
+  console.log(tscheda.connections);
   const jsonData = tscheda.generateJson();
   // console.log(jsonData);
   outputFile(jsonData);

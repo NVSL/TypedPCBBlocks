@@ -1,6 +1,9 @@
 import { json } from 'stream/consumers';
 import { Queue } from './utils';
 import { tsch, voltage, range, TypedSchematic } from './tsch';
+import { PROTOCOL } from './data/typedDefinitions/PROTOCOL';
+import { version } from 'os';
+import { parse } from 'path/posix';
 
 type voutIndex = number;
 type uuid = string;
@@ -45,7 +48,7 @@ class powerMatNode {
     this.parent = parent;
     this.powerTsch = powerTsch;
     this.vin = powerTsch.getVin();
-    this.vout = powerTsch.getVout();
+    this.vout = powerTsch.getVouts();
     this.propagVout = [];
     this.tschMap = new Map();
     this.children = new Map();
@@ -57,7 +60,7 @@ class tschEDA {
   tschs: Map<string, tsch>;
   matsMap: Map<string, powerMatNode | undefined>;
   matsTree: powerMatNode | null;
-  connections: Map<typedProtocol, typedProtocol[]>;
+  connections: Map<string, typedProtocol[]>;
   constructor() {
     this.tschs = new Map();
     this.matsMap = new Map();
@@ -149,13 +152,30 @@ class tschEDA {
     const Mat = this.getMat(matUuid);
     if (!Mat) return false;
 
-    const voutIndex = this.testTschVoltages(Mat, Tsch);
-    if (voutIndex >= 0) {
+    const vResult: {
+      voutProtocol: string;
+      vinProtocol: string;
+    } | null = this.testTschVoltages(Mat, Tsch);
+    if (vResult != null) {
       // Add tsch to mat
       Mat.tschMap.set(this.getRandomUuid(), Tsch);
       Tsch.inDesign = true;
       // Set Tsch inDesignVout
-      Tsch.sourceVoltage = Mat.vout[voutIndex];
+      const res = Mat.powerTsch.getVars(vResult.voutProtocol);
+      Tsch.sourceVoltage = Mat.powerTsch.getVout(vResult.voutProtocol);
+      // Add connection
+      const key: typedProtocol = {
+        uuid: matUuid,
+        protocol: vResult.voutProtocol,
+      };
+      const data: typedProtocol = {
+        uuid: tschUuid,
+        protocol: vResult.vinProtocol,
+      };
+
+      this.addConnection(key, [data]);
+
+      console.log('*** New Mat/Tsch Connection', this.connections);
       return true;
     }
     return false; // TODO:"Improve error handling
@@ -165,7 +185,7 @@ class tschEDA {
 
   // TODO: Use should automatically create mat if tsch is mat?
   public newMat(tschUuid: uuid): powerMatNode | null {
-    if (this.isMat(tschUuid)) {
+    if (this.tschOutputsPower(tschUuid)) {
       const powerTsch = this.get(tschUuid);
       if (powerTsch) {
         // Get a unique randomUuid and store it to hashmap as undefied
@@ -206,14 +226,24 @@ class tschEDA {
     return null;
   }
 
-  public isMat(tschOrTschUuid: any): boolean {
-    // is Tsch
-    if (this.isTsch(tschOrTschUuid)) {
-      if ((<tsch>tschOrTschUuid).outputsPower) {
+  public isMat(matOrMatUuid: any): boolean {
+    // is uuid
+    if (typeof matOrMatUuid === 'string') {
+      const mat = this.getMat(matOrMatUuid);
+      if (mat) {
         return true;
       }
     }
 
+    // is mat
+    if ((<powerMatNode>matOrMatUuid).powerTsch) {
+      return true;
+    }
+
+    return false;
+  }
+
+  public tschOutputsPower(tschOrTschUuid: any) {
     // is uuid
     if (typeof tschOrTschUuid === 'string') {
       const tsch = this.get(tschOrTschUuid);
@@ -221,6 +251,13 @@ class tschEDA {
         if (tsch.outputsPower) {
           return true;
         }
+      }
+    }
+
+    // is Tsch
+    if (this.isTsch(tschOrTschUuid)) {
+      if ((<tsch>tschOrTschUuid).outputsPower) {
+        return true;
       }
     }
 
@@ -232,17 +269,17 @@ class tschEDA {
   private testMatVoltages(
     parentMat: powerMatNode,
     childMat: powerMatNode,
-  ): boolean {
+  ): { voutProtocol: string; vinProtocol: string } | null {
     if (childMat.vin == null) {
       console.warn(
         'Power Mats with no voltage inputs can only be added to root',
       );
-      return false;
+      return null;
     }
 
     if (parentMat.vout.length == 0) {
       console.error("Parent Power Mat doesn't have a vout:", parentMat);
-      return false;
+      return null;
     }
 
     // for (const [voutIndex, vout] of Object.entries(mat.vout)) {
@@ -258,23 +295,50 @@ class tschEDA {
             case 'number':
               voltageIn = <number>vin.value;
               if (voltageOut == voltageIn) {
-                console.log('TEST VOLTAGES', true, 'number, number');
-                return true;
+                console.log(
+                  'TEST VOLTAGES',
+                  { voutProtocol: vout.protocol, vinProtocol: vin.protocol },
+                  'number, number',
+                );
+                return {
+                  voutProtocol: vout.protocol,
+                  vinProtocol: vin.protocol,
+                };
               }
               break;
             case 'range':
               voltageIn = <range>vin.value;
               if (voltageOut >= voltageIn.min && voltageOut <= voltageIn.max) {
-                console.log('TEST VOLTAGES', true, 'number, range');
-                return true;
+                console.log(
+                  'TEST VOLTAGES',
+                  {
+                    voutProtocol: vout.protocol,
+                    vinProtocol: vin.protocol,
+                  },
+                  'number, range',
+                );
+                return {
+                  voutProtocol: vout.protocol,
+                  vinProtocol: vin.protocol,
+                };
               }
               break;
             case 'list':
               voltageIn = <Array<number>>vin.value;
               for (const vi of voltageIn) {
                 if (vi == voltageOut) {
-                  console.log('TEST VOLTAGES', true, 'number, list');
-                  return true;
+                  console.log(
+                    'TEST VOLTAGES',
+                    {
+                      voutProtocol: vout.protocol,
+                      vinProtocol: vin.protocol,
+                    },
+                    'number, list',
+                  );
+                  return {
+                    voutProtocol: vout.protocol,
+                    vinProtocol: vin.protocol,
+                  };
                 }
               }
               break;
@@ -301,8 +365,18 @@ class tschEDA {
                 voltageIn.min <= voltageOut.max &&
                 voltageOut.min <= voltageIn.max
               ) {
-                console.log('TEST VOLTAGES', true, 'range, range');
-                return true;
+                console.log(
+                  'TEST VOLTAGES',
+                  {
+                    voutProtocol: vout.protocol,
+                    vinProtocol: vin.protocol,
+                  },
+                  'range, range',
+                );
+                return {
+                  voutProtocol: vout.protocol,
+                  vinProtocol: vin.protocol,
+                };
               }
               break;
             case 'list':
@@ -321,8 +395,18 @@ class tschEDA {
               voltageIn = <number>vin.value;
               for (const vo of voltageOut) {
                 if (vo == voltageIn) {
-                  console.log('TEST VOLTAGES', true, 'list, number');
-                  return true;
+                  console.log(
+                    'TEST VOLTAGES',
+                    {
+                      voutProtocol: vout.protocol,
+                      vinProtocol: vin.protocol,
+                    },
+                    'list, number',
+                  );
+                  return {
+                    voutProtocol: vout.protocol,
+                    vinProtocol: vin.protocol,
+                  };
                 }
               }
               break;
@@ -331,8 +415,18 @@ class tschEDA {
               // voltages ranges Overlap
               for (const vo of voltageOut) {
                 if (vo >= voltageIn.min && vo <= voltageIn.max) {
-                  console.log('TEST VOLTAGES', true, 'list, range');
-                  return true;
+                  console.log(
+                    'TEST VOLTAGES',
+                    {
+                      voutProtocol: vout.protocol,
+                      vinProtocol: vin.protocol,
+                    },
+                    'list, range',
+                  );
+                  return {
+                    voutProtocol: vout.protocol,
+                    vinProtocol: vin.protocol,
+                  };
                 }
               }
               break;
@@ -340,8 +434,18 @@ class tschEDA {
               for (const vo of voltageOut) {
                 for (const vi of voltageOut) {
                   if (vo == vi) {
-                    console.log('TEST VOLTAGES', true, 'list, list');
-                    return true;
+                    console.log(
+                      'TEST VOLTAGES',
+                      {
+                        voutProtocol: vout.protocol,
+                        vinProtocol: vin.protocol,
+                      },
+                      'list, list',
+                    );
+                    return {
+                      voutProtocol: vout.protocol,
+                      vinProtocol: vin.protocol,
+                    };
                   }
                 }
               }
@@ -354,7 +458,7 @@ class tschEDA {
           break;
       }
     }
-    return false;
+    return null;
   }
 
   public addMat(parentUuid: string | 'root', mat: powerMatNode): boolean {
@@ -382,7 +486,11 @@ class tschEDA {
 
       if (parentMat) {
         // Test Voltages ranges between parent Mat and new Mat
-        if (!this.testMatVoltages(parentMat, mat)) {
+        const vResult: {
+          voutProtocol: string;
+          vinProtocol: string;
+        } | null = this.testMatVoltages(parentMat, mat);
+        if (vResult == null) {
           console.log(false, "TEST VOLTAGES: Voltages doesn't fit");
           return false;
         } else {
@@ -405,6 +513,19 @@ class tschEDA {
           this.storeMatInHashMap(childMat);
           // Set in design
           childMat.powerTsch.inDesign = true;
+          // Add connection
+          const key: typedProtocol = {
+            uuid: parentUuid,
+            protocol: vResult.voutProtocol,
+          };
+          const data: typedProtocol = {
+            uuid: mat.uuid,
+            protocol: vResult.vinProtocol,
+          };
+
+          this.addConnection(key, [data]);
+
+          console.log('*** New Mat Connection|', this.connections);
         }
       } else {
         console.error('Parent Mat Uuid', parentUuid, 'undefined');
@@ -463,10 +584,13 @@ class tschEDA {
     }
   }
 
-  private testTschVoltages(mat: powerMatNode, tsch: tsch): voutIndex {
+  private testTschVoltages(
+    mat: powerMatNode,
+    tsch: tsch,
+  ): { voutProtocol: string; vinProtocol: string } | null {
     const vin = tsch.getVin();
     if (vin == null) {
-      return -1;
+      return null;
     }
 
     for (const [voutIndex, vout] of Object.entries(mat.vout)) {
@@ -480,15 +604,35 @@ class tschEDA {
             case 'number':
               voltageIn = <number>vin.value;
               if (voltageOut == voltageIn) {
-                console.log('TEST VOLTAGES', true, 'number, number');
-                return parseInt(voutIndex);
+                console.log(
+                  'TEST VOLTAGES',
+                  {
+                    voutProtocol: vout.protocol,
+                    vinProtocol: vin.protocol,
+                  },
+                  'number, number',
+                );
+                return {
+                  voutProtocol: vout.protocol,
+                  vinProtocol: vin.protocol,
+                };
               }
               break;
             case 'range':
               voltageIn = <range>vin.value;
               if (voltageOut >= voltageIn.min && voltageOut <= voltageIn.max) {
-                console.log('TEST VOLTAGES', true, 'number, range');
-                return parseInt(voutIndex);
+                console.log(
+                  'TEST VOLTAGES',
+                  {
+                    voutProtocol: vout.protocol,
+                    vinProtocol: vin.protocol,
+                  },
+                  'number, range',
+                );
+                return {
+                  voutProtocol: vout.protocol,
+                  vinProtocol: vin.protocol,
+                };
               }
               break;
             default:
@@ -508,8 +652,18 @@ class tschEDA {
                 voltageIn.min >= voltageOut.min &&
                 voltageIn.max <= voltageOut.max
               ) {
-                console.log('TEST VOLTAGES', true, 'range, range');
-                return parseInt(voutIndex);
+                console.log(
+                  'TEST VOLTAGES',
+                  {
+                    voutProtocol: vout.protocol,
+                    vinProtocol: vin.protocol,
+                  },
+                  'range, range',
+                );
+                return {
+                  voutProtocol: vout.protocol,
+                  vinProtocol: vin.protocol,
+                };
               }
               break;
             default:
@@ -520,32 +674,45 @@ class tschEDA {
           break;
       }
     }
-    return -1;
+    return null;
   }
 
   private generateNetConnections(): connectionOutputFormat[] {
     const outputFormat: Array<connectionOutputFormat> = [];
     const mapHelper: Map<string, Array<connect>> = new Map();
     if (this.connections.size > 0) {
+      console.log('---');
       for (const [key, val] of this.connections.entries()) {
-        const type = tschEDA.getFriendlyName(key.protocol);
-        const protocol = key.protocol;
-        const uuids = [key.uuid].concat(val.map((e) => e.uuid));
-        const wires = tschEDA.getWires(
-          type,
-          this.get(key.uuid)!.getNets(protocol),
+        mapHelper.clear();
+        const pKey: typedProtocol = JSON.parse(key);
+        const type = tschEDA.getFriendlyName(pKey.protocol);
+        const typedConnections: typedProtocol[] = [pKey].concat(
+          val.map((e) => e),
         );
-        for (const uuid of uuids) {
-          const tsch = this.get(uuid);
+        console.log(typedConnections);
+        let subWires: string[] = [];
+        if (!this.isMat(pKey.uuid)) {
+          // is tsch
+          const tsch = this.get(pKey.uuid);
+          subWires = tschEDA.getSubWires(type, tsch!.getNets(pKey.protocol));
+        }
+        for (const typedConn of typedConnections) {
+          let tsch: tsch | null = null;
+          if (this.isMat(typedConn.uuid)) {
+            tsch = this.getMat(typedConn.uuid)!.powerTsch;
+            console.log('mat');
+          } else {
+            tsch = this.get(typedConn.uuid);
+            console.log('tsch');
+          }
           if (tsch) {
-            if (wires) {
+            if (subWires.length > 0) {
+              // SPI protocol sub wires are for example [MISO, MOSI, SCK]
               // Connect by wire
-              for (const wire of wires) {
-                console.log(wire);
+              for (const subWire of subWires) {
                 const net = tsch
-                  .getNets(protocol)
-                  .filter((e) => e.includes(wire))[0];
-                console.log(net);
+                  .getNets(typedConn.protocol)
+                  .filter((e) => e.includes(subWire))[0];
                 // Set connect
                 const connect: connect = {
                   schematic: tsch.getFileName(),
@@ -554,8 +721,8 @@ class tschEDA {
                 };
                 // Add to map helper
                 const multiKey = JSON.stringify({
-                  type,
-                  wire,
+                  type: type,
+                  wire: subWire,
                 });
                 if (mapHelper.has(multiKey)) {
                   let val: Array<connect> | undefined = mapHelper.get(multiKey);
@@ -565,6 +732,27 @@ class tschEDA {
                 } else {
                   mapHelper.set(multiKey, [connect]);
                 }
+              }
+            } else {
+              const net = tsch.getNets(typedConn.protocol)[0];
+              // Set connect
+              const connect: connect = {
+                schematic: tsch.getFileName(),
+                instance: tsch.getInstance()!,
+                net: net,
+              };
+              // Add to map helper
+              const multiKey = JSON.stringify({
+                type: type,
+                wire: null,
+              });
+              if (mapHelper.has(multiKey)) {
+                let val: Array<connect> | undefined = mapHelper.get(multiKey);
+                if (val) {
+                  val.push(connect);
+                }
+              } else {
+                mapHelper.set(multiKey, [connect]);
               }
             }
           }
@@ -608,7 +796,7 @@ class tschEDA {
 
   // Generate connections list in JSON format
   public generateJson(): string {
-    this.generatePowerConnections();
+    // this.generatePowerConnections();
     return JSON.stringify(this.generateNetConnections(), null, 2);
   }
 
@@ -617,7 +805,7 @@ class tschEDA {
     return friendlyName ? friendlyName : '';
   }
 
-  public static getWires(
+  public static getSubWires(
     protocolFriedlyName: string,
     nets: Array<string>,
   ): Array<string> {
@@ -722,7 +910,15 @@ class tschEDA {
   }
 
   private addConnection(parent: typedProtocol, childs: typedProtocol[]) {
-    this.connections.set(parent, childs);
+    const key = JSON.stringify(parent);
+    if (this.connections.has(key)) {
+      const val = this.connections.get(key);
+      if (val) {
+        this.connections.set(key, val.concat(childs));
+      }
+    } else {
+      this.connections.set(key, childs);
+    }
   }
 
   // Two protocols are equal

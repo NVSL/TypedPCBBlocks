@@ -1,5 +1,47 @@
 [
   {
+    "type": "VOUT",
+    "wire": null,
+    "connect": [
+      {
+        "schematic": "power5V12V.sch",
+        "instance": 1,
+        "net": "@VOUT_5V-12V"
+      },
+      {
+        "schematic": "power3V3.sch",
+        "instance": 1,
+        "net": "@VIN_3.3V-15V"
+      },
+      {
+        "schematic": "power5V.sch",
+        "instance": 1,
+        "net": "@VIN_5V-15V"
+      }
+    ]
+  },
+  {
+    "type": "VOUT",
+    "wire": null,
+    "connect": [
+      {
+        "schematic": "power5V.sch",
+        "instance": 1,
+        "net": "@VOUT_5V"
+      },
+      {
+        "schematic": "atmega328.sch",
+        "instance": 1,
+        "net": "@VIN_5V"
+      },
+      {
+        "schematic": "flash.sch",
+        "instance": 1,
+        "net": "@VIN_5V"
+      }
+    ]
+  },
+  {
     "type": "SPI",
     "wire": "MOSI",
     "connect": [

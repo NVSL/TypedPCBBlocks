@@ -23,7 +23,7 @@ declare class tschEDA {
     tschs: Map<string, tsch>;
     matsMap: Map<string, powerMatNode | undefined>;
     matsTree: powerMatNode | null;
-    connections: Map<typedProtocol, typedProtocol[]>;
+    connections: Map<string, typedProtocol[]>;
     constructor();
     use(eagle: eagle): Promise<uuid>;
     newTsch(tsch: tsch): uuid;
@@ -37,7 +37,8 @@ declare class tschEDA {
     newMat(tschUuid: uuid): powerMatNode | null;
     getMat(matUuid: uuid): powerMatNode | null;
     getTschMat(tschUuid: string): powerMatNode | null;
-    isMat(tschOrTschUuid: any): boolean;
+    isMat(matOrMatUuid: any): boolean;
+    tschOutputsPower(tschOrTschUuid: any): boolean;
     private testMatVoltages;
     addMat(parentUuid: string | 'root', mat: powerMatNode): boolean;
     private storeMatInTree;
@@ -48,7 +49,7 @@ declare class tschEDA {
     private generatePowerConnections;
     generateJson(): string;
     static getFriendlyName(protocol: string): string;
-    static getWires(protocolFriedlyName: string, nets: Array<string>): Array<string>;
+    static getSubWires(protocolFriedlyName: string, nets: Array<string>): Array<string>;
     private getRandomUuid;
     private loadConstrains;
     connect(parent: typedProtocol, childs: typedProtocol[]): Promise<boolean>;
