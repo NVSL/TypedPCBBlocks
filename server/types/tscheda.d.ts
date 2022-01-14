@@ -39,12 +39,10 @@ declare class tschEDA {
     getTschMat(tschUuid: string): powerMatNode | null;
     isMat(matOrMatUuid: any): boolean;
     tschOutputsPower(tschOrTschUuid: any): boolean;
-    private testMatVoltages;
     addMat(parentUuid: string | 'root', childMatUuid: string): boolean;
     private storeMatInTree;
     private storeMatInHashMap;
     private setInstance;
-    private testTschVoltages;
     private generateNetConnections;
     private treeBFS;
     generateJson(): string;
