@@ -57,7 +57,9 @@ class tschEDA {
   matsMap: Map<string, powerMatNode | undefined>;
   matsTree: powerMatNode | null;
   connections: Map<string, typedProtocol[]>;
-  constructor() {
+  typedConstraintsPath: string;
+  constructor(typedConstrainsPath) {
+    this.typedConstraintsPath = typedConstrainsPath;
     this.tschs = new Map();
     this.matsMap = new Map();
     this.matsTree = null;
@@ -550,7 +552,6 @@ class tschEDA {
     parent: typedProtocol,
     childs: typedProtocol[],
   ): Promise<boolean> {
-    const path = './data/typedDefinitions/'; // TODO: Add when class tschEDA is created
     // Checks
     if (childs.length < 1) {
       console.error('Typed Schematic child list must be greater than one');
@@ -573,7 +574,9 @@ class tschEDA {
 
     try {
       // Dynamically import protcol class
-      const protocolClass = await import(path + protocolName);
+      const protocolClass = await import(
+        this.typedConstraintsPath + protocolName
+      );
       console.log(protocolClass);
 
       // Load tsch Parent Class
@@ -670,7 +673,3 @@ class tschEDA {
 }
 
 export { tschEDA, powerMatNode };
-
-// class tschEDA {
-//   constructor() {}
-// }

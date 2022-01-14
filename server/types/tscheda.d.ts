@@ -24,7 +24,8 @@ declare class tschEDA {
     matsMap: Map<string, powerMatNode | undefined>;
     matsTree: powerMatNode | null;
     connections: Map<string, typedProtocol[]>;
-    constructor();
+    typedConstraintsPath: string;
+    constructor(typedConstrainsPath: any);
     use(eagle: eagle): Promise<uuid>;
     newTsch(tsch: tsch): uuid;
     getTsch(tschUuid: string): tsch | null;

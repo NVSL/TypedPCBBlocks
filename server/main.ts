@@ -21,7 +21,7 @@ function outputFile(jsonData: string) {
 
 // Main program
 (async () => {
-  const tscheda = new tschEDA();
+  const tscheda = new tschEDA('./data/typedConstraints/');
 
   const atmega328 = await tscheda.use(eagelFile('atmega328.sch'));
   const flash = await tscheda.use(eagelFile('flash.sch'));
@@ -55,5 +55,4 @@ function outputFile(jsonData: string) {
 // -- Add better error handling
 // -- Try more designs (Tre LED with no VIN)
 // -- Add I2C constrains
-// -- Clean code
-// -- Add multiple designs?
+// -- Clean code (e.g. add multiKey Map)
