@@ -1,11 +1,6 @@
-import { json } from 'stream/consumers';
 import { Queue } from './utils';
 import { tsch, voltage, range, TypedSchematic } from './tsch';
-import { PROTOCOL } from './data/typedDefinitions/PROTOCOL';
-import { version } from 'os';
-import { parse } from 'path/posix';
 
-type voutIndex = number;
 type uuid = string;
 
 type connect = {
@@ -88,7 +83,7 @@ class tschEDA {
     return randomUuid;
   }
 
-  public get(tschUuid: string): tsch | null {
+  public getTsch(tschUuid: string): tsch | null {
     if (this.tschs.has(tschUuid)) {
       const Tsch = this.tschs.get(tschUuid);
       if (Tsch) return Tsch;
@@ -98,7 +93,7 @@ class tschEDA {
   }
 
   public getTschSourceVoltage(tschUuid: string): voltage | null {
-    const Tsch = this.get(tschUuid);
+    const Tsch = this.getTsch(tschUuid);
     if (Tsch) {
       return Tsch.sourceVoltage;
     }
@@ -106,7 +101,7 @@ class tschEDA {
   }
 
   public isInDesing(tschUuid: string): boolean {
-    const Tsch = this.get(tschUuid);
+    const Tsch = this.getTsch(tschUuid);
     if (Tsch) {
       return Tsch.inDesign;
     }
@@ -115,7 +110,7 @@ class tschEDA {
 
   public isTsch(tschOrTschUuid: any): boolean {
     if (typeof tschOrTschUuid === 'string') {
-      if (this.get(tschOrTschUuid)) {
+      if (this.getTsch(tschOrTschUuid)) {
         return true;
       }
     }
@@ -128,7 +123,7 @@ class tschEDA {
   }
 
   public typedSch(tschUuid: uuid): TypedSchematic | null {
-    const Tsch = this.get(tschUuid);
+    const Tsch = this.getTsch(tschUuid);
     if (Tsch) {
       return Tsch.typedSchematic;
     }
@@ -136,7 +131,7 @@ class tschEDA {
   }
 
   public typedSchVars(tschUuid: uuid, key: string): any | null {
-    const Tsch = this.get(tschUuid);
+    const Tsch = this.getTsch(tschUuid);
     if (Tsch) {
       return Tsch.getVars(key);
     }
@@ -147,7 +142,7 @@ class tschEDA {
   // TODO: Add error handling inside a class
   // TODO: Add case for LED which doesn't have VIN
   public addTsch(matUuid: string, tschUuid: uuid): boolean {
-    const Tsch = this.get(tschUuid);
+    const Tsch = this.getTsch(tschUuid);
     if (!Tsch) return false;
     const Mat = this.getMat(matUuid);
     if (!Mat) return false;
@@ -183,23 +178,23 @@ class tschEDA {
 
   //// POWER MATS
 
-  // TODO: Use should automatically create mat if tsch is mat?
-  public newMat(tschUuid: uuid): powerMatNode | null {
+  public newMat(tschUuid: uuid): string {
     if (this.tschOutputsPower(tschUuid)) {
-      const powerTsch = this.get(tschUuid);
+      const powerTsch = this.getTsch(tschUuid);
       if (powerTsch) {
         // Get a unique randomUuid and store it to hashmap as undefied
         let randomUuid = this.getRandomUuid();
         while (this.matsMap.has(randomUuid)) {
           randomUuid = this.getRandomUuid();
         }
-        this.matsMap.set(randomUuid, undefined);
-
+        const matUuid = randomUuid;
+        const mat = new powerMatNode(randomUuid, null, powerTsch);
+        this.storeMatInHashMap(matUuid, mat);
         // Return a powerMatNode
-        return new powerMatNode(randomUuid, null, powerTsch);
+        return matUuid;
       }
     }
-    return null;
+    return '';
   }
 
   public getMat(matUuid: uuid): powerMatNode | null {
@@ -246,7 +241,7 @@ class tschEDA {
   public tschOutputsPower(tschOrTschUuid: any) {
     // is uuid
     if (typeof tschOrTschUuid === 'string') {
-      const tsch = this.get(tschOrTschUuid);
+      const tsch = this.getTsch(tschOrTschUuid);
       if (tsch) {
         if (tsch.outputsPower) {
           return true;
@@ -264,8 +259,6 @@ class tschEDA {
     return false;
   }
 
-  // TODO: This must return VOUT-X connected to what VIN so we can add the connections
-  // TODO: Remove Bread first search
   private testMatVoltages(
     parentMat: powerMatNode,
     childMat: powerMatNode,
@@ -461,58 +454,63 @@ class tschEDA {
     return null;
   }
 
-  public addMat(parentUuid: string | 'root', mat: powerMatNode): boolean {
+  public addMat(parentUuid: string | 'root', childMatUuid: string): boolean {
+    if (parentUuid == '' || childMatUuid == '') {
+      console.error('Empty string uuid');
+      return false;
+    }
+    const childMat = this.getMat(childMatUuid);
+    if (!childMat) {
+      console.error('Mat uuid does not exists');
+      return false;
+    }
+    if (childMat.powerTsch.inDesign == true) {
+      console.error('child mat is already in design, create a new mat');
+      return false;
+    }
     if (parentUuid == 'root') {
       if (this.matsTree == null) {
+        // Rule: Only mats with VOUT and no VIN can be added to root
+        if (childMat.vin != null) {
+          console.error('Mat root can not have VIN');
+          return false;
+        }
         // Store mat in Tree
-        const childMat = this.storeMatInTree('root', mat);
+        const mat = this.storeMatInTree('root', childMat);
         // Store mat in hashmap
-        this.storeMatInHashMap(childMat);
+        this.storeMatInHashMap(mat.uuid, mat);
         // Set in design
-        childMat.powerTsch.inDesign = true;
+        mat.powerTsch.inDesign = true;
       } else {
-        console.error('Power Mats Tree alrady has a root');
+        console.error(
+          'Can not add another root, power mats tree alrady has a root',
+        );
         return false;
       }
     } else {
       // Search for paernt
-      let parentMat: powerMatNode | undefined;
-      if (this.matsMap.has(parentUuid)) {
-        parentMat = this.matsMap.get(parentUuid);
-      } else {
-        console.error('Parent uuid', parentUuid, 'not found');
-        return false;
-      }
-
+      //let parentMat: powerMatNode | undefined;
+      const parentMat = this.getMat(parentUuid);
       if (parentMat) {
         // Test Voltages ranges between parent Mat and new Mat
         const vResult: {
           voutProtocol: string;
           vinProtocol: string;
-        } | null = this.testMatVoltages(parentMat, mat);
+        } | null = this.testMatVoltages(parentMat, childMat);
         if (vResult == null) {
-          console.log(false, "TEST VOLTAGES: Voltages doesn't fit");
+          console.error(false, "Mat voltages doesn't fit");
           return false;
         } else {
           console.log(true, 'TEST VOLTAGES: Fit');
         }
 
-        if (parentMat.children.has(mat.uuid)) {
-          // Add new Mat to parent
-          console.error(
-            'New Mat with uuid',
-            mat.uuid,
-            'already exists in parent Mat',
-            parentMat.uuid,
-          );
-          return false;
-        } else {
+        if (!parentMat.children.has(childMat.uuid)) {
           // Store mat in Tree
-          const childMat = this.storeMatInTree(parentMat, mat);
+          const mat = this.storeMatInTree(parentMat, childMat);
           // Store mat in hashmap
-          this.storeMatInHashMap(childMat);
+          this.storeMatInHashMap(mat.uuid, mat);
           // Set in design
-          childMat.powerTsch.inDesign = true;
+          mat.powerTsch.inDesign = true;
           // Add connection
           const key: typedProtocol = {
             uuid: parentUuid,
@@ -522,13 +520,19 @@ class tschEDA {
             uuid: mat.uuid,
             protocol: vResult.vinProtocol,
           };
-
+          // Store voltages connection
           this.addConnection(key, [data]);
-
-          console.log('*** New Mat Connection|', this.connections);
+        } else {
+          console.error(
+            'Child mat with uuid',
+            childMat.uuid,
+            'already exists in parent mat',
+            parentMat.uuid,
+          );
+          return false;
         }
       } else {
-        console.error('Parent Mat Uuid', parentUuid, 'undefined');
+        console.error('Parent Mat Uuid', parentUuid, 'not found');
         return false;
       }
     }
@@ -556,16 +560,11 @@ class tschEDA {
     return childMat;
   }
 
-  private storeMatInHashMap(childMat: powerMatNode) {
-    if (this.matsMap.has(childMat.uuid)) {
-      if (this.matsMap.get(childMat.uuid) == undefined) {
-        this.matsMap.set(childMat.uuid, childMat);
-      } else {
-        console.error('Power Mats Map alrady has', childMat.uuid);
-        return false;
-      }
+  private storeMatInHashMap(childMatUuid: string, childMat: powerMatNode) {
+    if (this.matsMap.has(childMatUuid)) {
+      this.matsMap.set(childMatUuid, childMat);
     } else {
-      this.matsMap.set(childMat.uuid, childMat);
+      this.matsMap.set(childMatUuid, childMat);
       return true;
     }
   }
@@ -593,7 +592,7 @@ class tschEDA {
       return null;
     }
 
-    for (const [voutIndex, vout] of Object.entries(mat.vout)) {
+    for (const vout of Object.values(mat.vout)) {
       let voltageOut: number | range | Array<number>;
       let voltageIn: number | range | Array<number>;
       console.log('TEST VOLTAGES', vout.value, vin.value);
@@ -678,10 +677,19 @@ class tschEDA {
   }
 
   private generateNetConnections(): connectionOutputFormat[] {
-    const outputFormat: Array<connectionOutputFormat> = [];
     const mapHelper: Map<string, Array<connect>> = new Map();
+    function addToMapHelper(multiKey: string, connectInfo: connect) {
+      if (mapHelper.has(multiKey)) {
+        let val: Array<connect> | undefined = mapHelper.get(multiKey);
+        if (val) {
+          val.push(connectInfo);
+        }
+      } else {
+        mapHelper.set(multiKey, [connectInfo]);
+      }
+    }
+    const outputFormat: Array<connectionOutputFormat> = [];
     if (this.connections.size > 0) {
-      console.log('---');
       for (const [key, val] of this.connections.entries()) {
         mapHelper.clear();
         const pKey: typedProtocol = JSON.parse(key);
@@ -689,21 +697,18 @@ class tschEDA {
         const typedConnections: typedProtocol[] = [pKey].concat(
           val.map((e) => e),
         );
-        console.log(typedConnections);
         let subWires: string[] = [];
         if (!this.isMat(pKey.uuid)) {
           // is tsch
-          const tsch = this.get(pKey.uuid);
+          const tsch = this.getTsch(pKey.uuid);
           subWires = tschEDA.getSubWires(type, tsch!.getNets(pKey.protocol));
         }
         for (const typedConn of typedConnections) {
           let tsch: tsch | null = null;
           if (this.isMat(typedConn.uuid)) {
             tsch = this.getMat(typedConn.uuid)!.powerTsch;
-            console.log('mat');
           } else {
-            tsch = this.get(typedConn.uuid);
-            console.log('tsch');
+            tsch = this.getTsch(typedConn.uuid);
           }
           if (tsch) {
             if (subWires.length > 0) {
@@ -724,16 +729,10 @@ class tschEDA {
                   type: type,
                   wire: subWire,
                 });
-                if (mapHelper.has(multiKey)) {
-                  let val: Array<connect> | undefined = mapHelper.get(multiKey);
-                  if (val) {
-                    val.push(connect);
-                  }
-                } else {
-                  mapHelper.set(multiKey, [connect]);
-                }
+                addToMapHelper(multiKey, connect);
               }
             } else {
+              // Connect protocol with no subWires
               const net = tsch.getNets(typedConn.protocol)[0];
               // Set connect
               const connect: connect = {
@@ -746,14 +745,7 @@ class tschEDA {
                 type: type,
                 wire: null,
               });
-              if (mapHelper.has(multiKey)) {
-                let val: Array<connect> | undefined = mapHelper.get(multiKey);
-                if (val) {
-                  val.push(connect);
-                }
-              } else {
-                mapHelper.set(multiKey, [connect]);
-              }
+              addToMapHelper(multiKey, connect);
             }
           }
         }
@@ -772,7 +764,7 @@ class tschEDA {
     return outputFormat;
   }
 
-  private generatePowerConnections() {
+  private treeBFS() {
     // Traverse matNodes Tree by level
     let queue = new Queue();
     let nextLevel = new Queue();
@@ -796,7 +788,6 @@ class tschEDA {
 
   // Generate connections list in JSON format
   public generateJson(): string {
-    // this.generatePowerConnections();
     return JSON.stringify(this.generateNetConnections(), null, 2);
   }
 
@@ -834,9 +825,6 @@ class tschEDA {
     const uuid = s.join('');
     return uuid;
   }
-  // TODO: Check voltage structure, (add a new unique character? @ for voltage ?)
-  // TODO: Add I2C and constrains
-  // TODO: Definetely check or redo the visual blocks.
 
   ///// Constrain connectins
 

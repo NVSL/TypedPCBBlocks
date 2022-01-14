@@ -41,7 +41,7 @@ class tsch {
   eagle: any;
   eagleVersion: string | null;
   eagleFileName: string;
-  outputsPower: boolean; // TODO: change for isMat
+  outputsPower: boolean;
   typedSchematic: TypedSchematic | null;
   inDesign: boolean;
   sourceVoltage: voltage | null;
