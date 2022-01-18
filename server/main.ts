@@ -91,16 +91,50 @@ async function twoFlash(): Promise<void> {
   return;
 }
 
+// Simple led
+async function led(): Promise<void> {
+  console.log('\n--- LED DESIGN');
+  const tscheda = new tschEDA('./data/typedConstraints/');
+  const atmega328 = await tscheda.use(eagelFile('atmega328.sch'));
+  const led = await tscheda.use(eagelFile('led_smd.sch'));
+  const power5V12V = await tscheda.use(eagelFile('power5V12V.sch'));
+  const power5V = await tscheda.use(eagelFile('power5V.sch'));
+
+  const Mat5V12V = tscheda.newMat(power5V12V);
+  const Mat5V = tscheda.newMat(power5V);
+
+  tscheda.addMat('root', Mat5V12V);
+  tscheda.addMat(Mat5V12V, Mat5V);
+
+  tscheda.addTsch(Mat5V, atmega328);
+  tscheda.addTsch(Mat5V, led);
+
+  await tscheda.connect({ uuid: atmega328, protocol: 'GPIO-9' }, [
+    { uuid: led, protocol: 'GPIO-0' },
+  ]);
+
+  console.log('@ Connection MAP');
+  for (const [key, val] of tscheda.connections.entries()) {
+    console.log(key, '|', val);
+  }
+
+  const jsonData = tscheda.generateJson();
+  outputFile(jsonData, 'tscheda_led.json');
+
+  return;
+}
+
 // Main program
 (async () => {
   debug.enable(true, 1);
   await flash();
   await twoFlash();
+  await led();
 })();
 
 // TODO NEXT:
 // -- Add better error handling
-// -- Try more designs (Try LED with no VIN)
+// -- Try more designs (Add I2C)
 // -- Add I2C constrains
 // -- Add optional and forced connections plus a checker
 // -- Add connection headers
