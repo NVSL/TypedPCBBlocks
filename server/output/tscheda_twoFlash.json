@@ -9,11 +9,6 @@
         "net": "@VOUT_5V-12V"
       },
       {
-        "schematic": "power3V3.sch",
-        "instance": 1,
-        "net": "@VIN_3.3V-15V"
-      },
-      {
         "schematic": "power5V.sch",
         "instance": 1,
         "net": "@VIN_5V-15V"
@@ -30,13 +25,8 @@
         "net": "@VOUT_5V"
       },
       {
-        "schematic": "atmega328.sch",
-        "instance": 1,
-        "net": "@VIN_5V"
-      },
-      {
         "schematic": "flash.sch",
-        "instance": 1,
+        "instance": 2,
         "net": "@VIN_5V"
       }
     ]
@@ -54,6 +44,11 @@
         "schematic": "flash.sch",
         "instance": 1,
         "net": "#SPI.MOSI"
+      },
+      {
+        "schematic": "flash.sch",
+        "instance": 2,
+        "net": "#SPI.MOSI"
       }
     ]
   },
@@ -70,6 +65,11 @@
         "schematic": "flash.sch",
         "instance": 1,
         "net": "#SPI.MISO"
+      },
+      {
+        "schematic": "flash.sch",
+        "instance": 2,
+        "net": "#SPI.MISO"
       }
     ]
   },
@@ -85,6 +85,11 @@
       {
         "schematic": "flash.sch",
         "instance": 1,
+        "net": "#SPI.SCK"
+      },
+      {
+        "schematic": "flash.sch",
+        "instance": 2,
         "net": "#SPI.SCK"
       }
     ]
