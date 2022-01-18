@@ -1,6 +1,7 @@
-import { Queue } from './utils';
+import { Queue, MultiMap } from './utils';
 import { tsch, voltage, TypedSchematic } from './tsch';
 import { test } from './testVoltages';
+import debug from './logger';
 
 type uuid = string;
 
@@ -11,8 +12,13 @@ type connect = {
 };
 interface connectionOutputFormat {
   type: string;
-  wire: string;
+  wire: string | null;
   connect: Array<connect>;
+}
+
+interface connectionHelper {
+  type: string;
+  wire: string | null;
 }
 
 interface typedProtocol {
@@ -56,14 +62,14 @@ class tschEDA {
   tschs: Map<string, tsch>;
   matsMap: Map<string, powerMatNode | undefined>;
   matsTree: powerMatNode | null;
-  connections: Map<string, typedProtocol[]>;
+  connections: MultiMap<typedProtocol, typedProtocol[]>;
   typedConstraintsPath: string;
   constructor(typedConstrainsPath) {
     this.typedConstraintsPath = typedConstrainsPath;
     this.tschs = new Map();
     this.matsMap = new Map();
     this.matsTree = null;
-    this.connections = new Map();
+    this.connections = new MultiMap();
   }
 
   ///// TSCHS
@@ -150,6 +156,11 @@ class tschEDA {
     const Mat = this.getMat(matUuid);
     if (!Mat) return false;
 
+    debug.log(
+      1,
+      `>> [TEST] ADD TSCH ${Tsch.eagleFileName} IN MAT ${Mat.powerTsch.eagleFileName}`,
+    );
+
     const vResult: {
       voutProtocol: string;
       vinProtocol: string;
@@ -171,9 +182,11 @@ class tschEDA {
         protocol: vResult.vinProtocol,
       };
 
+      // DEBUG
+      debug.log(1, `>> [ADDING] TSCH VOLTAGE CONNECTION`, vResult);
+
       this.addConnection(key, [data]);
 
-      console.log('*** New Mat/Tsch Connection', this.connections);
       return true;
     }
     return false; // TODO:"Improve error handling
@@ -300,6 +313,11 @@ class tschEDA {
       //let parentMat: powerMatNode | undefined;
       const parentMat = this.getMat(parentUuid);
       if (parentMat) {
+        debug.log(
+          1,
+          `>> [TEST] ADD MAT ${childMat.powerTsch.eagleFileName} IN MAT ${parentMat.powerTsch.eagleFileName}`,
+        );
+
         // Test Voltages ranges between parent Mat and new Mat
         const vResult: {
           voutProtocol: string;
@@ -308,8 +326,6 @@ class tschEDA {
         if (vResult == null) {
           console.error(false, "Mat voltages doesn't fit");
           return false;
-        } else {
-          console.log(true, 'TEST VOLTAGES: Fit');
         }
 
         if (!parentMat.children.has(childMat.uuid)) {
@@ -328,6 +344,7 @@ class tschEDA {
             uuid: mat.uuid,
             protocol: vResult.vinProtocol,
           };
+          debug.log(1, `>> [ADDING] MAT VOLTAGE CONNECTION`, vResult);
           // Store voltages connection
           this.addConnection(key, [data]);
         } else {
@@ -392,31 +409,33 @@ class tschEDA {
   }
 
   private generateNetConnections(): connectionOutputFormat[] {
-    const mapHelper: Map<string, Array<connect>> = new Map();
-    function addToMapHelper(multiKey: string, connectInfo: connect) {
-      if (mapHelper.has(multiKey)) {
-        let val: Array<connect> | undefined = mapHelper.get(multiKey);
+    const mapHelper: MultiMap<
+      connectionHelper,
+      Array<connect>
+    > = new MultiMap();
+    function addToMapHelper(key: connectionHelper, connectInfo: connect) {
+      if (mapHelper.has(key)) {
+        let val: Array<connect> | null = mapHelper.get(key);
         if (val) {
           val.push(connectInfo);
         }
       } else {
-        mapHelper.set(multiKey, [connectInfo]);
+        mapHelper.set(key, [connectInfo]);
       }
     }
     const outputFormat: Array<connectionOutputFormat> = [];
     if (this.connections.size > 0) {
       for (const [key, val] of this.connections.entries()) {
         mapHelper.clear();
-        const pKey: typedProtocol = JSON.parse(key);
-        const type = tschEDA.getFriendlyName(pKey.protocol);
-        const typedConnections: typedProtocol[] = [pKey].concat(
+        const type = tschEDA.getFriendlyName(key.protocol);
+        const typedConnections: typedProtocol[] = [key].concat(
           val.map((e) => e),
         );
         let subWires: string[] = [];
-        if (!this.isMat(pKey.uuid)) {
+        if (!this.isMat(key.uuid)) {
           // is tsch
-          const tsch = this.getTsch(pKey.uuid);
-          subWires = tschEDA.getSubWires(type, tsch!.getNets(pKey.protocol));
+          const tsch = this.getTsch(key.uuid);
+          subWires = tschEDA.getSubWires(type, tsch!.getNets(key.protocol));
         }
         for (const typedConn of typedConnections) {
           let tsch: tsch | null = null;
@@ -440,10 +459,10 @@ class tschEDA {
                   net: net,
                 };
                 // Add to map helper
-                const multiKey = JSON.stringify({
+                const multiKey: connectionHelper = {
                   type: type,
                   wire: subWire,
-                });
+                };
                 addToMapHelper(multiKey, connect);
               }
             } else {
@@ -456,17 +475,17 @@ class tschEDA {
                 net: net,
               };
               // Add to map helper
-              const multiKey = JSON.stringify({
+              const multiKey: connectionHelper = {
                 type: type,
                 wire: null,
-              });
+              };
               addToMapHelper(multiKey, connect);
             }
           }
         }
         // Final format from map helper
         for (const [key, val] of mapHelper.entries()) {
-          const index: { type: string; wire: string } = JSON.parse(key);
+          const index: connectionHelper = key;
           const format: connectionOutputFormat = {
             type: index.type,
             wire: index.wire,
@@ -563,8 +582,6 @@ class tschEDA {
       if (!this.isInDesing(child.uuid)) return false;
     }
 
-    // TODO: Maybe check if typed protocols Constranis file exists (Must load when new tschEDA)
-
     // Check: Only protocols or the same type can be connected
     const protocolName = this.protocolListAreSame(parent, childs);
     if (protocolName == null) {
@@ -572,12 +589,22 @@ class tschEDA {
       return false;
     }
 
+    // DEBUG
+    debug.log(
+      1,
+      `>> [TEST] CONNECTING ${protocolName} of parent ${
+        this.getTsch(parent.uuid)!.eagleFileName
+      }`,
+    );
+    for (const child of childs) {
+      debug.log(1, `with ${this.getTsch(child.uuid)!.eagleFileName} `);
+    }
+
     try {
       // Dynamically import protcol class
       const protocolClass = await import(
         this.typedConstraintsPath + protocolName
       );
-      console.log(protocolClass);
 
       // Load tsch Parent Class
       const parentSourceVoltage = this.getTschSourceVoltage(parent.uuid);
@@ -585,7 +612,9 @@ class tschEDA {
         new protocolClass[protocolName](parentSourceVoltage),
         this.typedSchVars(parent.uuid, parent.protocol),
       );
-      console.log('PARENT >> \n', tschClassParent);
+
+      // DEBUG
+      debug.log(2, 'PARENT LOADED CLASS: \n', tschClassParent);
 
       // Load tsch Childs Class
       const tschClassChilds: typeof protocolClass = [];
@@ -596,12 +625,23 @@ class tschEDA {
           this.typedSchVars(child.uuid, child.protocol),
         );
         tschClassChilds.push(tschClass);
-        console.log('CHILD >> \n', tschClass);
+
+        // DEBUG
+        debug.log(2, 'CHILD LOADED CLASS: \n', tschClass);
       }
 
       // Connect:
       const result = tschClassParent.connect(tschClassChilds);
       if (result) {
+        // DEBUG
+        debug.log(
+          1,
+          `>> [ADDING] ${protocolName} PROTOCOL CONNECTION`,
+          'parent',
+          parent,
+          'childs',
+          childs,
+        );
         this.addConnection(parent, childs);
         return true;
       } else {
@@ -613,17 +653,23 @@ class tschEDA {
     }
   }
 
+  // Adds connections by protocol to hashMap
+  // Rule: This function replaces the connections if parent is found, it doesn't concat
   private addConnection(parent: typedProtocol, childs: typedProtocol[]) {
-    const key = JSON.stringify(parent);
-    if (this.connections.has(key)) {
-      const val = this.connections.get(key);
+    if (this.connections.has(parent)) {
+      const val = this.connections.get(parent);
       if (val) {
-        this.connections.set(key, val.concat(childs));
+        // this.connections.set(parent, val.concat(childs));
+        this.connections.set(parent, childs);
       }
     } else {
-      this.connections.set(key, childs);
+      this.connections.set(parent, childs);
     }
   }
+
+  // private hasConnection(parent: typedProtocol, childs: typedProtocol[]) {
+
+  // }
 
   // Two protocols are equal
   // Input example: GPIO, GPIO

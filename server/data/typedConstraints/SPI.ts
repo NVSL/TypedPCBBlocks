@@ -9,7 +9,6 @@ class SPI extends POWER implements PROTOCOL<SPI> {
   arch: string | null = null;
   constructor(sourceVoltage: voltage) {
     super(sourceVoltage);
-    console.log(sourceVoltage);
   }
   public connect(childs: Array<SPI>): boolean {
     const parent = this;
@@ -74,7 +73,6 @@ class SPI extends POWER implements PROTOCOL<SPI> {
     }
 
     // Connected :D
-    console.log('Connected!');
     return true;
   }
 }

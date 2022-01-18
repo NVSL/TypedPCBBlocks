@@ -1,3 +1,4 @@
+import { MultiMap } from './utils';
 import { tsch, voltage, TypedSchematic } from './tsch';
 declare type uuid = string;
 interface typedProtocol {
@@ -23,7 +24,7 @@ declare class tschEDA {
     tschs: Map<string, tsch>;
     matsMap: Map<string, powerMatNode | undefined>;
     matsTree: powerMatNode | null;
-    connections: Map<string, typedProtocol[]>;
+    connections: MultiMap<typedProtocol, typedProtocol[]>;
     typedConstraintsPath: string;
     constructor(typedConstrainsPath: any);
     use(eagle: eagle): Promise<uuid>;

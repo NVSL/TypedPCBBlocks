@@ -27,14 +27,20 @@ class POWER {
           case 'number':
             voltageTwo = <number>v2.value;
             if (voltageOne == voltageTwo) {
-              console.log('VOLTAGES FIT', 'number, number');
+              // console.log(
+              //   `CONNECTION VOLTAGES { ${voltageOne} , ${voltageTwo} } FIT`,
+              //   'number, number',
+              // );
               return true;
             }
             break;
           case 'range':
             voltageTwo = <range>v2.value;
             if (voltageOne >= voltageTwo.min && voltageOne <= voltageTwo.max) {
-              console.log('VOLTAGES FIT', 'number, range');
+              // console.log(
+              //   `CONNECTION VOLTAGES { ${voltageOne} , ${voltageTwo} } FIT`,
+              //   'number, range',
+              // );
               return true;
             }
             break;
@@ -55,7 +61,10 @@ class POWER {
               voltageTwo.min >= voltageOne.min &&
               voltageTwo.max <= voltageOne.max
             ) {
-              console.log('VOLTAGES FIT', 'range, range');
+              // console.log(
+              //   `CONNECTION VOLTAGES { ${voltageOne} , ${voltageTwo} } FIT`,
+              //   'range, range',
+              // );
               return true;
             }
             break;

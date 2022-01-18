@@ -1,5 +1,6 @@
 import { powerMatNode } from './tscheda';
 import { tsch, range } from './tsch';
+import debug from './logger';
 
 const test = {
   tschVoltages: (
@@ -14,7 +15,6 @@ const test = {
     for (const vout of Object.values(mat.vout)) {
       let voltageOut: number | range | Array<number>;
       let voltageIn: number | range | Array<number>;
-      console.log('TEST VOLTAGES', vout.value, vin.value);
       switch (vout.type) {
         case 'number':
           voltageOut = <number>vout.value;
@@ -22,11 +22,12 @@ const test = {
             case 'number':
               voltageIn = <number>vin.value;
               if (voltageOut == voltageIn) {
-                console.log(
-                  'TEST VOLTAGES',
+                debug.log(
+                  2,
+                  'TEST TSCH VOLTAGES',
                   {
-                    voutProtocol: vout.protocol,
-                    vinProtocol: vin.protocol,
+                    vout: vout.value,
+                    vin: vin.value,
                   },
                   'number, number',
                 );
@@ -39,11 +40,12 @@ const test = {
             case 'range':
               voltageIn = <range>vin.value;
               if (voltageOut >= voltageIn.min && voltageOut <= voltageIn.max) {
-                console.log(
-                  'TEST VOLTAGES',
+                debug.log(
+                  2,
+                  'TEST TSCH VOLTAGES',
                   {
-                    voutProtocol: vout.protocol,
-                    vinProtocol: vin.protocol,
+                    vout: vout.value,
+                    vin: vin.value,
                   },
                   'number, range',
                 );
@@ -70,11 +72,12 @@ const test = {
                 voltageIn.min >= voltageOut.min &&
                 voltageIn.max <= voltageOut.max
               ) {
-                console.log(
-                  'TEST VOLTAGES',
+                debug.log(
+                  2,
+                  'TEST TSCH VOLTAGES',
                   {
-                    voutProtocol: vout.protocol,
-                    vinProtocol: vin.protocol,
+                    vout: vout.value,
+                    vin: vin.value,
                   },
                   'range, range',
                 );
@@ -116,7 +119,6 @@ const test = {
       const vin = childMat.vin;
       let voltageOut: number | range | Array<number>;
       let voltageIn: number | range | Array<number>;
-      console.log('TEST VOLTAGES', vout.value, vin.value);
       switch (vout.type) {
         case 'number':
           voltageOut = <number>vout.value;
@@ -124,9 +126,10 @@ const test = {
             case 'number':
               voltageIn = <number>vin.value;
               if (voltageOut == voltageIn) {
-                console.log(
-                  'TEST VOLTAGES',
-                  { voutProtocol: vout.protocol, vinProtocol: vin.protocol },
+                debug.log(
+                  2,
+                  'TEST MAT VOLTAGES',
+                  { vout: vout.value, vin: vin.value },
                   'number, number',
                 );
                 return {
@@ -138,11 +141,12 @@ const test = {
             case 'range':
               voltageIn = <range>vin.value;
               if (voltageOut >= voltageIn.min && voltageOut <= voltageIn.max) {
-                console.log(
-                  'TEST VOLTAGES',
+                debug.log(
+                  2,
+                  'TEST MAT VOLTAGES',
                   {
-                    voutProtocol: vout.protocol,
-                    vinProtocol: vin.protocol,
+                    vout: vout.value,
+                    vin: vin.value,
                   },
                   'number, range',
                 );
@@ -156,11 +160,12 @@ const test = {
               voltageIn = <Array<number>>vin.value;
               for (const vi of voltageIn) {
                 if (vi == voltageOut) {
-                  console.log(
-                    'TEST VOLTAGES',
+                  debug.log(
+                    2,
+                    'TEST MAT VOLTAGES',
                     {
-                      voutProtocol: vout.protocol,
-                      vinProtocol: vin.protocol,
+                      vout: vout.value,
+                      vin: vin.value,
                     },
                     'number, list',
                   );
@@ -194,11 +199,12 @@ const test = {
                 voltageIn.min <= voltageOut.max &&
                 voltageOut.min <= voltageIn.max
               ) {
-                console.log(
-                  'TEST VOLTAGES',
+                debug.log(
+                  2,
+                  'TEST MAT VOLTAGES',
                   {
-                    voutProtocol: vout.protocol,
-                    vinProtocol: vin.protocol,
+                    vout: vout.value,
+                    vin: vin.value,
                   },
                   'range, range',
                 );
@@ -224,11 +230,12 @@ const test = {
               voltageIn = <number>vin.value;
               for (const vo of voltageOut) {
                 if (vo == voltageIn) {
-                  console.log(
-                    'TEST VOLTAGES',
+                  debug.log(
+                    2,
+                    'TEST MAT VOLTAGES',
                     {
-                      voutProtocol: vout.protocol,
-                      vinProtocol: vin.protocol,
+                      vout: vout.value,
+                      vin: vin.value,
                     },
                     'list, number',
                   );
@@ -244,11 +251,12 @@ const test = {
               // voltages ranges Overlap
               for (const vo of voltageOut) {
                 if (vo >= voltageIn.min && vo <= voltageIn.max) {
-                  console.log(
-                    'TEST VOLTAGES',
+                  debug.log(
+                    2,
+                    'TEST MAT VOLTAGES',
                     {
-                      voutProtocol: vout.protocol,
-                      vinProtocol: vin.protocol,
+                      vout: vout.value,
+                      vin: vin.value,
                     },
                     'list, range',
                   );
@@ -263,11 +271,12 @@ const test = {
               for (const vo of voltageOut) {
                 for (const vi of voltageOut) {
                   if (vo == vi) {
-                    console.log(
-                      'TEST VOLTAGES',
+                    debug.log(
+                      2,
+                      'TEST MAT VOLTAGES',
                       {
-                        voutProtocol: vout.protocol,
-                        vinProtocol: vin.protocol,
+                        vout: vout.value,
+                        vin: vin.value,
                       },
                       'list, list',
                     );
