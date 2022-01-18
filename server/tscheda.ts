@@ -149,7 +149,6 @@ class tschEDA {
 
   // Asociates a tsch to a power mat
   // TODO: Add error handling inside a class
-  // TODO: Add case for LED which doesn't have VIN
   public addTsch(matUuid: string, tschUuid: uuid): boolean {
     const Tsch = this.getTsch(tschUuid);
     if (!Tsch) return false;
@@ -161,18 +160,30 @@ class tschEDA {
       `>> [TEST] ADD TSCH ${Tsch.eagleFileName} IN MAT ${Mat.powerTsch.eagleFileName}`,
     );
 
+    // Rule: if Tsch's doesn't have a VIN (e.g. LED) add them anyway
+    if (Tsch.getVin() == null) {
+      // ADD TSCH TO MAT
+      Mat.tschMap.set(this.getRandomUuid(), Tsch);
+      Tsch.inDesign = true;
+
+      // DEBUG
+      debug.log(1, `>> [ADDING] TSCH TO MAT | NO VOLTAGE CONNECTION`);
+    }
+
+    // Rule: if Tsch's have VIN, test VIN voltage fits fit Mat
     const vResult: {
       voutProtocol: string;
       vinProtocol: string;
     } | null = test.tschVoltages(Mat, Tsch);
     if (vResult != null) {
-      // Add tsch to mat
+      // ADD TSCH TO MAT
       Mat.tschMap.set(this.getRandomUuid(), Tsch);
       Tsch.inDesign = true;
-      // Set Tsch inDesignVout
-      const res = Mat.powerTsch.getVars(vResult.voutProtocol);
+
+      // SET AND ADD VOLTAGE CONNECTION
+      // Set Tsch sourceVoltage
       Tsch.sourceVoltage = Mat.powerTsch.getVout(vResult.voutProtocol);
-      // Add connection
+      // Set connection key and value
       const key: typedProtocol = {
         uuid: matUuid,
         protocol: vResult.voutProtocol,
@@ -182,10 +193,14 @@ class tschEDA {
         protocol: vResult.vinProtocol,
       };
 
-      // DEBUG
-      debug.log(1, `>> [ADDING] TSCH VOLTAGE CONNECTION`, vResult);
-
       this.addConnection(key, [data]);
+
+      // DEBUG
+      debug.log(
+        1,
+        `>> [ADDING] TSCH TO MAT | WITH VOLTAGE CONNECTION`,
+        vResult,
+      );
 
       return true;
     }
@@ -592,7 +607,7 @@ class tschEDA {
     // DEBUG
     debug.log(
       1,
-      `>> [TEST] CONNECTING ${protocolName} of parent ${
+      `>> [TEST] -${protocolName}- CONNECTING ${protocolName} of parent ${
         this.getTsch(parent.uuid)!.eagleFileName
       }`,
     );
@@ -636,10 +651,10 @@ class tschEDA {
         // DEBUG
         debug.log(
           1,
-          `>> [ADDING] ${protocolName} PROTOCOL CONNECTION`,
+          `>> [ADDING] -${protocolName}- PROTOCOL CONNECTION of`,
           'parent',
           parent,
-          'childs',
+          'with childs',
           childs,
         );
         this.addConnection(parent, childs);
