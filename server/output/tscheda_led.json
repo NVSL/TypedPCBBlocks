@@ -1,0 +1,50 @@
+[
+  {
+    "type": "VOUT",
+    "wire": null,
+    "connect": [
+      {
+        "schematic": "power5V12V.sch",
+        "instance": 1,
+        "net": "@VOUT_5V-12V"
+      },
+      {
+        "schematic": "power5V.sch",
+        "instance": 1,
+        "net": "@VIN_5V-15V"
+      }
+    ]
+  },
+  {
+    "type": "VOUT",
+    "wire": null,
+    "connect": [
+      {
+        "schematic": "power5V.sch",
+        "instance": 1,
+        "net": "@VOUT_5V"
+      },
+      {
+        "schematic": "atmega328.sch",
+        "instance": 1,
+        "net": "@VIN_5V"
+      }
+    ]
+  },
+  {
+    "type": "GPIO",
+    "wire": null,
+    "connect": [
+      {
+        "schematic": "atmega328.sch",
+        "instance": 1,
+        "net": "#GPIO-9"
+      },
+      {
+        "schematic": "led_smd.sch",
+        "instance": 1,
+        "net": "#GPIO"
+      }
+    ]
+  }
+]
