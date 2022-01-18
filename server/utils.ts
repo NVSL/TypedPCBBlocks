@@ -38,20 +38,35 @@ class MultiMap<K, V> {
     const jsonKey: string = JSON.stringify(key);
     return this.map.has(jsonKey);
   }
-  public entries(): IterableIterator<[string, V]> {
-    return this.map.entries();
+  public entries(): IterableIterator<[K, V]> {
+    const iterMap: Map<K, V> = new Map();
+    for (const [key, val] of this.map.entries()) {
+      const pKey: K = JSON.parse(key);
+      iterMap.set(pKey, val);
+    }
+    return iterMap.entries();
   }
   public values(): IterableIterator<V> {
     return this.map.values();
   }
-  public keys(): IterableIterator<string> {
-    return this.map.keys();
+  public keys(): IterableIterator<K> {
+    const iterMap: Map<K, V> = new Map();
+    for (const [key, val] of this.map.entries()) {
+      const pKey: K = JSON.parse(key);
+      iterMap.set(pKey, val);
+    }
+    return iterMap.keys();
   }
   public forEach(
-    callbackfn: (value: V, key: string, map: Map<string, V>) => void,
+    callbackfn: (value: V, key: K, map: Map<K, V>) => void,
     thisArg?: any,
   ): void {
-    this.map.forEach(callbackfn, thisArg);
+    const iterMap: Map<K, V> = new Map();
+    for (const [key, val] of this.map.entries()) {
+      const pKey: K = JSON.parse(key);
+      iterMap.set(pKey, val);
+    }
+    iterMap.forEach(callbackfn, thisArg);
   }
   public clear(): void {
     this.map.clear();
