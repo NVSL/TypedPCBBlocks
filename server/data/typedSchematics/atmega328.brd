@@ -870,7 +870,7 @@ design rules under a new name.</description>
 <signal name="#GPIO-10">
 <contactref element="U3" pad="14"/>
 </signal>
-<signal name="@VIN_5V">
+<signal name="@VIN_3.3V-5V">
 <contactref element="R4" pad="2"/>
 <contactref element="JP4" pad="2"/>
 <wire x1="7.38" y1="2.05" x2="1.93" y2="14.22" width="0" layer="19" extent="1-1"/>

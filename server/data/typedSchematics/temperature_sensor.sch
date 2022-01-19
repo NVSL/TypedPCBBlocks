@@ -294,18 +294,25 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <parts>
 <part name="GND1" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
 <part name="U1" library="MCP9808" deviceset="MCP9808" device=""/>
+<part name="GND2" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
 <plain>
+<text x="22.86" y="-2.54" size="1.778" layer="97">#{
+I2C:{arch:slave,address:'0x18'},
+}</text>
 </plain>
 <instances>
 <instance part="GND1" gate="1" x="-5.08" y="-20.32" smashed="yes">
 <attribute name="VALUE" x="-5.08" y="-20.574" size="1.778" layer="96" align="top-center"/>
 </instance>
-<instance part="U1" gate="G$1" x="0" y="0" smashed="yes">
-<attribute name="NAME" x="-10.16" y="7.62" size="1.27" layer="95"/>
-<attribute name="VALUE" x="5.08" y="7.62" size="1.27" layer="95"/>
+<instance part="U1" gate="G$1" x="0" y="7.62" smashed="yes">
+<attribute name="NAME" x="-10.16" y="15.24" size="1.27" layer="95"/>
+<attribute name="VALUE" x="5.08" y="15.24" size="1.27" layer="95"/>
+</instance>
+<instance part="GND2" gate="1" x="10.16" y="-7.62" smashed="yes">
+<attribute name="VALUE" x="10.16" y="-7.874" size="1.778" layer="96" align="top-center"/>
 </instance>
 </instances>
 <busses>
@@ -315,13 +322,26 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <segment>
 <pinref part="U1" gate="G$1" pin="GND"/>
 <pinref part="GND1" gate="1" pin="GND"/>
-<wire x1="-5.08" y1="-10.16" x2="-5.08" y2="-17.78" width="0.1524" layer="91"/>
+<wire x1="-5.08" y1="-2.54" x2="-5.08" y2="-17.78" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="U1" gate="G$1" pin="A0"/>
+<pinref part="GND2" gate="1" pin="GND"/>
+<wire x1="5.08" y1="-2.54" x2="5.08" y2="-5.08" width="0.1524" layer="91"/>
+<wire x1="5.08" y1="-5.08" x2="7.62" y2="-5.08" width="0.1524" layer="91"/>
+<pinref part="U1" gate="G$1" pin="A1"/>
+<wire x1="7.62" y1="-5.08" x2="10.16" y2="-5.08" width="0.1524" layer="91"/>
+<wire x1="7.62" y1="-2.54" x2="7.62" y2="-5.08" width="0.1524" layer="91"/>
+<junction x="7.62" y="-5.08"/>
+<pinref part="U1" gate="G$1" pin="A2"/>
+<wire x1="10.16" y1="-2.54" x2="10.16" y2="-5.08" width="0.1524" layer="91"/>
+<junction x="10.16" y="-5.08"/>
 </segment>
 </net>
 <net name="#I2C-0.SCL" class="0">
 <segment>
 <pinref part="U1" gate="G$1" pin="SCL"/>
-<wire x1="-2.54" y1="-10.16" x2="-2.54" y2="-17.78" width="0.1524" layer="91"/>
+<wire x1="-2.54" y1="-2.54" x2="-2.54" y2="-17.78" width="0.1524" layer="91"/>
 <wire x1="-2.54" y1="-17.78" x2="5.08" y2="-17.78" width="0.1524" layer="91"/>
 <label x="5.08" y="-17.78" size="1.27" layer="95" xref="yes"/>
 </segment>
@@ -329,7 +349,7 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <net name="#I2C-0.SDA" class="0">
 <segment>
 <pinref part="U1" gate="G$1" pin="SDA"/>
-<wire x1="0" y1="-10.16" x2="0" y2="-15.24" width="0.1524" layer="91"/>
+<wire x1="0" y1="-2.54" x2="0" y2="-15.24" width="0.1524" layer="91"/>
 <wire x1="0" y1="-15.24" x2="5.08" y2="-15.24" width="0.1524" layer="91"/>
 <label x="5.08" y="-15.24" size="1.27" layer="95" xref="yes"/>
 </segment>
@@ -337,16 +357,16 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <net name="#GPIO-ALERT" class="0">
 <segment>
 <pinref part="U1" gate="G$1" pin="ALERT"/>
-<wire x1="2.54" y1="-10.16" x2="2.54" y2="-12.7" width="0.1524" layer="91"/>
+<wire x1="2.54" y1="-2.54" x2="2.54" y2="-12.7" width="0.1524" layer="91"/>
 <wire x1="2.54" y1="-12.7" x2="5.08" y2="-12.7" width="0.1524" layer="91"/>
 <label x="5.08" y="-12.7" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="@VIN_3.3V" class="0">
+<net name="@VIN_2.7V-5.5V" class="0">
 <segment>
-<wire x1="-12.7" y1="-17.78" x2="-12.7" y2="-10.16" width="0.1524" layer="91"/>
+<wire x1="-12.7" y1="-17.78" x2="-12.7" y2="-2.54" width="0.1524" layer="91"/>
 <pinref part="U1" gate="G$1" pin="VDD"/>
-<wire x1="-12.7" y1="-10.16" x2="-7.62" y2="-10.16" width="0.1524" layer="91"/>
+<wire x1="-12.7" y1="-2.54" x2="-7.62" y2="-2.54" width="0.1524" layer="91"/>
 <label x="-12.7" y="-17.78" size="1.27" layer="95" rot="R180" xref="yes"/>
 </segment>
 </net>
@@ -356,6 +376,10 @@ You are welcome to use this library for commercial purposes. For attribution, we
 </schematic>
 </drawing>
 <compatibility>
+<note version="6.3" minversion="6.2.2" severity="warning">
+Since Version 6.2.2 text objects can contain more than one line,
+which will not be processed correctly with this version.
+</note>
 <note version="8.2" severity="warning">
 Since Version 8.2, EAGLE supports online libraries. The ids
 of those online libraries will not be understood (or retained)

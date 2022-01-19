@@ -2512,7 +2512,7 @@ I2C:{arch:master},
 <label x="132.08" y="73.66" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="@VIN_5V" class="0">
+<net name="@VIN_3.3V-5V" class="0">
 <segment>
 <pinref part="R4" gate="G$1" pin="2"/>
 <wire x1="63.5" y1="137.16" x2="63.5" y2="144.78" width="0.1524" layer="91"/>
