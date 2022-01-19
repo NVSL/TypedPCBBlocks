@@ -1,0 +1,66 @@
+[
+  {
+    "type": "VOUT",
+    "wire": null,
+    "connect": [
+      {
+        "schematic": "power5V12V.sch",
+        "instance": 1,
+        "net": "@VOUT_5V-12V"
+      },
+      {
+        "schematic": "power3V3.sch",
+        "instance": 1,
+        "net": "@VIN_3.3V-15V"
+      }
+    ]
+  },
+  {
+    "type": "VOUT",
+    "wire": null,
+    "connect": [
+      {
+        "schematic": "power3V3.sch",
+        "instance": 1,
+        "net": "@VOUT_3.3V"
+      },
+      {
+        "schematic": "temperature_sensor.sch",
+        "instance": 1,
+        "net": "@VIN_2.7V-5.5V"
+      }
+    ]
+  },
+  {
+    "type": "I2C",
+    "wire": "SDA",
+    "connect": [
+      {
+        "schematic": "atmega328.sch",
+        "instance": 1,
+        "net": "#I2C-0.SDA||#ADC-4"
+      },
+      {
+        "schematic": "temperature_sensor.sch",
+        "instance": 1,
+        "net": "#I2C-0.SDA"
+      }
+    ]
+  },
+  {
+    "type": "I2C",
+    "wire": "SCL",
+    "connect": [
+      {
+        "schematic": "atmega328.sch",
+        "instance": 1,
+        "net": "#I2C-0.SCL||#ADC-5"
+      },
+      {
+        "schematic": "temperature_sensor.sch",
+        "instance": 1,
+        "net": "#I2C-0.SCL"
+      }
+    ]
+  }
+]

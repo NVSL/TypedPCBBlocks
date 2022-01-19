@@ -152,7 +152,7 @@ async function tempSensor(): Promise<void> {
   }
 
   const jsonData = tscheda.generateJson();
-  outputFile(jsonData, 'tscheda_twoFlash.json');
+  outputFile(jsonData, 'tscheda_tempSensor.json');
 
   return;
 }

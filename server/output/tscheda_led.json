@@ -27,7 +27,7 @@
       {
         "schematic": "atmega328.sch",
         "instance": 1,
-        "net": "@VIN_5V"
+        "net": "@VIN_3.3V-5V"
       }
     ]
   },
