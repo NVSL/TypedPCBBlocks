@@ -124,17 +124,51 @@ async function led(): Promise<void> {
   return;
 }
 
+// Temperature sensor
+async function tempSensor(): Promise<void> {
+  console.log('\n--- TEMPERATURE SENSOR DESIGN');
+  const tscheda = new tschEDA('./data/typedConstraints/');
+  const atmega328 = await tscheda.use(eagelFile('atmega328.sch'));
+  const tempSesnor = await tscheda.use(eagelFile('temperature_sensor.sch'));
+  const power5V12V = await tscheda.use(eagelFile('power5V12V.sch'));
+  const power3V3 = await tscheda.use(eagelFile('power3V3.sch'));
+
+  const Mat5V12V = tscheda.newMat(power5V12V);
+  const Mat3V3 = tscheda.newMat(power3V3);
+
+  tscheda.addMat('root', Mat5V12V);
+  tscheda.addMat(Mat5V12V, Mat3V3);
+
+  tscheda.addTsch(Mat3V3, atmega328);
+  tscheda.addTsch(Mat3V3, tempSesnor);
+
+  await tscheda.connect({ uuid: atmega328, protocol: 'I2C-0' }, [
+    { uuid: tempSesnor, protocol: 'I2C-0' },
+  ]);
+
+  console.log('@ Connection MAP');
+  for (const [key, val] of tscheda.connections.entries()) {
+    console.log(key, '|', val);
+  }
+
+  const jsonData = tscheda.generateJson();
+  outputFile(jsonData, 'tscheda_twoFlash.json');
+
+  return;
+}
+
 // Main program
 (async () => {
   debug.enable(true, 1);
+  await led();
   await flash();
   await twoFlash();
-  await led();
+  await tempSensor();
 })();
 
 // TODO NEXT:
+// -- Add optional and forced connections plus a checker
 // -- Add better error handling
 // -- Try more designs (Add I2C)
 // -- Add I2C constrains
-// -- Add optional and forced connections plus a checker
 // -- Add connection headers
