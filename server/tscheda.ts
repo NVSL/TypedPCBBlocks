@@ -592,9 +592,15 @@ class tschEDA {
       return false;
     }
     // Check if parent TSCH and child TSCHs are in design
-    if (!this.isInDesing(parent.uuid)) return false;
+    if (!this.isInDesing(parent.uuid)) {
+      console.error(`Parent ${parent.uuid} uuid not in desing`);
+      return false;
+    }
     for (const child of childs) {
-      if (!this.isInDesing(child.uuid)) return false;
+      if (!this.isInDesing(child.uuid)) {
+        console.error(`Child ${child.uuid} uuid not in desing`);
+        return false;
+      }
     }
 
     // Check: Only protocols or the same type can be connected

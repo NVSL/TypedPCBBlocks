@@ -408,7 +408,17 @@ class tsch {
     for (const text of schTexts) {
       if (text.includes('#')) {
         const cleanText = text.replace('#', '');
-        const json = JSON.parse(RJSON.transform(cleanText));
+        let json: JSON = JSON.parse('{}');
+        try {
+          json = JSON.parse(RJSON.transform(cleanText));
+        } catch (e) {
+          console.error(
+            `Relaxed JSON error while parsing: ${this.eagleFileName} \n`,
+            cleanText,
+          );
+          throw e;
+        }
+
         // console.log(json);
         for (const [key, newVars] of Object.entries(json)) {
           if (!key.includes('-')) {
