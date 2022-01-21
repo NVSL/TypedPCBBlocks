@@ -2,6 +2,7 @@ import { Queue, MultiMap } from './utils';
 import { tsch, voltage, TypedSchematic } from './tsch';
 import { test } from './testVoltages';
 import debug from './logger';
+import { ok, err, result } from './error';
 
 type uuid = string;
 
@@ -74,6 +75,7 @@ class tschEDA {
 
   ///// TSCHS
 
+  // TODO: Add error handling
   public async use(eagle: eagle): Promise<uuid> {
     const Tsch = new tsch();
     await Tsch.loadTsch(eagle.data, eagle.filename);
@@ -148,7 +150,7 @@ class tschEDA {
   }
 
   // Asociates a tsch to a power mat
-  // TODO: Add error handling inside a class
+  // TODO: Add error handling
   public addTsch(matUuid: string, tschUuid: uuid): boolean {
     const Tsch = this.getTsch(tschUuid);
     if (!Tsch) return false;
@@ -207,7 +209,9 @@ class tschEDA {
     return false; // TODO:"Improve error handling
   }
 
-  //// POWER MATS
+  //###
+  //### POWER MAT METHODS
+  //###
 
   public newMat(tschUuid: uuid): string {
     if (this.tschOutputsPower(tschUuid)) {
@@ -290,6 +294,7 @@ class tschEDA {
     return false;
   }
 
+  // TODO: Add error handling
   public addMat(parentUuid: string | 'root', childMatUuid: string): boolean {
     if (parentUuid == '' || childMatUuid == '') {
       console.error('Empty string uuid');
@@ -423,6 +428,7 @@ class tschEDA {
     }
   }
 
+  // TODO: Add error handling
   private generateNetConnections(): connectionOutputFormat[] {
     const mapHelper: MultiMap<
       connectionHelper,
@@ -513,29 +519,8 @@ class tschEDA {
     return outputFormat;
   }
 
-  private treeBFS() {
-    // Traverse matNodes Tree by level
-    let queue = new Queue();
-    let nextLevel = new Queue();
-    let level = 0;
-    queue.enqueue(this.matsTree);
-    while (!queue.isEmpty()) {
-      let matNode: powerMatNode | undefined = queue.dequeue();
-      console.log('BFS level', level, 'value: ', matNode);
-      if (matNode) {
-        for (const childs of matNode.children.values()) {
-          nextLevel.enqueue(childs);
-        }
-      }
-      if (queue.isEmpty()) {
-        queue = nextLevel;
-        nextLevel = new Queue();
-        level++;
-      }
-    }
-  }
-
   // Generate connections list in JSON format
+  // TODO: Add error handling
   public generateJson(): string {
     return JSON.stringify(this.generateNetConnections(), null, 2);
   }
@@ -575,13 +560,38 @@ class tschEDA {
     return uuid;
   }
 
-  ///// Constrain connectins
+  private treeBFS() {
+    // Traverse matNodes Tree by level
+    let queue = new Queue();
+    let nextLevel = new Queue();
+    let level = 0;
+    queue.enqueue(this.matsTree);
+    while (!queue.isEmpty()) {
+      let matNode: powerMatNode | undefined = queue.dequeue();
+      console.log('BFS level', level, 'value: ', matNode);
+      if (matNode) {
+        for (const childs of matNode.children.values()) {
+          nextLevel.enqueue(childs);
+        }
+      }
+      if (queue.isEmpty()) {
+        queue = nextLevel;
+        nextLevel = new Queue();
+        level++;
+      }
+    }
+  }
+
+  //###
+  //### Protocol Constrains Connections
+  //###
 
   private loadConstrains(protocol: any, typedJson: any) {
     const loadedProtocol = Object.assign(protocol, typedJson);
     return loadedProtocol;
   }
 
+  // TODO: Add error handling
   public async connect(
     parent: typedProtocol,
     childs: typedProtocol[],
