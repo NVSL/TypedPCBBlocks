@@ -1,4 +1,4 @@
-import { PROTOCOL, POWER, net, voltage } from './PROTOCOL';
+import { PROTOCOL, POWER, net, voltage, ok, error, result } from './PROTOCOL';
 
 class SPI extends POWER implements PROTOCOL<SPI> {
   // Nets
@@ -10,7 +10,8 @@ class SPI extends POWER implements PROTOCOL<SPI> {
   constructor(sourceVoltage: voltage) {
     super(sourceVoltage);
   }
-  public connect(childs: Array<SPI>): boolean {
+
+  public connect(childs: Array<SPI>): result<boolean> {
     const parent = this;
 
     // ## Connection Constrains:
@@ -26,26 +27,22 @@ class SPI extends POWER implements PROTOCOL<SPI> {
           child.SCK
         )
       ) {
-        console.error('Missing protocol nets');
-        return false;
+        return error('Missing protocol nets');
       }
 
       // Net voltages must be equal
       if (parent.netVoltage) {
         if (!(parent.netVoltage == child.netVoltage)) {
-          console.error('Net voltages are not equal');
-          return false;
+          error('Net voltages are not equal');
         }
       } else {
         // Net voltages same as Source voltages. Source voltages must fit
         if (parent.sourceVoltage && child.sourceVoltage) {
           if (!this.voltagesFit(parent.sourceVoltage, child.sourceVoltage)) {
-            console.error('Source voltages dont fit');
-            return false;
+            error('Source voltages dont fit');
           }
         } else {
-          console.error('Source voltage not found');
-          return false;
+          error('Source voltage not found');
         }
       }
 
@@ -60,20 +57,17 @@ class SPI extends POWER implements PROTOCOL<SPI> {
         );
       } else {
         if (!(parent.arch == 'master' && child.arch == 'slave')) {
-          console.error(
-            'SPI parent and child architecture must be of type master-slave',
-            '- parent arch:',
-            parent.arch,
-            '- child arch:',
-            child.arch,
+          error(
+            `SPI parent and child architecture must be of type master-slave. Parent arch:
+            ${parent.arch} child arch:
+            ${child.arch}`,
           );
-          return false;
         }
       }
     }
 
     // Connected :D
-    return true;
+    return ok(true);
   }
 }
 

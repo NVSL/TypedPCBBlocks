@@ -1,10 +1,10 @@
-import { PROTOCOL, POWER, voltage } from './PROTOCOL';
+import { PROTOCOL, POWER, voltage, ok, error, result } from './PROTOCOL';
 
 class GPIO extends POWER implements PROTOCOL<GPIO> {
   constructor(sourceVoltage: voltage) {
     super(sourceVoltage);
   }
-  public connect(childs: Array<GPIO>): boolean {
+  public connect(childs: Array<GPIO>): result<boolean> {
     const parent = this;
 
     // ## Connection Constrains:
@@ -12,25 +12,22 @@ class GPIO extends POWER implements PROTOCOL<GPIO> {
       // Net voltages must be equal
       if (parent.netVoltage) {
         if (!(parent.netVoltage == child.netVoltage)) {
-          console.error('Net voltages are not equal');
-          return false;
+          return error('Net voltages are not equal');
         }
       } else {
         // Net voltages same as Source voltages. Source voltages must fit
         if (parent.sourceVoltage && child.sourceVoltage) {
           if (!this.voltagesFit(parent.sourceVoltage, child.sourceVoltage)) {
-            console.error('Source voltages dont fit');
-            return false;
+            return error('Source voltages dont fit');
           }
         } else {
-          console.error('Source voltage not found');
-          return false;
+          return error('Source voltage not found');
         }
       }
     }
 
     // Connected :D
-    return true;
+    return ok(true);
   }
 }
 

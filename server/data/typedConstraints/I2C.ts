@@ -1,4 +1,4 @@
-import { PROTOCOL, POWER, net, voltage } from './PROTOCOL';
+import { PROTOCOL, POWER, net, voltage, ok, error, result } from './PROTOCOL';
 
 class I2C extends POWER implements PROTOCOL<I2C> {
   // Nets
@@ -10,33 +10,30 @@ class I2C extends POWER implements PROTOCOL<I2C> {
   constructor(sourceVoltage: voltage) {
     super(sourceVoltage);
   }
-  public connect(childs: Array<I2C>): boolean {
+
+  public connect(childs: Array<I2C>): result<boolean> {
     const parent = this;
 
     // ## Connection Constrains:
     for (const child of childs) {
       // The following nets must exist
       if (!(parent.SDA && parent.SCL && child.SDA && child.SCL)) {
-        console.error('Missing protocol nets');
-        return false;
+        return error('Missing protocol nets');
       }
 
       // Net voltages must be equal
       if (parent.netVoltage) {
         if (!(parent.netVoltage == child.netVoltage)) {
-          console.error('Net voltages are not equal');
-          return false;
+          return error('Net voltages are not equal');
         }
       } else {
         // Net voltages same as Source voltages. Source voltages must fit
         if (parent.sourceVoltage && child.sourceVoltage) {
           if (!this.voltagesFit(parent.sourceVoltage, child.sourceVoltage)) {
-            console.error('Source voltages dont fit');
-            return false;
+            return error('Source voltages dont fit');
           }
         } else {
-          console.error('Source voltage not found');
-          return false;
+          return error('Source voltage not found');
         }
       }
 
@@ -51,14 +48,11 @@ class I2C extends POWER implements PROTOCOL<I2C> {
         );
       } else {
         if (!(parent.arch == 'master' && child.arch == 'slave')) {
-          console.error(
-            'SPI parent and child architecture must be of type master-slave',
-            '- parent arch:',
-            parent.arch,
-            '- child arch:',
-            child.arch,
+          return error(
+            `SPI parent and child architecture must be of type master-slave. Parent arch:
+            ${parent.arch} child arch:
+            ${child.arch}`,
           );
-          return false;
         }
       }
     }
@@ -67,8 +61,7 @@ class I2C extends POWER implements PROTOCOL<I2C> {
     let i2Caddresses: Array<string> = [];
     for (const child of childs) {
       if (child.address == null) {
-        console.error('I2C address must exists');
-        return false;
+        return error('I2C address must exists');
       } else {
         i2Caddresses.push(child.address);
       }
@@ -79,15 +72,14 @@ class I2C extends POWER implements PROTOCOL<I2C> {
     for (let i = 0; i < sortedAddr.length; i++) {
       if (sortedAddr[i + 1] != undefined) {
         if (sortedAddr[i] == sortedAddr[i + 1]) {
-          console.error(
+          return error(
             `I2C address must be unique, found two ${sortedAddr[i]} addresses`,
           );
-          return false;
         }
       }
     }
     // Connected :D
-    return true;
+    return ok(true);
   }
 }
 

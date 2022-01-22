@@ -15,7 +15,10 @@ declare class POWER {
     constructor(sourceVoltage: voltage);
     voltagesFit(v1: voltage, v2: voltage): boolean;
 }
+declare type result<T> = [res: T | null, err: string | null];
+declare const ok: <T>(res: T) => result<T>;
+declare const error: (msg: string) => result<never>;
 interface PROTOCOL<T> {
-    connect(childs: Array<T>): boolean;
+    connect(childs: Array<T>): result<boolean>;
 }
-export { PROTOCOL, POWER, net, voltage };
+export { PROTOCOL, POWER, net, voltage, ok, error, result };

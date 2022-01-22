@@ -79,9 +79,19 @@ class POWER {
   }
 }
 
+// ERROR
+
+type result<T> = [res: T | null, err: string | null];
+const ok = <T>(res: T): result<T> => {
+  return [res, null];
+};
+const error = (msg: string): result<never> => {
+  return [null, msg];
+};
+
 // PROTOCOL base
 interface PROTOCOL<T> {
-  connect(childs: Array<T>): boolean;
+  connect(childs: Array<T>): result<boolean>;
 }
 
-export { PROTOCOL, POWER, net, voltage };
+export { PROTOCOL, POWER, net, voltage, ok, error, result };
