@@ -1,35 +1,36 @@
 const enum ErrorCode {
-  UNKNOWN,
-  VOLTAGESNOFIT,
+  UnknownError = 'UnknownError',
+  ParseError = 'ParseError',
+  NewMatError = 'NewMatError',
+  AddMatError = 'AddMatError',
+  AddTschError = 'AddTschError',
+  ConnectError = 'ConnectError',
+  GenerateError = 'GenerateError',
 }
 
-class Error {
-  msg: string;
-  code: ErrorCode;
-  constructor(errMsg: string, code: ErrorCode = ErrorCode.UNKNOWN) {
-    this.code = code;
-    this.msg = errMsg;
+class tschedaError extends Error {
+  constructor(name: ErrorCode, message: string) {
+    super(message);
+    super.name = name;
   }
 }
 
-const isError = (result: any | Error): result is Error => {
-  return !!(result as Error)?.msg;
+const isError = (result: any | tschedaError): result is tschedaError => {
+  return !!(result as tschedaError)?.message;
 };
 
-type result<T> = [res: T | null, err: Error | null];
-
+type result<T> = [res: T | null, err: string | null];
 const ok = <T>(res: T): result<T> => {
   return [res, null];
 };
-
-const err = (msg: string): result<never> => {
-  return [null, new Error(msg)];
+const error = (msg: string): result<never> => {
+  return [null, msg];
 };
 
 class Result<T> {
   res: T | null;
-  err: Error | null;
-  constructor(res: T | null = null, err: Error | null = null) {
+  err: string | null;
+  constructor(res: T | null = null, err: string | null = null) {
     this.res = res;
     this.err = err;
   }
@@ -38,17 +39,23 @@ class Result<T> {
     return [this.res, this.err];
   }
   public error(msg: string): result<T> {
-    this.err = new Error(msg);
+    this.err = msg;
     return [this.res, this.err];
   }
 }
 
-export { Result, result, Error, ok, err, isError };
+export { Result, result, ok, error, isError, tschedaError, ErrorCode };
 
 /* Usage: 
-Three diferent ways to use:
+Four diferent ways to use:
 
-1. 
+0. 
+function test0(): boolean {
+  // Uses standar Error Class
+  throw new tschedaError(ErrorCode.UNKNOWN, 'An error');
+}
+
+1.
 function test1(): boolean | Error {
   // return true
   return new Error('An error');
