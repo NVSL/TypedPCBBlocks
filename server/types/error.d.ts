@@ -5,6 +5,7 @@ declare const enum ErrorCode {
     AddMatError = "AddMatError",
     AddTschError = "AddTschError",
     ConnectError = "ConnectError",
+    DRCError = "DRCError",
     GenerateError = "GenerateError"
 }
 declare class tschedaError extends Error {
