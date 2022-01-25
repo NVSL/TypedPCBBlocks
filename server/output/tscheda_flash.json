@@ -38,7 +38,7 @@
       {
         "schematic": "atmega328.sch",
         "instance": 1,
-        "net": "#SPI-0.MOSI||#GPIO-11"
+        "net": "#SPI-0.MOSI!||#GPIO-11!"
       },
       {
         "schematic": "flash.sch",
@@ -54,7 +54,7 @@
       {
         "schematic": "atmega328.sch",
         "instance": 1,
-        "net": "#SPI-0.MISO||#GPIO-12"
+        "net": "#SPI-0.MISO!||#GPIO-12!"
       },
       {
         "schematic": "flash.sch",
@@ -70,7 +70,7 @@
       {
         "schematic": "atmega328.sch",
         "instance": 1,
-        "net": "#SPI-0.SCK||#GPIO-13"
+        "net": "#SPI-0.SCK!||#GPIO-13!"
       },
       {
         "schematic": "flash.sch",

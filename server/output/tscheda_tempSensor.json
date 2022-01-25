@@ -38,7 +38,7 @@
       {
         "schematic": "atmega328.sch",
         "instance": 1,
-        "net": "#I2C-0.SDA||#ADC-4"
+        "net": "#I2C-0.SDA!||#ADC-4!"
       },
       {
         "schematic": "temperature_sensor.sch",
@@ -54,12 +54,28 @@
       {
         "schematic": "atmega328.sch",
         "instance": 1,
-        "net": "#I2C-0.SCL||#ADC-5"
+        "net": "#I2C-0.SCL!||#ADC-5!"
       },
       {
         "schematic": "temperature_sensor.sch",
         "instance": 1,
         "net": "#I2C-0.SCL"
+      }
+    ]
+  },
+  {
+    "type": "GPIO",
+    "wire": null,
+    "connect": [
+      {
+        "schematic": "atmega328.sch",
+        "instance": 1,
+        "net": "#SERIAL-0.TX!||#GPIO-1!"
+      },
+      {
+        "schematic": "temperature_sensor.sch",
+        "instance": 1,
+        "net": "#GPIO-ALERT"
       }
     ]
   }

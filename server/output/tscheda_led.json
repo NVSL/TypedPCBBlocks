@@ -38,7 +38,7 @@
       {
         "schematic": "atmega328.sch",
         "instance": 1,
-        "net": "#GPIO-9"
+        "net": "#GPIO-9!"
       },
       {
         "schematic": "led_smd.sch",
