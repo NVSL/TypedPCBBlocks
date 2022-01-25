@@ -14,6 +14,7 @@ interface TypedPower {
     type: typedYType;
     name: string | null;
     altname: string;
+    required: boolean;
     typedNets: string[];
     vars: {
         voltage: voltage;
@@ -23,6 +24,7 @@ interface TypedProtocol {
     type: typedYType;
     name: string | null;
     altname: string;
+    required: boolean;
     typedNets: string[];
     vars: {
         [props: string]: string | number | boolean;

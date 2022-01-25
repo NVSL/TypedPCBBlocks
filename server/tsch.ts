@@ -17,6 +17,7 @@ interface TypedPower {
   type: typedYType;
   name: string | null;
   altname: string;
+  required: boolean;
   typedNets: string[];
   vars: {
     voltage: voltage;
@@ -27,6 +28,7 @@ interface TypedProtocol {
   type: typedYType;
   name: string | null;
   altname: string;
+  required: boolean;
   typedNets: string[];
   vars: {
     // Protocol properties
@@ -271,7 +273,8 @@ class tsch {
     for (let typedNet of netNames) {
       // Parse Typed Power Nets
       if (typedNet.includes('@')) {
-        const powerData = typedNet.replace('@', '').split('_');
+        const required = typedNet.includes('!') ? false : true;
+        const powerData = typedNet.replace('@', '').replace('!', '').split('_');
         if (powerData.length < 2) {
           throw new tschedaError(
             ErrorCode.ParseError,
@@ -286,6 +289,7 @@ class tsch {
             type: 'power',
             name: null,
             altname: '0',
+            required: required,
             typedNets: [],
             vars: {
               voltage: {
@@ -392,8 +396,10 @@ class tsch {
       // Parse Typed Protcol Nets
       if (typedNet.includes('#')) {
         for (let protocolData of typedNet.split('||')) {
+          // Check if typed net is required
+          const required = protocolData.includes('!') ? false : true;
           // Remove #
-          protocolData = protocolData.replace('#', '');
+          protocolData = protocolData.replace('#', '').replace('!', '');
 
           // Init protocol
           let protocolAndAltname = '';
@@ -401,6 +407,7 @@ class tsch {
             type: 'protocol',
             name: null,
             altname: '0',
+            required: required,
             typedNets: [],
             vars: {},
           };
