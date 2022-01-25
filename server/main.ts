@@ -159,13 +159,19 @@ async function tempSensor(): Promise<void> {
       { uuid: tempSesnor, protocol: 'I2C-0' },
     ]);
 
+    await tscheda.connect({ uuid: atmega328, protocol: 'GPIO-1' }, [
+      { uuid: tempSesnor, protocol: 'GPIO-ALERT' },
+    ]);
+
     console.log('@ Connection MAP');
     for (const [key, val] of tscheda.connections.entries()) {
       console.log(key, '|', val);
     }
 
+    tscheda.drc();
+
     const jsonData = tscheda.generateJson();
-    outputFile(jsonData, 'tscheda_tempSensor.json');
+    outputFile(jsonData, 'tscheda_tempSensor.json'); // TODO: Add drc to generate()
   } catch (e) {
     console.error(e);
   }
