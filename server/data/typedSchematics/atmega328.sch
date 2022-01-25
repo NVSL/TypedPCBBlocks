@@ -2287,7 +2287,7 @@ I2C:{arch:master},
 <pinref part="U3" gate="G$1" pin="AVCC"/>
 </segment>
 </net>
-<net name="#GPIO-RESET" class="0">
+<net name="#GPIO-RESET!" class="0">
 <segment>
 <wire x1="63.5" y1="127" x2="63.5" y2="124.46" width="0.1524" layer="91"/>
 <wire x1="63.5" y1="124.46" x2="63.5" y2="121.92" width="0.1524" layer="91"/>
@@ -2335,70 +2335,70 @@ I2C:{arch:master},
 <pinref part="C6" gate="G$1" pin="1"/>
 </segment>
 </net>
-<net name="#GPIO-DTR" class="0">
+<net name="#GPIO-DTR!" class="0">
 <segment>
 <wire x1="50.8" y1="124.46" x2="45.72" y2="124.46" width="0.1524" layer="91"/>
 <pinref part="C3" gate="G$1" pin="1"/>
 <label x="45.72" y="124.46" size="1.27" layer="95" rot="R180" xref="yes"/>
 </segment>
 </net>
-<net name="#ADC-0" class="0">
+<net name="#ADC-0!" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="PC0(ADC0)"/>
 <wire x1="124.46" y1="124.46" x2="132.08" y2="124.46" width="0.1524" layer="91"/>
 <label x="132.08" y="124.46" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#ADC-1" class="0">
+<net name="#ADC-1!" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="PC1(ADC1)"/>
 <wire x1="124.46" y1="121.92" x2="132.08" y2="121.92" width="0.1524" layer="91"/>
 <label x="132.08" y="121.92" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#ADC-2" class="0">
+<net name="#ADC-2!" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="PC2(ADC2)"/>
 <wire x1="124.46" y1="119.38" x2="132.08" y2="119.38" width="0.1524" layer="91"/>
 <label x="132.08" y="119.38" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#ADC-3" class="0">
+<net name="#ADC-3!" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="PC3(ADC3)"/>
 <wire x1="124.46" y1="116.84" x2="132.08" y2="116.84" width="0.1524" layer="91"/>
 <label x="132.08" y="116.84" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#I2C-0.SDA||#ADC-4" class="0">
+<net name="#I2C-0.SDA!||#ADC-4!" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="PC4(ADC4/SDA)"/>
 <wire x1="124.46" y1="114.3" x2="132.08" y2="114.3" width="0.1524" layer="91"/>
 <label x="132.08" y="114.3" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#I2C-0.SCL||#ADC-5" class="0">
+<net name="#I2C-0.SCL!||#ADC-5!" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="PC5(ADC5/SCL)"/>
 <wire x1="124.46" y1="111.76" x2="132.08" y2="111.76" width="0.1524" layer="91"/>
 <label x="132.08" y="111.76" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#ADC-6" class="0">
+<net name="#ADC-6!" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="ADC6"/>
 <wire x1="124.46" y1="109.22" x2="132.08" y2="109.22" width="0.1524" layer="91"/>
 <label x="132.08" y="109.22" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#ADC-7" class="0">
+<net name="#ADC-7!" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="ADC7"/>
 <wire x1="124.46" y1="106.68" x2="132.08" y2="106.68" width="0.1524" layer="91"/>
 <label x="132.08" y="106.68" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#SPI-0.MOSI||#GPIO-11" class="0">
+<net name="#SPI-0.MOSI!||#GPIO-11!" class="0">
 <segment>
 <pinref part="JP4" gate="G$1" pin="4"/>
 <wire x1="190.5" y1="66.04" x2="210.82" y2="66.04" width="0.1524" layer="91"/>
@@ -2413,7 +2413,7 @@ I2C:{arch:master},
 <label x="134.62" y="63.5" size="1.27" layer="95" rot="R270" xref="yes"/>
 </segment>
 </net>
-<net name="#SPI-0.MISO||#GPIO-12" class="0">
+<net name="#SPI-0.MISO!||#GPIO-12!" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="PB4(MISO)"/>
 <wire x1="124.46" y1="68.58" x2="137.16" y2="68.58" width="0.1524" layer="91"/>
@@ -2424,7 +2424,7 @@ I2C:{arch:master},
 <label x="137.16" y="63.5" size="1.27" layer="95" rot="R270" xref="yes"/>
 </segment>
 </net>
-<net name="#SPI-0.SCK||#GPIO-13" class="0">
+<net name="#SPI-0.SCK!||#GPIO-13!" class="0">
 <segment>
 <pinref part="JP4" gate="G$1" pin="3"/>
 <pinref part="U3" gate="G$1" pin="PB5(SCK)"/>
@@ -2435,77 +2435,77 @@ I2C:{arch:master},
 <label x="139.7" y="63.5" size="1.27" layer="95" rot="R270" xref="yes"/>
 </segment>
 </net>
-<net name="#SERIAL-0.RX||#GPIO-0" class="0">
+<net name="#SERIAL-0.RX!||#GPIO-0!" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="PD0(RXD)"/>
 <wire x1="124.46" y1="101.6" x2="132.08" y2="101.6" width="0.1524" layer="91"/>
 <label x="132.08" y="101.6" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#SERIAL-0.TX||#GPIO-1" class="0">
+<net name="#SERIAL-0.TX!||#GPIO-1!" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="PD1(TXD)"/>
 <wire x1="124.46" y1="99.06" x2="132.08" y2="99.06" width="0.1524" layer="91"/>
 <label x="132.08" y="99.06" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#INT-0||#GPIO-2" class="0">
+<net name="#GPIO-2!" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="PD2(INT0)"/>
 <wire x1="124.46" y1="96.52" x2="132.08" y2="96.52" width="0.1524" layer="91"/>
 <label x="132.08" y="96.52" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#INT-1||#GPIO-3" class="0">
+<net name="#GPIO-3!" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="PD3(INT1)"/>
 <wire x1="124.46" y1="93.98" x2="132.08" y2="93.98" width="0.1524" layer="91"/>
 <label x="132.08" y="93.98" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#T-0||#GPIO-4" class="0">
+<net name="#GPIO-4!" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="PD4(XCK/T0)"/>
 <wire x1="124.46" y1="91.44" x2="132.08" y2="91.44" width="0.1524" layer="91"/>
 <label x="132.08" y="91.44" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#T-1||#GPIO-5" class="0">
+<net name="#GPIO-5!" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="PD5(T1)"/>
 <wire x1="124.46" y1="88.9" x2="132.08" y2="88.9" width="0.1524" layer="91"/>
 <label x="132.08" y="88.9" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#AIN-0||#GPIO-6" class="0">
+<net name="#AIN-0!||#GPIO-6!" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="PD6(AIN0)"/>
 <wire x1="124.46" y1="86.36" x2="132.08" y2="86.36" width="0.1524" layer="91"/>
 <label x="132.08" y="86.36" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#AIN-1||#GPIO-7" class="0">
+<net name="#AIN-1!||#GPIO-7!" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="PD7(AIN1)"/>
 <wire x1="124.46" y1="83.82" x2="132.08" y2="83.82" width="0.1524" layer="91"/>
 <label x="132.08" y="83.82" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#ICP-0||#GPIO-8" class="0">
+<net name="#GPIO-8!" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="PB0(ICP)"/>
 <wire x1="124.46" y1="78.74" x2="132.08" y2="78.74" width="0.1524" layer="91"/>
 <label x="132.08" y="78.74" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#GPIO-9" class="0">
+<net name="#GPIO-9!" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="PB1(OC1A)"/>
 <wire x1="124.46" y1="76.2" x2="132.08" y2="76.2" width="0.1524" layer="91"/>
 <label x="132.08" y="76.2" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#GPIO-10" class="0">
+<net name="#GPIO-10!" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="PB2(SS/OC1B)"/>
 <wire x1="124.46" y1="73.66" x2="132.08" y2="73.66" width="0.1524" layer="91"/>
