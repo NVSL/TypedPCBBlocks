@@ -555,6 +555,50 @@ class tschEDA {
     return outputFormat;
   }
 
+  public checkRequiredConnections(): void {
+    // Get connections
+    const connections: typedProtocol[] = [];
+    for (const [key, values] of this.connections.entries()) {
+      connections.push(key);
+      connections.push(...values);
+    }
+
+    // Check that all required Typed Nets are connected
+    for (const [uuid, tsch] of this.tschs.entries()) {
+      if (tsch.inDesign) {
+        if (tsch.typedSchematic && !tsch.outputsPower) {
+          for (const [key, typedNet] of Object.entries(tsch.typedSchematic)) {
+            if (typedNet.required && typedNet.type == 'protocol') {
+              const typedStr = {
+                uuid: uuid,
+                protocol: key,
+              };
+              // If typedNets are required they must be connected
+              const found = connections.find(
+                (e) =>
+                  typedStr.uuid == e.uuid && typedStr.protocol == e.protocol,
+              )
+                ? true
+                : false;
+
+              if (!found) {
+                throw new tschedaError(
+                  ErrorCode.DRCError,
+                  `Typed Protocol connection ${key} in typed schematic ${tsch.eagleFileName} is required`,
+                );
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Design Rule Checks
+  public drc() {
+    this.checkRequiredConnections();
+  }
+
   // Generate connections list in JSON format
   public generateJson(): string {
     const output = this.generateNetConnections();
@@ -581,7 +625,7 @@ class tschEDA {
     for (const tyepnet of typednets) {
       for (const net of tyepnet.split('||')) {
         if (net.includes(protocolFriedlyName) && net.includes('.')) {
-          const wire = net.split('.')[1];
+          const wire = net.replace('!', '').split('.')[1];
           wires.push(wire);
         }
       }

@@ -46,6 +46,8 @@ declare class tschEDA {
     private storeMatInHashMap;
     private setInstance;
     private generateNetConnections;
+    checkRequiredConnections(): void;
+    drc(): void;
     generateJson(): string;
     static getFriendlyName(protocol: string): string;
     static getSubWires(protocolFriedlyName: string, nets: Array<string>): Array<string>;
