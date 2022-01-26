@@ -45,15 +45,21 @@ async function flash(): Promise<void> {
       { uuid: flash, protocol: 'SPI-0' },
     ]);
 
+    await tscheda.connect({ uuid: atmega328, protocol: 'GPIO-4' }, [
+      { uuid: flash, protocol: 'GPIO-CS' },
+    ]);
+
     console.log('@ Connection MAP');
     for (const [key, val] of tscheda.connections.entries()) {
       console.log(key, '|', val);
     }
 
+    tscheda.drc();
+
     const jsonData = tscheda.generateJson();
     outputFile(jsonData, 'tscheda_flash.json');
   } catch (e) {
-    console.error(e);
+    throw e;
   }
 
   return;
@@ -85,15 +91,25 @@ async function twoFlash(): Promise<void> {
       { uuid: flash2, protocol: 'SPI-0' },
     ]);
 
+    await tscheda.connect({ uuid: atmega328, protocol: 'GPIO-4' }, [
+      { uuid: flash, protocol: 'GPIO-CS' },
+    ]);
+
+    await tscheda.connect({ uuid: atmega328, protocol: 'GPIO-5' }, [
+      { uuid: flash2, protocol: 'GPIO-CS' },
+    ]);
+
     console.log('@ Connection MAP');
     for (const [key, val] of tscheda.connections.entries()) {
       console.log(key, '|', val);
     }
 
+    tscheda.drc();
+
     const jsonData = tscheda.generateJson();
     outputFile(jsonData, 'tscheda_twoFlash.json');
   } catch (e) {
-    console.error(e);
+    throw e;
   }
 
   return;
@@ -127,10 +143,12 @@ async function led(): Promise<void> {
       console.log(key, '|', val);
     }
 
+    tscheda.drc();
+
     const jsonData = tscheda.generateJson();
     outputFile(jsonData, 'tscheda_led.json');
   } catch (e) {
-    console.error(e);
+    throw e;
   }
 
   return;
@@ -159,7 +177,7 @@ async function tempSensor(): Promise<void> {
       { uuid: tempSesnor, protocol: 'I2C-0' },
     ]);
 
-    await tscheda.connect({ uuid: atmega328, protocol: 'GPIO-1' }, [
+    await tscheda.connect({ uuid: atmega328, protocol: 'GPIO-4' }, [
       { uuid: tempSesnor, protocol: 'GPIO-ALERT' },
     ]);
 
@@ -173,10 +191,17 @@ async function tempSensor(): Promise<void> {
     const jsonData = tscheda.generateJson();
     outputFile(jsonData, 'tscheda_tempSensor.json'); // TODO: Add drc to generate()
   } catch (e) {
-    console.error(e);
+    throw e;
   }
 
   return;
+}
+
+interface lal {
+  foo: string;
+  lal?: {
+    foo: string;
+  };
 }
 
 // Main program

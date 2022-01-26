@@ -584,7 +584,7 @@ class tschEDA {
               if (!found) {
                 throw new tschedaError(
                   ErrorCode.DRCError,
-                  `Typed Protocol connection ${key} in typed schematic ${tsch.eagleFileName} is required`,
+                  `Typed Protocol ${key} in typed schematic ${tsch.eagleFileName} is required`,
                 );
               }
             }
