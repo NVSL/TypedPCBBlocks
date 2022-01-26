@@ -354,7 +354,7 @@ I2C:{arch:slave,address:'0x18'},
 <label x="5.08" y="-15.24" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#GPIO-ALERT" class="0">
+<net name="#GPIO-ALERT!" class="0">
 <segment>
 <pinref part="U1" gate="G$1" pin="ALERT"/>
 <wire x1="2.54" y1="-2.54" x2="2.54" y2="-12.7" width="0.1524" layer="91"/>

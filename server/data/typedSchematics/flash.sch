@@ -557,14 +557,14 @@ SPI:{arch:slave}
 <label x="55.88" y="17.78" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#GPIO-HOLD" class="0">
+<net name="#GPIO-HOLD!" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="HOLD#"/>
 <wire x1="50.8" y1="20.32" x2="55.88" y2="20.32" width="0.1524" layer="91"/>
 <label x="55.88" y="20.32" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#GPIO-WP" class="0">
+<net name="#GPIO-WP!" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="W#"/>
 <wire x1="22.86" y1="17.78" x2="17.78" y2="17.78" width="0.1524" layer="91"/>
