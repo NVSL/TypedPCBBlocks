@@ -70,12 +70,12 @@
       {
         "schematic": "atmega328.sch",
         "instance": 1,
-        "net": "#SERIAL-0.TX!||#GPIO-1!"
+        "net": "#GPIO-4!"
       },
       {
         "schematic": "temperature_sensor.sch",
         "instance": 1,
-        "net": "#GPIO-ALERT"
+        "net": "#GPIO-ALERT!"
       }
     ]
   }

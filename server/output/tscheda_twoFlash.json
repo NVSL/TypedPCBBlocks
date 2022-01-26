@@ -93,5 +93,37 @@
         "net": "#SPI.SCK"
       }
     ]
+  },
+  {
+    "type": "GPIO",
+    "wire": null,
+    "connect": [
+      {
+        "schematic": "atmega328.sch",
+        "instance": 1,
+        "net": "#GPIO-4!"
+      },
+      {
+        "schematic": "flash.sch",
+        "instance": 1,
+        "net": "#GPIO-CS"
+      }
+    ]
+  },
+  {
+    "type": "GPIO",
+    "wire": null,
+    "connect": [
+      {
+        "schematic": "atmega328.sch",
+        "instance": 1,
+        "net": "#GPIO-5!"
+      },
+      {
+        "schematic": "flash.sch",
+        "instance": 2,
+        "net": "#GPIO-CS"
+      }
+    ]
   }
 ]
