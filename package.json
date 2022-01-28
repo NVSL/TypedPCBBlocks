@@ -3,7 +3,11 @@
   "description": "",
   "packageManager": "yarn@3.1.0",
   "workspaces": [
-    "client/*",
-    "server/*"
-  ]
+    "client/",
+    "server/",
+    "packages/*"
+  ],
+  "dependencies": {
+    "xml-js": "^1.6.11"
+  }
 }
