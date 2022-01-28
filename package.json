@@ -7,7 +7,13 @@
     "server/",
     "packages/*"
   ],
-  "dependencies": {
-    "xml-js": "^1.6.11"
+  "devDependencies": {
+    "concurrently": "^7.0.0"
+  },  
+  "scripts": {
+    "build": "yarn workspace tscheda run build; yarn workspace server run build",
+    "build:watch": "yarn run concurrently 'yarn workspace tscheda run build:watch' 'yarn workspace server run build:watch' -n 'package,app' -c 'blue.bold,green.bold'",
+    "build:server": "yarn workspace server run build",
+    "build:tscheda": "yarn workspace tscheda run build"
   }
 }
