@@ -2,10 +2,7 @@
   "name": "server",
   "version": "1.0.0",
   "description": "Typed Schematics Server",
-  "source": "index.ts",
-  "types": "dist/types/index.d.ts",
-  "main": "dist/bundle.cjs.js",
-  "module": "dist/bundle.esm.js",
+  "source": "main.ts",
   "scripts": {
     "test": "",
     "build": "tsc && node dist/main.js",
@@ -26,5 +23,8 @@
     "tslib": "^2.3.1",
     "typescript": "^4.4.4",
     "xml2js": "^0.4.23"
+  },
+  "resolutions": {
+    "tscheda": "workspace:packages/tscheda"
   }
 }
