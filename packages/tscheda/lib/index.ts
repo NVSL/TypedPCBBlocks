@@ -846,6 +846,13 @@ class tschEDA {
   //###
   //### Prints
   //###
+
+  public printConnectionMap(): void {
+    console.log('@ Connection MAP');
+    for (const [key, val] of this.connections.entries()) {
+      console.log(key, '|', val);
+    }
+  }
 }
 
 export { tschEDA, powerMatNode, debug };
