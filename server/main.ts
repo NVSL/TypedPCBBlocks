@@ -196,8 +196,5 @@ async function tempSensor(): Promise<void> {
 })();
 
 // TODO NEXT:
-// -- Add optional and forced connections plus a checker
-// -- Add better error handling
-// -- Try more designs (Add I2C)
-// -- Add I2C constrains
 // -- Add connection headers
+// -- Add more designs
