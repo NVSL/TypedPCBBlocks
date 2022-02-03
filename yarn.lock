@@ -956,6 +956,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"client@workspace:client":
+  version: 0.0.0-use.local
+  resolution: "client@workspace:client"
+  dependencies:
+    typescript: ^4.3.2
+    vite: ^2.6.4
+  languageName: unknown
+  linkType: soft
+
 "cliui@npm:^7.0.2":
   version: 7.0.4
   resolution: "cliui@npm:7.0.4"
@@ -3667,15 +3676,6 @@ __metadata:
   checksum: 4fb3272df21ad1c552486f8a2f8e115c09a521ad7a8db3d56d53718d0c907b62c6e9141ba5f584af3f6830d0872c521357e512381f24f7c44acae583ad517d73
   languageName: node
   linkType: hard
-
-"typedschematics@workspace:client":
-  version: 0.0.0-use.local
-  resolution: "typedschematics@workspace:client"
-  dependencies:
-    typescript: ^4.3.2
-    vite: ^2.6.4
-  languageName: unknown
-  linkType: soft
 
 "typescript@npm:^4.3.2, typescript@npm:^4.4.4, typescript@npm:^4.5.5":
   version: 4.5.5

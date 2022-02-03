@@ -3,17 +3,19 @@
   "description": "",
   "packageManager": "yarn@3.1.0",
   "workspaces": [
-    "client/",
     "server/",
-    "packages/*"
+    "packages/*",
+    "client/"
   ],
   "devDependencies": {
     "concurrently": "^7.0.0"
-  },  
+  },
   "scripts": {
     "build": "yarn workspace tscheda run build; yarn workspace server run build",
     "build:watch": "yarn run concurrently 'yarn workspace tscheda run build:watch' 'yarn workspace server run build:watch' -n 'package,app' -c 'blue.bold,green.bold'",
     "build:server": "yarn workspace server run build",
-    "build:tscheda": "yarn workspace tscheda run build"
+    "build:tscheda": "yarn workspace tscheda run build",
+    "start:client": "yarn workspace client run dev",
+    "build:client": "yarn workspace client run build"
   }
 }
