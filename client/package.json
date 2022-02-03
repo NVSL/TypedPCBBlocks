@@ -1,5 +1,5 @@
 {
-  "name": "typedschematics",
+  "name": "client",
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
@@ -9,5 +9,14 @@
   "devDependencies": {
     "typescript": "^4.3.2",
     "vite": "^2.6.4"
+  },
+  "resolutions": {
+    "tscheda": "workspace:packages/tscheda"
+  },
+  "dependencies": {
+    "@types/relaxed-json": "^1.0.1",
+    "fast-xml-parser": "^4.0.1",
+    "relaxed-json": "^1.0.3",
+    "xml-js": "^1.6.11"
   }
 }
