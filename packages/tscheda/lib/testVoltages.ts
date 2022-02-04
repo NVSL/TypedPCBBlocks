@@ -1,11 +1,11 @@
 import { powerMatNode } from './index';
-import { tsch, range } from './tsch';
+import { Tsch, range } from './tsch';
 import debug from './logger';
 
 const test = {
   tschVoltages: (
     mat: powerMatNode,
-    tsch: tsch,
+    tsch: Tsch,
   ): { voutProtocol: string; vinProtocol: string } | null => {
     const vin = tsch.getVin();
     if (vin == null) {

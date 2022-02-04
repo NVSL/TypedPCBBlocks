@@ -1,6 +1,6 @@
-import convert from 'xml-js';
+import fxparser from 'fast-xml-parser';
 import RJSON from 'relaxed-json';
-import { tschedaError, ErrorCode } from './error';
+import { TschedaError, ErrorCode } from './error';
 
 type range = { min: number; max: number };
 type typedYType = 'power' | 'protocol';
@@ -40,7 +40,7 @@ interface TypedSchematic {
   [protocolKey: string]: TypedProtocol | TypedPower;
 }
 
-class tsch {
+class Tsch {
   eagle: any;
   eagleVersion: string | null;
   eagleFileName: string;
@@ -65,17 +65,17 @@ class tsch {
     eagleData: string,
     eagleFileName: string,
   ): Promise<void> {
+    const parser = new fxparser.XMLParser({
+      ignoreAttributes: false,
+      attributeNamePrefix: '_',
+    });
     try {
-      const xml: any = JSON.parse(
-        convert.xml2json(eagleData, {
-          compact: true,
-        }),
-      );
+      const xml: any = parser.parse(eagleData);
       this.eagle = xml.eagle.drawing;
-      this.eagleVersion = xml.eagle._attributes.version;
+      this.eagleVersion = xml.eagle._version;
       this.eagleFileName = eagleFileName;
     } catch (e) {
-      throw new tschedaError(
+      throw new TschedaError(
         ErrorCode.ParseError,
         `File is not a XML eagle file, ${e}`,
       );
@@ -190,10 +190,10 @@ class tsch {
       if (Array.isArray(nets)) {
         for (const netVal of nets) {
           const net = netVal as any;
-          netNames.push(net._attributes.name);
+          netNames.push(net._name);
         }
       } else {
-        netNames.push(nets._attributes.name);
+        netNames.push(nets._name);
       }
     }
     return netNames;
@@ -219,10 +219,10 @@ class tsch {
       if (Array.isArray(texts)) {
         for (const textVal of texts) {
           const text = textVal as any;
-          schTexts.push(text._text);
+          if (text['#text']) schTexts.push(text['#text']);
         }
       } else {
-        schTexts.push(texts._text);
+        if (texts['#text']) schTexts.push(texts['#text']);
       }
     }
     return schTexts;
@@ -248,8 +248,8 @@ class tsch {
             this.typedSchematic[nameAndAltame].typedNets = newTypedNets;
 
             // Merge vars
-            const currentVars = this.typedSchematic[nameAndAltame].vars;
-            let newVars = typedProperty.vars;
+            const currentVars: any = this.typedSchematic[nameAndAltame].vars;
+            let newVars: any = typedProperty.vars;
             for (let key in currentVars) {
               if (key in newVars) {
                 console.warn(
@@ -276,7 +276,7 @@ class tsch {
                 typedProperty.typedNets[0] !=
                 this.typedSchematic[nameAndAltame].typedNets[0]
               ) {
-                throw new tschedaError(
+                throw new TschedaError(
                   ErrorCode.ParseError,
                   `Typed power property key ${nameAndAltame} already exists.`,
                 );
@@ -284,14 +284,14 @@ class tsch {
                 // Do nothing, is the same typedNet
               }
             } else {
-              throw new tschedaError(
+              throw new TschedaError(
                 ErrorCode.ParseError,
                 `Format error, typedNet should exists for power:  ${typedProperty}`,
               );
             }
             break;
           default:
-            throw new tschedaError(
+            throw new TschedaError(
               ErrorCode.ParseError,
               `Unknonw typedProtocol type:  ${typedProperty.type}`,
             );
@@ -305,6 +305,9 @@ class tsch {
 
   // Creates Typed Schematc dictionary from typed nets
   private parse(netNames: string[], schTexts: string[]) {
+    if (netNames == undefined) {
+      throw new TschedaError(ErrorCode.ParseError, `No net names`);
+    }
     // ## Parse Net Names
     for (let typedNet of netNames) {
       // Parse Typed Power Nets
@@ -312,7 +315,7 @@ class tsch {
         const required = typedNet.includes('!') ? false : true;
         const powerData = typedNet.replace('@', '').replace('!', '').split('_');
         if (powerData.length < 2) {
-          throw new tschedaError(
+          throw new TschedaError(
             ErrorCode.ParseError,
             `Wrong format, VIN or VOUT is missing underscore and voltage (e.g. VOUT_3.3V) ${typedNet}`,
           );
@@ -358,7 +361,7 @@ class tsch {
               power.vars.voltage.io = 'in';
             }
           } else {
-            throw new tschedaError(
+            throw new TschedaError(
               ErrorCode.ParseError,
               `Voltage Name is not either VIN or VOUT: ${voltageName}`,
             );
@@ -377,7 +380,7 @@ class tsch {
                 max: parseFloat(voltageData.split('-')[1]),
               };
               if (voltage.min > voltage.max) {
-                throw new tschedaError(
+                throw new TschedaError(
                   ErrorCode.ParseError,
                   `Wrong voltage range, voltage min > voltage max, in typed net: ${typedNet}`,
                 );
@@ -385,7 +388,7 @@ class tsch {
               power.vars.voltage.type = 'range';
               power.vars.voltage.value = voltage;
             } catch (e) {
-              throw new tschedaError(
+              throw new TschedaError(
                 ErrorCode.ParseError,
                 'Unknonw parse error:' + e,
               );
@@ -396,7 +399,7 @@ class tsch {
               try {
                 voltage.push(parseFloat(v));
               } catch (e) {
-                throw new tschedaError(
+                throw new TschedaError(
                   ErrorCode.ParseError,
                   `In typed net ${typedNet}, could not parse ${v}`,
                 );
@@ -411,7 +414,7 @@ class tsch {
               power.vars.voltage.type = 'number';
               power.vars.voltage.value = parseFloat(voltageData);
             } else {
-              throw new tschedaError(
+              throw new TschedaError(
                 ErrorCode.ParseError,
                 `In typed net ${typedNet}, could not parse ${voltageData}`,
               );
@@ -422,7 +425,7 @@ class tsch {
             // Append typed net to typed Schematic dictionary
             this.appendTypedProtocol(power);
           } else {
-            throw new tschedaError(
+            throw new TschedaError(
               ErrorCode.ParseError,
               `Wrong format in typed net: ${typedNet}`,
             );
@@ -471,7 +474,7 @@ class tsch {
             // Append typed net to typed Schematic dictionary
             this.appendTypedProtocol(protocol);
           } else {
-            throw new tschedaError(
+            throw new TschedaError(
               ErrorCode.ParseError,
               `Wrong format in typed net: ${typedNet}`,
             );
@@ -491,7 +494,7 @@ class tsch {
         try {
           json = JSON.parse(RJSON.transform(cleanText));
         } catch (e) {
-          throw new tschedaError(
+          throw new TschedaError(
             ErrorCode.ParseError,
             `Relaxed JSON error while parsing: ${this.eagleFileName} \n` +
               cleanText,
@@ -533,7 +536,7 @@ class tsch {
         }
       }
       if (vinCounter > 1) {
-        throw new tschedaError(
+        throw new TschedaError(
           ErrorCode.ParseError,
           `Only one VIN allowed per power typed Schematic, found ${vinCounter} more`,
         );
@@ -542,4 +545,4 @@ class tsch {
   }
 }
 
-export { TypedSchematic, tsch, voltage, range };
+export { TypedSchematic, Tsch, voltage, range };

@@ -9,15 +9,15 @@ const enum ErrorCode {
   GenerateError = 'GenerateError',
 }
 
-class tschedaError extends Error {
+class TschedaError extends Error {
   constructor(name: ErrorCode, message: string) {
     super(message);
     super.name = name;
   }
 }
 
-const isError = (result: any | tschedaError): result is tschedaError => {
-  return !!(result as tschedaError)?.message;
+const isError = (result: any | TschedaError): result is TschedaError => {
+  return !!(result as TschedaError)?.message;
 };
 
 type result<T> = [res: T | null, err: string | null];
@@ -45,7 +45,7 @@ class Result<T> {
   }
 }
 
-export { Result, result, ok, error, isError, tschedaError, ErrorCode };
+export { Result, result, ok, error, isError, TschedaError, ErrorCode };
 
 /* Usage: 
 Four diferent ways to use:

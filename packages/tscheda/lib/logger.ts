@@ -1,4 +1,4 @@
-class Debug {
+class _TschedaDebug {
   activate: boolean = false;
   level: number = 1;
   constructor(activate) {
@@ -18,6 +18,6 @@ class Debug {
   }
 }
 
-const debug = new Debug(false);
+const TschedaDebug = new _TschedaDebug(false);
 
-export default debug;
+export default TschedaDebug;

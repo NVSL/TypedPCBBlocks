@@ -1,8 +1,8 @@
 import { Queue, MultiMap } from './utils';
-import { tsch, voltage, TypedSchematic } from './tsch';
+import { Tsch, voltage, TypedSchematic } from './tsch';
 import { test } from './testVoltages';
-import debug from './logger';
-import { tschedaError, ErrorCode, result } from './error';
+import TschedaDebug from './logger';
+import { TschedaError, ErrorCode, result } from './error';
 
 type uuid = string;
 
@@ -35,17 +35,17 @@ interface eagle {
 // TODO: Move powerMat and powerMat node to another file
 class powerMatNode {
   uuid: string;
-  powerTsch: tsch;
+  powerTsch: Tsch;
   vin: voltage | null;
   vout: voltage[];
   propagVout: voltage[];
   parent: powerMatNode | 'root' | null;
-  tschMap: Map<string, tsch>;
+  tschMap: Map<string, Tsch>;
   children: Map<string, powerMatNode>;
   constructor(
     uuid: string,
     parent: powerMatNode | 'root' | null,
-    powerTsch: tsch,
+    powerTsch: Tsch,
   ) {
     this.uuid = uuid;
     this.parent = parent;
@@ -59,14 +59,13 @@ class powerMatNode {
 }
 
 // Power cascade
-class tschEDA {
-  tschs: Map<string, tsch>;
+class Tscheda {
+  tschs: Map<string, Tsch>;
   matsMap: Map<string, powerMatNode | undefined>;
   matsTree: powerMatNode | null;
   connections: MultiMap<typedProtocol, typedProtocol[]>;
   typedConstraintsPath: string;
   constructor(typedConstrainsPath: string) {
-    console.log(__dirname);
     this.typedConstraintsPath = typedConstrainsPath;
     this.tschs = new Map();
     this.matsMap = new Map();
@@ -77,12 +76,12 @@ class tschEDA {
   ///// TSCHS
 
   public async use(eagle: eagle): Promise<uuid> {
-    const Tsch = new tsch();
-    await Tsch.loadTsch(eagle.data, eagle.filename);
-    return this.newTsch(Tsch);
+    const tsch = new Tsch();
+    await tsch.loadTsch(eagle.data, eagle.filename);
+    return this.newTsch(tsch);
   }
 
-  public newTsch(tsch: tsch): uuid {
+  public newTsch(tsch: Tsch): uuid {
     // Generate new ID
     let randomUuid = this.getRandomUuid();
     while (this.tschs.has(randomUuid)) {
@@ -94,27 +93,27 @@ class tschEDA {
     return randomUuid;
   }
 
-  public getTsch(tschUuid: string): tsch | null {
+  public getTsch(tschUuid: string): Tsch | null {
     if (this.tschs.has(tschUuid)) {
-      const Tsch = this.tschs.get(tschUuid);
-      if (Tsch) return Tsch;
+      const tsch = this.tschs.get(tschUuid);
+      if (tsch) return tsch;
       else return null;
     }
     return null;
   }
 
   public getTschSourceVoltage(tschUuid: string): voltage | null {
-    const Tsch = this.getTsch(tschUuid);
-    if (Tsch) {
-      return Tsch.sourceVoltage;
+    const tsch = this.getTsch(tschUuid);
+    if (tsch) {
+      return tsch.sourceVoltage;
     }
     return null;
   }
 
   public isInDesing(tschUuid: string): boolean {
-    const Tsch = this.getTsch(tschUuid);
-    if (Tsch) {
-      return Tsch.inDesign;
+    const tsch = this.getTsch(tschUuid);
+    if (tsch) {
+      return tsch.inDesign;
     }
     return false;
   }
@@ -153,20 +152,20 @@ class tschEDA {
   public addTsch(matUuid: string, tschUuid: uuid): void {
     const Tsch = this.getTsch(tschUuid);
     if (!Tsch) {
-      throw new tschedaError(
+      throw new TschedaError(
         ErrorCode.AddTschError,
         `Typed Schematic Uuid ${tschUuid} not found`,
       );
     }
     const Mat = this.getMat(matUuid);
     if (!Mat) {
-      throw new tschedaError(
+      throw new TschedaError(
         ErrorCode.AddTschError,
         `Power Mat Uuid ${matUuid} not found`,
       );
     }
 
-    debug.log(
+    TschedaDebug.log(
       1,
       `>> [TEST] ADD TSCH ${Tsch.eagleFileName} IN MAT ${Mat.powerTsch.eagleFileName}`,
     );
@@ -178,7 +177,7 @@ class tschEDA {
       Tsch.inDesign = true;
 
       // DEBUG
-      debug.log(1, `>> [ADDING] TSCH TO MAT | NO VOLTAGE CONNECTION`);
+      TschedaDebug.log(1, `>> [ADDING] TSCH TO MAT | NO VOLTAGE CONNECTION`);
 
       return;
     }
@@ -209,7 +208,7 @@ class tschEDA {
       this.addConnection(key, [data]);
 
       // DEBUG
-      debug.log(
+      TschedaDebug.log(
         1,
         `>> [ADDING] TSCH TO MAT | WITH VOLTAGE CONNECTION`,
         vResult,
@@ -217,7 +216,7 @@ class tschEDA {
 
       return;
     } else {
-      throw new tschedaError(
+      throw new TschedaError(
         ErrorCode.AddTschError,
         `Typed Schematic and Powert Mat voltages do not fit`,
       );
@@ -244,7 +243,7 @@ class tschEDA {
         return matUuid;
       }
     }
-    throw new tschedaError(
+    throw new TschedaError(
       ErrorCode.NewMatError,
       `Typed Schematic ${tschUuid} doesn't outputs power, therefore is not a Mat`,
     );
@@ -304,7 +303,7 @@ class tschEDA {
 
     // is Tsch
     if (this.isTsch(tschOrTschUuid)) {
-      if ((<tsch>tschOrTschUuid).outputsPower) {
+      if ((<Tsch>tschOrTschUuid).outputsPower) {
         return true;
       }
     }
@@ -314,20 +313,20 @@ class tschEDA {
 
   public addMat(parentUuid: string | 'root', childMatUuid: string): void {
     if (parentUuid == '' || childMatUuid == '') {
-      throw new tschedaError(
+      throw new TschedaError(
         ErrorCode.AddMatError,
         `Parent Uuid ${parentUuid} or Child Uuid ${childMatUuid} are empty`,
       );
     }
     const childMat = this.getMat(childMatUuid);
     if (!childMat) {
-      throw new tschedaError(
+      throw new TschedaError(
         ErrorCode.AddMatError,
         `Child Mat ${childMatUuid} does not found`,
       );
     }
     if (childMat.powerTsch.inDesign == true) {
-      throw new tschedaError(
+      throw new TschedaError(
         ErrorCode.AddMatError,
         `Child Mat ${childMatUuid} already in design, create a new mat`,
       );
@@ -336,7 +335,7 @@ class tschEDA {
       if (this.matsTree == null) {
         // Rule: Only mats with VOUT and no VIN can be added to root
         if (childMat.vin != null) {
-          throw new tschedaError(
+          throw new TschedaError(
             ErrorCode.AddMatError,
             `Root Mat ${childMatUuid} can't have a VIN typed net`,
           );
@@ -348,7 +347,7 @@ class tschEDA {
         // Set in design
         mat.powerTsch.inDesign = true;
       } else {
-        throw new tschedaError(
+        throw new TschedaError(
           ErrorCode.AddMatError,
           `A Root Mat already exists`,
         );
@@ -357,13 +356,13 @@ class tschEDA {
       // Search for paernt
       const parentMat = this.getMat(parentUuid);
       if (!parentMat) {
-        throw new tschedaError(
+        throw new TschedaError(
           ErrorCode.AddMatError,
           `Parent Mat Uuid ${parentUuid} not found`,
         );
       }
 
-      debug.log(
+      TschedaDebug.log(
         1,
         `>> [TEST] ADD MAT ${childMat.powerTsch.eagleFileName} IN MAT ${parentMat.powerTsch.eagleFileName}`,
       );
@@ -374,7 +373,7 @@ class tschEDA {
         vinProtocol: string;
       } | null = test.matVoltages(parentMat, childMat);
       if (vResult == null) {
-        throw new tschedaError(
+        throw new TschedaError(
           ErrorCode.AddMatError,
           `Parent Mat ${parentUuid} and ${childMatUuid} Mat voltages doesn't fit`,
         );
@@ -396,11 +395,11 @@ class tschEDA {
           uuid: mat.uuid,
           protocol: vResult.vinProtocol,
         };
-        debug.log(1, `>> [ADDING] MAT VOLTAGE CONNECTION`, vResult);
+        TschedaDebug.log(1, `>> [ADDING] MAT VOLTAGE CONNECTION`, vResult);
         // Store voltages connection
         this.addConnection(key, [data]);
       } else {
-        throw new tschedaError(
+        throw new TschedaError(
           ErrorCode.AddMatError,
           `Child Mat with uuid ${childMat.uuid}
             already exists in Parent Mat ${parentMat.uuid}`,
@@ -439,7 +438,7 @@ class tschEDA {
     }
   }
 
-  private setInstance(tsch: tsch) {
+  private setInstance(tsch: Tsch) {
     let instanceCounter = 0;
     if (this.isTsch(tsch)) {
       for (const storedTsch of this.tschs.values()) {
@@ -470,7 +469,7 @@ class tschEDA {
     }
 
     if (this.connections.size == 0) {
-      throw new tschedaError(
+      throw new TschedaError(
         ErrorCode.GenerateError,
         `No connections to process`,
       );
@@ -480,7 +479,7 @@ class tschEDA {
     if (this.connections.size > 0) {
       for (const [key, val] of this.connections.entries()) {
         mapHelper.clear();
-        const type = tschEDA.getFriendlyName(key.protocol);
+        const type = Tscheda.getFriendlyName(key.protocol);
         const typedConnections: typedProtocol[] = [key].concat(
           val.map((e) => e),
         );
@@ -488,10 +487,10 @@ class tschEDA {
         if (!this.isMat(key.uuid)) {
           // is tsch
           const tsch = this.getTsch(key.uuid);
-          subWires = tschEDA.getSubWires(type, tsch!.getNets(key.protocol));
+          subWires = Tscheda.getSubWires(type, tsch!.getNets(key.protocol));
         }
         for (const typedConn of typedConnections) {
-          let tsch: tsch | null = null;
+          let tsch: Tsch | null = null;
           if (this.isMat(typedConn.uuid)) {
             tsch = this.getMat(typedConn.uuid)!.powerTsch;
           } else {
@@ -535,7 +534,7 @@ class tschEDA {
               addToMapHelper(multiKey, connect);
             }
           } else {
-            throw new tschedaError(
+            throw new TschedaError(
               ErrorCode.GenerateError,
               `Typed Schematic ${typedConn.uuid} not found`,
             );
@@ -583,7 +582,7 @@ class tschEDA {
                 : false;
 
               if (!found) {
-                throw new tschedaError(
+                throw new TschedaError(
                   ErrorCode.DRCError,
                   `Typed Protocol ${key} in typed schematic ${tsch.eagleFileName} is required`,
                 );
@@ -604,7 +603,7 @@ class tschEDA {
   public generateJson(): string {
     const output = this.generateNetConnections();
     if (output.length == 0) {
-      throw new tschedaError(
+      throw new TschedaError(
         ErrorCode.GenerateError,
         `No output data generated`,
       );
@@ -684,7 +683,7 @@ class tschEDA {
   ): Promise<void> {
     // Checks
     if (childs.length < 1) {
-      throw new tschedaError(
+      throw new TschedaError(
         ErrorCode.ConnectError,
         'Typed Schematic child list must be greater than one',
       );
@@ -692,7 +691,7 @@ class tschEDA {
 
     // Check if parent TSCH and child TSCHs are in design
     if (!this.isInDesing(parent.uuid)) {
-      throw new tschedaError(
+      throw new TschedaError(
         ErrorCode.ConnectError,
         `Parent Typed Schematic ${parent.uuid} uuid is not in desing`,
       );
@@ -700,7 +699,7 @@ class tschEDA {
 
     for (const child of childs) {
       if (!this.isInDesing(child.uuid)) {
-        throw new tschedaError(
+        throw new TschedaError(
           ErrorCode.ConnectError,
           `Child Typed Schematic  ${child.uuid} uuid not in desing`,
         );
@@ -710,27 +709,29 @@ class tschEDA {
     // Check: Only protocols or the same type can be connected
     const protocolName = this.protocolListAreSame(parent, childs);
     if (protocolName == null) {
-      throw new tschedaError(
+      throw new TschedaError(
         ErrorCode.ConnectError,
         `Protocol Names are not equal for parent ${parent} and childs ${childs}`,
       );
     }
 
     // DEBUG
-    debug.log(
+    TschedaDebug.log(
       1,
       `>> [TEST] -${protocolName}- CONNECTING ${protocolName} of parent ${
         this.getTsch(parent.uuid)!.eagleFileName
       }`,
     );
     for (const child of childs) {
-      debug.log(1, `with ${this.getTsch(child.uuid)!.eagleFileName} `);
+      TschedaDebug.log(1, `with ${this.getTsch(child.uuid)!.eagleFileName} `);
     }
 
     try {
       // Dynamically import protcol class
       const protocolClass = await import(
-        this.typedConstraintsPath + protocolName
+        /* @vite-ignore */
+        // eslint-disable-next-line
+        `${this.typedConstraintsPath}${protocolName}.js`
       );
 
       // Load tsch Parent Class
@@ -741,7 +742,7 @@ class tschEDA {
       );
 
       // DEBUG
-      debug.log(2, 'PARENT LOADED CLASS: \n', tschClassParent);
+      TschedaDebug.log(2, 'PARENT LOADED CLASS: \n', tschClassParent);
 
       // Load tsch Childs Class
       const tschClassChilds: typeof protocolClass = [];
@@ -754,7 +755,7 @@ class tschEDA {
         tschClassChilds.push(tschClass);
 
         // DEBUG
-        debug.log(2, 'CHILD LOADED CLASS: \n', tschClass);
+        TschedaDebug.log(2, 'CHILD LOADED CLASS: \n', tschClass);
       }
 
       // Connect:
@@ -763,7 +764,7 @@ class tschEDA {
       );
       if (result) {
         // DEBUG
-        debug.log(
+        TschedaDebug.log(
           1,
           `>> [ADDING] -${protocolName}- PROTOCOL CONNECTION of`,
           'parent',
@@ -773,13 +774,13 @@ class tschEDA {
         );
         this.addConnection(parent, childs);
       } else {
-        throw new tschedaError(
+        throw new TschedaError(
           ErrorCode.ConnectError,
           `Constraint error: ${error}, for protocol ${protocolName} when connecting ${parent} with childs ${childs}`,
         );
       }
     } catch (e) {
-      throw new tschedaError(ErrorCode.ConnectError, `${e}`);
+      throw new TschedaError(ErrorCode.ConnectError, `${e}`);
     }
   }
 
@@ -855,4 +856,4 @@ class tschEDA {
   }
 }
 
-export { tschEDA, powerMatNode, debug };
+export { Tscheda, Tsch, powerMatNode, TschedaDebug };
