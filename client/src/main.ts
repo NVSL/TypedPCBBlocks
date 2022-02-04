@@ -1,6 +1,5 @@
 import './style.css';
-import { tschEDA, tsch } from './lib/index';
-import fxparser from 'fast-xml-parser';
+import { Tscheda, TschedaDebug } from 'tscheda';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 
@@ -25,51 +24,45 @@ async function eagelFile(
   return { data: data, filename: filename };
 }
 
-// async function led(): Promise<void> {
-//   console.log('\n--- LED DESIGN');
-//   try {
-//     const tscheda = new tschEDA(__dirname + '/data/typedConstraints/');
-//     const atmega328 = await tscheda.use(await eagelFile('atmega328.sch'));
-//     const led = await tscheda.use(await eagelFile('led_smd.sch'));
-//     const power5V12V = await tscheda.use(await eagelFile('power5V12V.sch'));
-//     const power5V = await tscheda.use(await eagelFile('power5V.sch'));
+async function led(): Promise<void> {
+  console.log('\n--- LED DESIGN');
+  try {
+    const tscheda = new Tscheda('http://localhost:3000/data/typedConstraints/');
+    const atmega328 = await tscheda.use(await eagelFile('atmega328.sch'));
+    const led = await tscheda.use(await eagelFile('led_smd.sch'));
+    const power5V12V = await tscheda.use(await eagelFile('power5V12V.sch'));
+    const power5V = await tscheda.use(await eagelFile('power5V.sch'));
 
-//     const Mat5V12V = tscheda.newMat(power5V12V);
-//     const Mat5V = tscheda.newMat(power5V);
+    const Mat5V12V = tscheda.newMat(power5V12V);
+    const Mat5V = tscheda.newMat(power5V);
 
-//     tscheda.addMat('root', Mat5V12V);
-//     tscheda.addMat(Mat5V12V, Mat5V);
+    tscheda.addMat('root', Mat5V12V);
+    tscheda.addMat(Mat5V12V, Mat5V);
 
-//     tscheda.addTsch(Mat5V, atmega328);
-//     tscheda.addTsch(Mat5V, led);
+    tscheda.addTsch(Mat5V, atmega328);
+    tscheda.addTsch(Mat5V, led);
 
-//     await tscheda.connect({ uuid: atmega328, protocol: 'GPIO-9' }, [
-//       { uuid: led, protocol: 'GPIO-0' },
-//     ]);
+    await tscheda.connect({ uuid: atmega328, protocol: 'GPIO-9' }, [
+      { uuid: led, protocol: 'GPIO-0' },
+    ]);
 
-//     tscheda.printConnectionMap();
+    tscheda.printConnectionMap();
 
-//     tscheda.drc();
+    tscheda.drc();
 
-//     const jsonData = tscheda.generateJson();
-//     console.log(jsonData);
-//   } catch (e) {
-//     throw e;
-//   }
+    const jsonData = tscheda.generateJson();
+    console.log('JSON OUTPUT', jsonData);
+  } catch (e) {
+    throw e;
+  }
 
-//   return;
-// }
+  return;
+}
 
 (async () => {
-  const tscheda = new tschEDA('/data/typedConstraints/');
-  console.log(tscheda);
-  const Tsch = new tsch();
-  const eagle = await eagelFile('atmega328.sch');
-  console.log(eagle.data);
-  await Tsch.loadTsch(eagle.data, eagle.filename);
-  console.log(Tsch.typedSchematic);
+  TschedaDebug.enable(true, 1);
+  await led();
   /* TODO: 
-  - Move tsch to package lib and try again
-  - Pass constrains as an array an figure out how to do imports.
+  - Start UI
   */
 })();

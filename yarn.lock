@@ -458,6 +458,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/relaxed-json@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@types/relaxed-json@npm:1.0.1"
+  checksum: 4c08044c3db0d27c73691f2a18204a4c9b63e761fcac031f91a35092da62786f3fc2f17ff4280b915944892076e59827d4e5c7ed7a659ce71373f2c585cbb6e7
+  languageName: node
+  linkType: hard
+
 "@types/resolve@npm:1.17.1":
   version: 1.17.1
   resolution: "@types/resolve@npm:1.17.1"
@@ -960,8 +967,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "client@workspace:client"
   dependencies:
+    "@types/relaxed-json": ^1.0.1
+    fast-xml-parser: ^4.0.1
+    relaxed-json: ^1.0.3
     typescript: ^4.3.2
     vite: ^2.6.4
+    xml-js: ^1.6.11
   languageName: unknown
   linkType: soft
 
@@ -1747,13 +1758,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"estree-walker@npm:^0.6.1":
-  version: 0.6.1
-  resolution: "estree-walker@npm:0.6.1"
-  checksum: 9d6f82a4921f11eec18f8089fb3cce6e53bcf45a8e545c42a2674d02d055fb30f25f90495f8be60803df6c39680c80dcee7f944526867eb7aa1fc9254883b23d
-  languageName: node
-  linkType: hard
-
 "estree-walker@npm:^1.0.1":
   version: 1.0.1
   resolution: "estree-walker@npm:1.0.1"
@@ -1806,6 +1810,17 @@ __metadata:
   version: 2.0.6
   resolution: "fast-levenshtein@npm:2.0.6"
   checksum: 92cfec0a8dfafd9c7a15fba8f2cc29cd0b62b85f056d99ce448bbcd9f708e18ab2764bda4dd5158364f4145a7c72788538994f0d1787b956ef0d1062b0f7c24c
+  languageName: node
+  linkType: hard
+
+"fast-xml-parser@npm:^4.0.1, fast-xml-parser@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "fast-xml-parser@npm:4.0.2"
+  dependencies:
+    strnum: ^1.0.5
+  bin:
+    fxparser: src/cli/cli.js
+  checksum: aee8955bd7a2d117fd2edc2c4026880364d5d3728e2543244447dd9346491ec1d396f1bd2bd9978b31534ecf51ccbcff04a37ffdaf1d6048505a0cca3750f11d
   languageName: node
   linkType: hard
 
@@ -2496,7 +2511,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"magic-string@npm:^0.25.3, magic-string@npm:^0.25.7":
+"magic-string@npm:^0.25.7":
   version: 0.25.7
   resolution: "magic-string@npm:0.25.7"
   dependencies:
@@ -3088,35 +3103,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup-plugin-inject@npm:^3.0.0":
-  version: 3.0.2
-  resolution: "rollup-plugin-inject@npm:3.0.2"
-  dependencies:
-    estree-walker: ^0.6.1
-    magic-string: ^0.25.3
-    rollup-pluginutils: ^2.8.1
-  checksum: a014972c80fe34b8c8154056fa2533a8440066a31de831e3793fc21b15d108d92c22d8f7f472397bd5783d7c5e04d8cbf112fb72c5a26e997726e4eb090edad1
-  languageName: node
-  linkType: hard
-
-"rollup-plugin-node-polyfills@npm:^0.2.1":
-  version: 0.2.1
-  resolution: "rollup-plugin-node-polyfills@npm:0.2.1"
-  dependencies:
-    rollup-plugin-inject: ^3.0.0
-  checksum: e84645212c443aca3cfae2ba69f01c6d8c5c250f0bf651416b69a4572b60aae9da7cdd687de3ab9b903f7a1ab96b06b71f0c4927d1b02a37485360d2b563937b
-  languageName: node
-  linkType: hard
-
-"rollup-pluginutils@npm:^2.8.1":
-  version: 2.8.2
-  resolution: "rollup-pluginutils@npm:2.8.2"
-  dependencies:
-    estree-walker: ^0.6.1
-  checksum: 339fdf866d8f4ff6e408fa274c0525412f7edb01dc46b5ccda51f575b7e0d20ad72965773376fb5db95a77a7fcfcab97bf841ec08dbadf5d6b08af02b7a2cf5e
-  languageName: node
-  linkType: hard
-
 "rollup@npm:^2.59.0, rollup@npm:^2.66.1":
   version: 2.66.1
   resolution: "rollup@npm:2.66.1"
@@ -3445,6 +3431,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"strnum@npm:^1.0.5":
+  version: 1.0.5
+  resolution: "strnum@npm:1.0.5"
+  checksum: 651b2031db5da1bf4a77fdd2f116a8ac8055157c5420f5569f64879133825915ad461513e7202a16d7fec63c54fd822410d0962f8ca12385c4334891b9ae6dd2
+  languageName: node
+  linkType: hard
+
 "supports-color@npm:^5.3.0":
   version: 5.5.0
   resolution: "supports-color@npm:5.5.0"
@@ -3602,13 +3595,12 @@ __metadata:
     eslint-plugin-import: ^2.25.4
     eslint-plugin-node: ^11.1.0
     eslint-plugin-promise: ^5.2.0
+    fast-xml-parser: ^4.0.2
     relaxed-json: ^1.0.3
     rimraf: ^3.0.2
     rollup: ^2.66.1
-    rollup-plugin-node-polyfills: ^0.2.1
     tslib: ^2.3.1
     typescript: ^4.5.5
-    xml-js: ^1.6.11
   languageName: unknown
   linkType: soft
 

@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { tschEDA, debug } from 'tscheda';
+import { Tscheda, TschedaDebug } from 'tscheda';
 
 // --
 
@@ -27,7 +27,7 @@ function outputFile(jsonData: string, filename: string) {
 async function flash(): Promise<void> {
   console.log('\n--- FLASH DESIGN');
   try {
-    const tscheda = new tschEDA(__dirname + '/data/typedConstraints/');
+    const tscheda = new Tscheda(__dirname + '/data/typedConstraints/');
     const atmega328 = await tscheda.use(eagelFile('atmega328.sch'));
     const flash = await tscheda.use(eagelFile('flash.sch'));
     const power5V12V = await tscheda.use(eagelFile('power5V12V.sch'));
@@ -67,7 +67,7 @@ async function flash(): Promise<void> {
 async function twoFlash(): Promise<void> {
   console.log('\n--- TWO FLASH DESIGN');
   try {
-    const tscheda = new tschEDA(__dirname + '/data/typedConstraints/');
+    const tscheda = new Tscheda(__dirname + '/data/typedConstraints/');
     const atmega328 = await tscheda.use(eagelFile('atmega328.sch'));
     const flash = await tscheda.use(eagelFile('flash.sch'));
     const flash2 = await tscheda.use(eagelFile('flash.sch'));
@@ -114,7 +114,7 @@ async function twoFlash(): Promise<void> {
 async function led(): Promise<void> {
   console.log('\n--- LED DESIGN');
   try {
-    const tscheda = new tschEDA(__dirname + '/data/typedConstraints/');
+    const tscheda = new Tscheda(__dirname + '/data/typedConstraints/');
     const atmega328 = await tscheda.use(eagelFile('atmega328.sch'));
     const led = await tscheda.use(eagelFile('led_smd.sch'));
     const power5V12V = await tscheda.use(eagelFile('power5V12V.sch'));
@@ -150,7 +150,7 @@ async function led(): Promise<void> {
 async function tempSensor(): Promise<void> {
   console.log('\n--- TEMPERATURE SENSOR DESIGN');
   try {
-    const tscheda = new tschEDA(__dirname + '/data/typedConstraints/');
+    const tscheda = new Tscheda(__dirname + '/data/typedConstraints/');
     const atmega328 = await tscheda.use(eagelFile('atmega328.sch'));
     const tempSesnor = await tscheda.use(eagelFile('temperature_sensor.sch'));
     const power5V12V = await tscheda.use(eagelFile('power5V12V.sch'));
@@ -188,7 +188,7 @@ async function tempSensor(): Promise<void> {
 
 // Main program
 (async () => {
-  debug.enable(true, 1);
+  TschedaDebug.enable(true, 1);
   await led();
   await flash();
   await twoFlash();
