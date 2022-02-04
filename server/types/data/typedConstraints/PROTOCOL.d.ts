@@ -17,7 +17,7 @@ declare class POWER {
 }
 declare type result<T> = [res: T | null, err: string | null];
 declare const ok: <T>(res: T) => result<T>;
-declare const error: (msg: string) => result<never>;
+declare const error: (msg: string) => result<null>;
 interface PROTOCOL<T> {
     connect(childs: Array<T>): result<boolean>;
 }

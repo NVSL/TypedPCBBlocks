@@ -85,7 +85,7 @@ type result<T> = [res: T | null, err: string | null];
 const ok = <T>(res: T): result<T> => {
   return [res, null];
 };
-const error = (msg: string): result<never> => {
+const error = (msg: string): result<null> => {
   return [null, msg];
 };
 

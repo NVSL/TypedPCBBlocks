@@ -1,4 +1,4 @@
-import { PROTOCOL, POWER, net, voltage, result } from './PROTOCOL';
+import { PROTOCOL, POWER, net, voltage, result } from './PROTOCOL.js';
 declare class SPI extends POWER implements PROTOCOL<SPI> {
     MISO: net;
     MOSI: net;
