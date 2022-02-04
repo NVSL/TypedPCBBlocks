@@ -1,4 +1,4 @@
-import { PROTOCOL, POWER, voltage, ok, error, result } from './PROTOCOL';
+import { PROTOCOL, POWER, voltage, ok, error, result } from './PROTOCOL.js';
 
 class GPIO extends POWER implements PROTOCOL<GPIO> {
   constructor(sourceVoltage: voltage) {

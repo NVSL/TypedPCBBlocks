@@ -1,4 +1,12 @@
-import { PROTOCOL, POWER, net, voltage, ok, error, result } from './PROTOCOL';
+import {
+  PROTOCOL,
+  POWER,
+  net,
+  voltage,
+  ok,
+  error,
+  result,
+} from './PROTOCOL.js';
 
 class I2C extends POWER implements PROTOCOL<I2C> {
   // Nets
