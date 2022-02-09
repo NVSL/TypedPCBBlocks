@@ -8,6 +8,15 @@ import './SchemaFlow.css';
 //   <a href="https://vitejs.dev/guide/features.html" target="_blank">Documentation</a>
 // `;
 
+// ENUM: Click selections
+enum Selected {
+  None = 'None',
+  NodeBlock = 'NodeBlock',
+  NodePoint = 'NodePoint',
+  Connection = 'Connection',
+  Editor = 'Editor',
+}
+
 type NodeID = number;
 
 // IFACE: jsonInputs
@@ -56,9 +65,24 @@ export default class SchemaFlow {
   // Schema Flow
   drawflow: DrawFlow = { drawflow: { Home: { data: new Map() } } }; // Nodes Object
   nodeId: number = 1; // Nodes ID
+  ele_selected: HTMLElement | null = null;
+
+  // Click and Position
+  selected: Selected = Selected.None;
+  pos_x = 0;
+  pos_x_start = 0;
+  pos_y = 0;
+  pos_y_start = 0;
+  canvas_x = 0;
+  canvas_y = 0;
 
   // Configurable options
   module: string = 'Home';
+  zoom = 1;
+  zoom_max = 1.6;
+  zoom_min = 0.5;
+  zoom_value = 0.1;
+  zoom_last_value = 1;
 
   constructor(container: HTMLElement) {
     this.container = container;
@@ -186,16 +210,124 @@ export default class SchemaFlow {
 
   // ##### Private Mouse Actions
 
-  private click(e) {}
+  private click(e: MouseEvent) {
+    // Remove previous selection if any
+    if (this.ele_selected) {
+      this.ele_selected.classList.remove('selected');
+    }
 
-  private dragStart(e) {
+    // Dispatch unselected messages from previous selection
+    switch (this.selected) {
+      case Selected.NodeBlock:
+        // this.dispatch('nodeUnselected', true);
+        break;
+    }
+
+    // Get New Target
+    const target: HTMLElement | null = <HTMLElement>e.target;
+    if (!target) return;
+    if (target.closest('.drawflow_content_node') != null) {
+      this.ele_selected = target.closest(
+        '.drawflow_content_node',
+      )!.parentElement;
+    } else {
+      this.ele_selected = target;
+    }
+    if (!this.ele_selected) return;
+
+    // Get Selected Element
+    switch (this.ele_selected.classList[0]) {
+      case 'drawflow-node':
+        console.log('Node Selected');
+        this.selected = Selected.NodeBlock;
+        this.ele_selected.classList.add('selected');
+        break;
+      case 'drawflow':
+      case 'parent-drawflow':
+        console.log('Editor Selected');
+        this.selected = Selected.Editor;
+        break;
+    }
+
+    // Get Position
+    this.pos_x = e.clientX;
+    this.pos_x_start = e.clientX;
+    this.pos_y = e.clientY;
+    this.pos_y_start = e.clientY;
+
+    // Dispatch Click
+    // this.dispatch('click', e);
+  }
+
+  private dragStart(e: MouseEvent) {
     const e_pos_x = e.clientX;
     const e_pos_y = e.clientY;
 
-    console.log(e_pos_x, e_pos_y);
+    if (!this.precanvas) return;
+    if (!this.ele_selected) return;
+
+    // Move Selected Element
+    let x,
+      y = 0;
+    switch (this.selected) {
+      case Selected.NodeBlock:
+        // Move Node Block
+        x =
+          ((this.pos_x - e_pos_x) * this.precanvas.clientWidth) /
+          (this.precanvas.clientWidth * this.zoom);
+        y =
+          ((this.pos_y - e_pos_y) * this.precanvas.clientHeight) /
+          (this.precanvas.clientHeight * this.zoom);
+        this.pos_x = e_pos_x;
+        this.pos_y = e_pos_y;
+
+        this.ele_selected.style.top = this.ele_selected.offsetTop - y + 'px';
+        this.ele_selected.style.left = this.ele_selected.offsetLeft - x + 'px';
+
+        // Save Node Block position
+        const nodeBlock = this.drawflow.drawflow.Home.data.get(
+          this.nodeNumber(this.ele_selected.id),
+        );
+        if (nodeBlock) {
+          nodeBlock.pos_x = this.ele_selected.offsetLeft - x;
+          nodeBlock.pos_y = this.ele_selected.offsetTop - y;
+        }
+        break;
+      case Selected.Editor:
+        // Move Editor
+        x = this.canvas_x + -(this.pos_x - e_pos_x);
+        y = this.canvas_y + -(this.pos_y - e_pos_y);
+
+        // this.dispatch('translate', { x: x, y: y });
+        this.precanvas.style.transform =
+          'translate(' + x + 'px, ' + y + 'px) scale(' + this.zoom + ')';
+        break;
+    }
   }
 
-  private dragEnd(e) {}
+  private nodeNumber(id: string): number {
+    const number = parseInt(id.slice(5));
+    return number;
+  }
+
+  private dragEnd(e: MouseEvent) {
+    const e_pos_x = e.clientX;
+    const e_pos_y = e.clientY;
+
+    switch (this.selected) {
+      case Selected.NodeBlock:
+        if (this.pos_x_start != e_pos_x || this.pos_y_start != e_pos_y) {
+          // this.dispatch('nodeMoved', this.nodeNumber(this.ele_selected.id));
+        }
+        break;
+      case Selected.Editor:
+        this.canvas_x = this.canvas_x + -(this.pos_x - e_pos_x);
+        this.canvas_y = this.canvas_y + -(this.pos_y - e_pos_y);
+        break;
+    }
+
+    this.selected = Selected.None;
+  }
 
   // ##### Private Misc
 
@@ -216,3 +348,5 @@ export default class SchemaFlow {
   //   return uuid;
   // }
 }
+
+/* TODO: Continue impplementing click/dragStart/dragEnd   */
