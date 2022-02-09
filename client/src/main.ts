@@ -25,7 +25,22 @@ editor.addNode(
     3: { name: 'SPI', max: 1 },
     4: { name: 'UART', max: 1 },
   }, // 1:[type, max_connections]
+  100,
   10,
+  'computeModule',
+  { template: 'Schematic here!' },
+  computeModule,
+);
+editor.addNode(
+  'computeModule2',
+  { 1: 'GPIO' },
+  {
+    1: { name: 'I2C', max: 4 },
+    2: { name: 'GPIO', max: 2 },
+    3: { name: 'SPI', max: 1 },
+    4: { name: 'UART', max: 1 },
+  }, // 1:[type, max_connections]
+  450,
   10,
   'computeModule',
   { template: 'Schematic here!' },
