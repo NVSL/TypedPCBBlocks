@@ -12,7 +12,7 @@ import './SchemaFlow.css';
 enum Selected {
   None = 'None',
   NodeBlock = 'NodeBlock',
-  NodePoint = 'NodePoint',
+  NodeOutput = 'NodeOutput',
   Connection = 'Connection',
   Editor = 'Editor',
 }
@@ -75,6 +75,9 @@ export default class SchemaFlow {
   pos_y_start = 0;
   canvas_x = 0;
   canvas_y = 0;
+
+  // SVG
+  connection_ele: SVGSVGElement | null = null;
 
   // Configurable options
   module: string = 'Home';
@@ -247,6 +250,12 @@ export default class SchemaFlow {
         console.log('Editor Selected');
         this.selected = Selected.Editor;
         break;
+      case 'output':
+        console.log('Output Selected');
+        this.selected = Selected.NodeOutput;
+        this.drawConnection(target);
+        // TODO: Draw connection
+        break;
     }
 
     // Get Position
@@ -292,6 +301,9 @@ export default class SchemaFlow {
           nodeBlock.pos_x = this.ele_selected.offsetLeft - x;
           nodeBlock.pos_y = this.ele_selected.offsetTop - y;
         }
+
+        // Update Connections
+        this.updateConnectionNodes(this.ele_selected.id);
         break;
       case Selected.Editor:
         // Move Editor
@@ -302,17 +314,17 @@ export default class SchemaFlow {
         this.precanvas.style.transform =
           'translate(' + x + 'px, ' + y + 'px) scale(' + this.zoom + ')';
         break;
+      case Selected.NodeOutput:
+        // Update SVG Connection
+        this.updateConnection(e_pos_x, e_pos_y);
+        break;
     }
-  }
-
-  private nodeNumber(id: string): number {
-    const number = parseInt(id.slice(5));
-    return number;
   }
 
   private dragEnd(e: MouseEvent) {
     const e_pos_x = e.clientX;
     const e_pos_y = e.clientY;
+    const ele_last = (<HTMLElement>e.target).parentElement;
 
     switch (this.selected) {
       case Selected.NodeBlock:
@@ -324,12 +336,417 @@ export default class SchemaFlow {
         this.canvas_x = this.canvas_x + -(this.pos_x - e_pos_x);
         this.canvas_y = this.canvas_y + -(this.pos_y - e_pos_y);
         break;
+      case Selected.NodeOutput:
+        if (!ele_last) return;
+        if (!this.ele_selected) return;
+        if (!this.connection_ele) return;
+        console.log('try');
+        if (ele_last.classList[0] === 'input') {
+          const input_id = ele_last.parentElement!.parentElement!.id;
+          const input_class = ele_last.classList[1];
+          const output_id = this.ele_selected.parentElement!.parentElement!.id;
+          const output_class = this.ele_selected.classList[1];
+          if (output_id !== input_id) {
+            if (
+              this.container.querySelectorAll(
+                '.connection.node_in_' +
+                  input_id +
+                  '.node_out_' +
+                  output_id +
+                  '.' +
+                  output_class +
+                  '.' +
+                  input_class,
+              ).length === 0
+            ) {
+              console.log('Drag End | Connection no exists save connection');
+
+              // Conection no exist save connection
+
+              const inputNodeNumber = this.nodeNumber(input_id);
+              const outputNodeNumber = this.nodeNumber(output_id);
+
+              const outputClass = this.drawflow.drawflow.Home.data
+                .get(outputNodeNumber)!
+                .outputs.get(output_class)!;
+              const inputClass = this.drawflow.drawflow.Home.data
+                .get(inputNodeNumber)!
+                .inputs.get(input_class)!;
+
+              // Get Types
+              const output_type = outputClass.type;
+              const input_type = inputClass.type;
+
+              // Get Current Connections number
+              const output_current_conections = outputClass.connections.length;
+              const output_max_connections = outputClass.max_connections;
+
+              // Check Types
+              if (output_type === input_type) {
+                console.log('Drag End | Output type == input type');
+                // Check max connections
+                if (output_current_conections < output_max_connections) {
+                  console.log('Make connection');
+                  // Make connection
+                  this.connection_ele.classList.add('node_in_' + input_id);
+                  this.connection_ele.classList.add('node_out_' + output_id);
+                  this.connection_ele.classList.add(output_class);
+                  this.connection_ele.classList.add(input_class);
+
+                  outputClass.connections.push({
+                    node: inputNodeNumber,
+                    output: input_class,
+                  });
+                  inputClass.connections.push({
+                    node: outputNodeNumber,
+                    input: output_class,
+                  });
+                  // this.updateConnectionNodes('node-' + outputNodeNumber);
+                  // this.updateConnectionNodes('node-' + inputNodeNumber);
+                  // this.dispatch('connectionCreated', {
+                  //   output_id: outputNodeNumber,
+                  //   input_id: inputNodeNumber,
+                  //   output_class: output_class,
+                  //   input_class: input_class,
+                  // });
+                } else {
+                  console.warn('Max connections reached');
+                  // this.dispatch('connectionCancel', true);
+                  this.connection_ele.remove();
+                }
+              } else {
+                // Cancel connection (type mismatch)
+                console.warn('Type mismatch');
+                // this.dispatch('connectionCancel', true);
+                this.connection_ele.remove();
+              }
+            }
+          } else {
+            // Cancel connection
+            // this.dispatch('connectionCancel', true);
+            if (this.connection_ele) this.connection_ele.remove();
+          }
+        } else {
+          // Cancel connection
+          // this.dispatch('connectionCancel', true);
+          if (this.connection_ele) this.connection_ele.remove();
+        }
+        break;
     }
 
     this.selected = Selected.None;
   }
 
-  // ##### Private Misc
+  // ##### Private SVG manipulation
+
+  private drawConnection(ele: HTMLElement) {
+    this.connection_ele = document.createElementNS(
+      'http://www.w3.org/2000/svg',
+      'svg',
+    );
+    // this.connection_ele = connection;
+    var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.classList.add('main-path');
+    path.setAttributeNS(null, 'd', '');
+    // path.innerHTML = 'a';
+    this.connection_ele.classList.add('connection');
+    this.connection_ele.appendChild(path);
+    if (this.precanvas) this.precanvas.appendChild(this.connection_ele);
+    // var id_output = ele.parentElement.parentElement.id.slice(5);
+    // var output_class = ele.classList[1];
+    // this.dispatch('connectionStart', {
+    //   output_id: id_output,
+    //   output_class: output_class,
+    // });
+  }
+
+  // Updates SVG Line (Connections) while forming a new connection
+  private updateConnection(eX: number, eY: number) {
+    if (!this.precanvas) return;
+    if (!this.connection_ele) return;
+    if (!this.ele_selected) return;
+
+    let precanvasWitdhZoom =
+      this.precanvas.clientWidth / (this.precanvas.clientWidth * this.zoom);
+    precanvasWitdhZoom = precanvasWitdhZoom || 0;
+    let precanvasHeightZoom =
+      this.precanvas.clientHeight / (this.precanvas.clientHeight * this.zoom);
+    precanvasHeightZoom = precanvasHeightZoom || 0;
+    var path = this.connection_ele.children[0];
+
+    var line_x =
+      this.ele_selected.offsetWidth / 2 +
+      (this.ele_selected.getBoundingClientRect().x -
+        this.precanvas.getBoundingClientRect().x) *
+        precanvasWitdhZoom;
+    var line_y =
+      this.ele_selected.offsetHeight / 2 +
+      (this.ele_selected.getBoundingClientRect().y -
+        this.precanvas.getBoundingClientRect().y) *
+        precanvasHeightZoom;
+
+    var x =
+      eX *
+        (this.precanvas.clientWidth /
+          (this.precanvas.clientWidth * this.zoom)) -
+      this.precanvas.getBoundingClientRect().x *
+        (this.precanvas.clientWidth / (this.precanvas.clientWidth * this.zoom));
+    var y =
+      eY *
+        (this.precanvas.clientHeight /
+          (this.precanvas.clientHeight * this.zoom)) -
+      this.precanvas.getBoundingClientRect().y *
+        (this.precanvas.clientHeight /
+          (this.precanvas.clientHeight * this.zoom));
+
+    const lineCurve = this.createCurvature(
+      line_x,
+      line_y,
+      x,
+      y,
+      0.5,
+      'openclose',
+    );
+    console.log('Line Curve', lineCurve);
+    path.setAttributeNS(null, 'd', lineCurve);
+  }
+
+  // Updates SVG Lines (Connections) for all Node Blocks
+  private updateConnectionNodes(id: string) {
+    if (!this.precanvas) return;
+    // Set Zooms
+    let precanvasWitdhZoom =
+      this.precanvas.clientWidth / (this.precanvas.clientWidth * this.zoom);
+    precanvasWitdhZoom = precanvasWitdhZoom || 0;
+    let precanvasHeightZoom =
+      this.precanvas.clientHeight / (this.precanvas.clientHeight * this.zoom);
+    precanvasHeightZoom = precanvasHeightZoom || 0;
+
+    const renderSVGLines = (
+      id: string,
+      value: Element,
+      inputOutput: 'INPUT' | 'OUTPUT',
+    ) => {
+      if (!this.precanvas) return;
+      const elemtsearchId_io = this.container.querySelector(`#${id}`);
+      let id_search;
+      let elemtsearchIO;
+      let elemtsearchId;
+      let elemtsearch;
+      switch (inputOutput) {
+        case 'INPUT':
+          id_search = value.classList[2].replace('node_out_', '');
+          elemtsearchId = this.container.querySelector(`#${id_search}`)!;
+          elemtsearch = <HTMLElement>(
+            elemtsearchId.querySelectorAll('.' + value.classList[3])[0]
+          );
+          elemtsearchIO = <HTMLElement>(
+            elemtsearchId_io!.querySelectorAll('.' + value.classList[4])[0]
+          );
+          break;
+        case 'OUTPUT':
+          id_search = value.classList[1].replace('node_in_', '');
+          elemtsearchId = this.container.querySelector(`#${id_search}`)!;
+          elemtsearch = <HTMLElement>(
+            elemtsearchId.querySelectorAll('.' + value.classList[4])[0]
+          );
+          elemtsearchIO = <HTMLElement>(
+            elemtsearchId_io!.querySelectorAll('.' + value.classList[3])[0]
+          );
+          break;
+      }
+
+      const x =
+        elemtsearch.offsetWidth / 2 +
+        (elemtsearch.getBoundingClientRect().x -
+          this.precanvas.getBoundingClientRect().x) *
+          precanvasWitdhZoom;
+      const y =
+        elemtsearch.offsetHeight / 2 +
+        (elemtsearch.getBoundingClientRect().y -
+          this.precanvas.getBoundingClientRect().y) *
+          precanvasHeightZoom;
+
+      const line_x =
+        elemtsearchIO.offsetWidth / 2 +
+        (elemtsearchIO.getBoundingClientRect().x -
+          this.precanvas.getBoundingClientRect().x) *
+          precanvasWitdhZoom;
+      const line_y =
+        elemtsearchIO.offsetHeight / 2 +
+        (elemtsearchIO.getBoundingClientRect().y -
+          this.precanvas.getBoundingClientRect().y) *
+          precanvasHeightZoom;
+
+      let lineCurve;
+      switch (inputOutput) {
+        case 'INPUT':
+          lineCurve = this.createCurvature(
+            x,
+            y,
+            line_x,
+            line_y,
+            0.5,
+            'openclose',
+          );
+          break;
+        case 'OUTPUT':
+          lineCurve = this.createCurvature(
+            line_x,
+            line_y,
+            x,
+            y,
+            0.5,
+            'openclose',
+          );
+          break;
+      }
+
+      value.children[0].setAttributeNS(null, 'd', lineCurve);
+    };
+
+    // Update Selected Element Outputs
+    const elemsOut: NodeListOf<Element> = this.container.querySelectorAll(
+      `.node_out_${id}`,
+    );
+    for (const value of Object.values(elemsOut)) {
+      renderSVGLines(id, value, 'OUTPUT');
+    }
+
+    // Update Selected Element Inputs
+    const elemsIn: NodeListOf<Element> = this.container.querySelectorAll(
+      `.node_in_${id}`,
+    );
+    for (const value of Object.values(elemsIn)) {
+      renderSVGLines(id, value, 'INPUT');
+    }
+  }
+
+  private createCurvature(
+    start_pos_x: number,
+    start_pos_y: number,
+    end_pos_x: number,
+    end_pos_y: number,
+    curvature_value: number,
+    type: string,
+  ) {
+    const line_x = start_pos_x;
+    const line_y = start_pos_y;
+    const x = end_pos_x;
+    const y = end_pos_y;
+    const curvature = curvature_value;
+    //type openclose open close other
+    let hx1,
+      hx2 = 0;
+    switch (type) {
+      case 'open':
+        if (start_pos_x >= end_pos_x) {
+          hx1 = line_x + Math.abs(x - line_x) * curvature;
+          hx2 = x - Math.abs(x - line_x) * (curvature * -1);
+        } else {
+          hx1 = line_x + Math.abs(x - line_x) * curvature;
+          hx2 = x - Math.abs(x - line_x) * curvature;
+        }
+        return (
+          ' M ' +
+          line_x +
+          ' ' +
+          line_y +
+          ' C ' +
+          hx1 +
+          ' ' +
+          line_y +
+          ' ' +
+          hx2 +
+          ' ' +
+          y +
+          ' ' +
+          x +
+          '  ' +
+          y
+        );
+      case 'close':
+        if (start_pos_x >= end_pos_x) {
+          hx1 = line_x + Math.abs(x - line_x) * (curvature * -1);
+          hx2 = x - Math.abs(x - line_x) * curvature;
+        } else {
+          hx1 = line_x + Math.abs(x - line_x) * curvature;
+          hx2 = x - Math.abs(x - line_x) * curvature;
+        }
+        return (
+          ' M ' +
+          line_x +
+          ' ' +
+          line_y +
+          ' C ' +
+          hx1 +
+          ' ' +
+          line_y +
+          ' ' +
+          hx2 +
+          ' ' +
+          y +
+          ' ' +
+          x +
+          '  ' +
+          y
+        );
+      case 'other':
+        if (start_pos_x >= end_pos_x) {
+          hx1 = line_x + Math.abs(x - line_x) * (curvature * -1);
+          hx2 = x - Math.abs(x - line_x) * (curvature * -1);
+        } else {
+          hx1 = line_x + Math.abs(x - line_x) * curvature;
+          hx2 = x - Math.abs(x - line_x) * curvature;
+        }
+        return (
+          ' M ' +
+          line_x +
+          ' ' +
+          line_y +
+          ' C ' +
+          hx1 +
+          ' ' +
+          line_y +
+          ' ' +
+          hx2 +
+          ' ' +
+          y +
+          ' ' +
+          x +
+          '  ' +
+          y
+        );
+      default:
+        hx1 = line_x + Math.abs(x - line_x) * curvature;
+        hx2 = x - Math.abs(x - line_x) * curvature;
+        return (
+          ' M ' +
+          line_x +
+          ' ' +
+          line_y +
+          ' C ' +
+          hx1 +
+          ' ' +
+          line_y +
+          ' ' +
+          hx2 +
+          ' ' +
+          y +
+          ' ' +
+          x +
+          '  ' +
+          y
+        );
+    }
+  }
+
+  // ##### Private Utils
+
+  private nodeNumber(id: string): number {
+    const number = parseInt(id.slice(5));
+    return number;
+  }
 
   private load() {}
 

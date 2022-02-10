@@ -185,7 +185,6 @@ export default class Drawflow {
   click(e) {
     this.dispatch('click', e);
     if (this.editor_mode === 'fixed') {
-      console.log('Click fixed');
       //return false;
       if (
         e.target.classList[0] === 'parent-drawflow' ||
@@ -196,7 +195,6 @@ export default class Drawflow {
         return false;
       }
     } else if (this.editor_mode === 'view') {
-      console.log('Click view');
       if (
         e.target.closest('.drawflow') != null ||
         e.target.matches('.parent-drawflow')
@@ -205,7 +203,6 @@ export default class Drawflow {
         e.preventDefault();
       }
     } else {
-      console.log('Click else');
       this.first_click = e.target;
       this.ele_selected = e.target;
       if (e.button === 0) {
@@ -220,6 +217,7 @@ export default class Drawflow {
     }
     switch (this.ele_selected.classList[0]) {
       case 'drawflow-node':
+        console.log('Click drawflow-node');
         if (this.node_selected != null) {
           this.node_selected.classList.remove('selected');
           if (this.node_selected != this.ele_selected) {
@@ -252,6 +250,7 @@ export default class Drawflow {
         }
         break;
       case 'output':
+        console.log('Click output');
         this.connection = true;
         if (this.node_selected != null) {
           this.node_selected.classList.remove('selected');
@@ -279,6 +278,7 @@ export default class Drawflow {
         this.editor_selected = true;
         break;
       case 'drawflow':
+        console.log('Click drawflow');
         if (this.node_selected != null) {
           this.node_selected.classList.remove('selected');
           this.node_selected = null;
@@ -292,6 +292,7 @@ export default class Drawflow {
         this.editor_selected = true;
         break;
       case 'main-path':
+        console.log('Click main-path');
         if (this.node_selected != null) {
           this.node_selected.classList.remove('selected');
           this.node_selected = null;
@@ -321,10 +322,12 @@ export default class Drawflow {
         }
         break;
       case 'point':
+        console.log('Click pint');
         this.drag_point = true;
         this.ele_selected.classList.add('selected');
         break;
       case 'drawflow-delete':
+        console.log('Click drawflow delete');
         if (this.node_selected) {
           this.removeNodeId(this.node_selected.id);
         }
@@ -554,6 +557,7 @@ export default class Drawflow {
           }
         } else {
           // Fix connection;
+          console.log('Drag End | Fix Connection');
           var input_id = ele_last.parentElement.parentElement.id;
           var input_class = ele_last.classList[1];
         }
@@ -573,6 +577,7 @@ export default class Drawflow {
                 input_class,
             ).length === 0
           ) {
+            console.log('Drag End | Connection no exists save connection');
             // Conection no exist save connection
 
             var id_input = input_id.slice(5);
@@ -600,6 +605,7 @@ export default class Drawflow {
 
             // Check Types
             if (output_type === input_type) {
+              console.log('Drag End | Output type == input type');
               // Check max connections
               if (output_current_conections < output_max_connections) {
                 // Make connection
@@ -969,6 +975,7 @@ export default class Drawflow {
       curvature,
       'openclose',
     );
+    console.log('Line Curve', lineCurve);
     path.setAttributeNS(null, 'd', lineCurve);
   }
 
@@ -1033,6 +1040,7 @@ export default class Drawflow {
   }
 
   updateConnectionNodes(id) {
+    console.log('Update Connection Nodes');
     // Aquí nos quedamos;
     const idSearch = 'node_in_' + id;
     const idSearchOut = 'node_out_' + id;
@@ -1057,6 +1065,7 @@ export default class Drawflow {
 
     Object.keys(elemsOut).map(function (item, index) {
       if (elemsOut[item].querySelector('.point') === null) {
+        console.log('Update / Point');
         var elemtsearchId_out = container.querySelector(`#${id}`);
 
         var id_search = elemsOut[item].classList[1].replace('node_in_', '');
@@ -1115,6 +1124,7 @@ export default class Drawflow {
         );
         elemsOut[item].children[0].setAttributeNS(null, 'd', lineCurve);
       } else {
+        console.log('Update / Else Point');
         const points = elemsOut[item].querySelectorAll('.point');
         let linecurve = '';
         const reoute_fix = [];
@@ -1427,8 +1437,10 @@ export default class Drawflow {
 
     const elems = container.querySelectorAll(`.${idSearch}`);
     Object.keys(elems).map(function (item, index) {
+      console.log('Object');
       // console.log("In")
       if (elems[item].querySelector('.point') === null) {
+        console.log('Object / Point', id);
         var elemtsearchId_in = container.querySelector(`#${id}`);
 
         var id_search = elems[item].classList[2].replace('node_out_', '');
@@ -1483,6 +1495,7 @@ export default class Drawflow {
         );
         elems[item].children[0].setAttributeNS(null, 'd', lineCurve);
       } else {
+        console.log('Object / Else Point');
         const points = elems[item].querySelectorAll('.point');
         let linecurve = '';
         const reoute_fix = [];
