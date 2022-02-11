@@ -9,26 +9,39 @@ import './SchemaFlow.css';
 // `;
 
 // ENUM: Click selections
-enum Selected {
+enum UIElement {
   None = 'None',
   NodeBlock = 'NodeBlock',
   NodeOutput = 'NodeOutput',
+  NodeConnection = 'NodeConnection',
   Connection = 'Connection',
   Editor = 'Editor',
 }
 
 type NodeID = number;
 
+interface ConnectionOutput {
+  svgid: string;
+  node: number;
+  output: string;
+}
+
+interface ConnectionInput {
+  svgid: string;
+  node: number;
+  input: string;
+}
+
 // IFACE: jsonInputs
 interface jsonInputsData {
-  connections: Array<any>;
+  connections: Array<ConnectionInput>;
   type: string;
 }
 type jsonInputs = Map<string, jsonInputsData>;
 
 // IFACE: jsonOutputs
 interface jsonOutputsData {
-  connections: Array<any>;
+  connections: Array<ConnectionOutput>;
   type: string;
   max_connections: number;
 }
@@ -65,10 +78,12 @@ export default class SchemaFlow {
   // Schema Flow
   drawflow: DrawFlow = { drawflow: { Home: { data: new Map() } } }; // Nodes Object
   nodeId: number = 1; // Nodes ID
-  ele_selected: HTMLElement | null = null;
+  connectionID: number = 1; // Connections ID
+  ele_selected: HTMLElement | null = null; // Any UI element
 
-  // Click and Position
-  selected: Selected = Selected.None;
+  // Click, Selection and Position
+  clicked: UIElement = UIElement.None;
+  selection: UIElement = UIElement.None; // Lasts aftter next click
   pos_x = 0;
   pos_x_start = 0;
   pos_y = 0;
@@ -78,6 +93,7 @@ export default class SchemaFlow {
 
   // SVG
   connection_ele: SVGSVGElement | null = null;
+  connection_selected: HTMLElement | null = null;
 
   // Configurable options
   module: string = 'Home';
@@ -104,6 +120,9 @@ export default class SchemaFlow {
     this.container.addEventListener('mousedown', this.click.bind(this));
     this.container.addEventListener('mousemove', this.dragStart.bind(this));
     this.container.addEventListener('mouseup', this.dragEnd.bind(this));
+
+    /* Delete */
+    this.container.addEventListener('keydown', this.key.bind(this));
   }
 
   public addNode(
@@ -220,8 +239,8 @@ export default class SchemaFlow {
     }
 
     // Dispatch unselected messages from previous selection
-    switch (this.selected) {
-      case Selected.NodeBlock:
+    switch (this.selection) {
+      case UIElement.NodeBlock:
         // this.dispatch('nodeUnselected', true);
         break;
     }
@@ -242,21 +261,30 @@ export default class SchemaFlow {
     switch (this.ele_selected.classList[0]) {
       case 'drawflow-node':
         console.log('Node Selected');
-        this.selected = Selected.NodeBlock;
+        this.clicked = UIElement.NodeBlock;
         this.ele_selected.classList.add('selected');
         break;
       case 'drawflow':
       case 'parent-drawflow':
         console.log('Editor Selected');
-        this.selected = Selected.Editor;
+        this.clicked = UIElement.Editor;
         break;
       case 'output':
         console.log('Output Selected');
-        this.selected = Selected.NodeOutput;
+        this.clicked = UIElement.NodeOutput;
         this.drawConnection(target);
         // TODO: Draw connection
         break;
+      case 'main-path':
+        console.log('Connection Selected');
+        this.clicked = UIElement.NodeConnection;
+        this.connection_selected = this.ele_selected;
+        this.connection_selected.classList.add('selected');
+        break;
     }
+
+    // Set selected UI element
+    this.selection = this.clicked;
 
     // Get Position
     this.pos_x = e.clientX;
@@ -278,8 +306,8 @@ export default class SchemaFlow {
     // Move Selected Element
     let x,
       y = 0;
-    switch (this.selected) {
-      case Selected.NodeBlock:
+    switch (this.clicked) {
+      case UIElement.NodeBlock:
         // Move Node Block
         x =
           ((this.pos_x - e_pos_x) * this.precanvas.clientWidth) /
@@ -305,7 +333,7 @@ export default class SchemaFlow {
         // Update Connections
         this.updateConnectionNodes(this.ele_selected.id);
         break;
-      case Selected.Editor:
+      case UIElement.Editor:
         // Move Editor
         x = this.canvas_x + -(this.pos_x - e_pos_x);
         y = this.canvas_y + -(this.pos_y - e_pos_y);
@@ -314,7 +342,7 @@ export default class SchemaFlow {
         this.precanvas.style.transform =
           'translate(' + x + 'px, ' + y + 'px) scale(' + this.zoom + ')';
         break;
-      case Selected.NodeOutput:
+      case UIElement.NodeOutput:
         // Update SVG Connection
         this.updateConnection(e_pos_x, e_pos_y);
         break;
@@ -326,17 +354,18 @@ export default class SchemaFlow {
     const e_pos_y = e.clientY;
     const ele_last = (<HTMLElement>e.target).parentElement;
 
-    switch (this.selected) {
-      case Selected.NodeBlock:
+    switch (this.clicked) {
+      case UIElement.NodeBlock:
         if (this.pos_x_start != e_pos_x || this.pos_y_start != e_pos_y) {
           // this.dispatch('nodeMoved', this.nodeNumber(this.ele_selected.id));
         }
         break;
-      case Selected.Editor:
+      case UIElement.Editor:
         this.canvas_x = this.canvas_x + -(this.pos_x - e_pos_x);
         this.canvas_y = this.canvas_y + -(this.pos_y - e_pos_y);
+        this.ele_selected = null;
         break;
-      case Selected.NodeOutput:
+      case UIElement.NodeOutput:
         if (!ele_last) return;
         if (!this.ele_selected) return;
         if (!this.connection_ele) return;
@@ -388,16 +417,21 @@ export default class SchemaFlow {
                 if (output_current_conections < output_max_connections) {
                   console.log('Make connection');
                   // Make connection
+                  const connectionID = 'connection-' + this.connectionID;
+                  this.connectionID++;
+                  this.connection_ele.id = connectionID;
                   this.connection_ele.classList.add('node_in_' + input_id);
                   this.connection_ele.classList.add('node_out_' + output_id);
                   this.connection_ele.classList.add(output_class);
                   this.connection_ele.classList.add(input_class);
 
                   outputClass.connections.push({
+                    svgid: connectionID,
                     node: inputNodeNumber,
                     output: input_class,
                   });
                   inputClass.connections.push({
+                    svgid: connectionID,
                     node: outputNodeNumber,
                     input: output_class,
                   });
@@ -434,7 +468,7 @@ export default class SchemaFlow {
         break;
     }
 
-    this.selected = Selected.None;
+    this.clicked = UIElement.None;
   }
 
   // ##### Private SVG manipulation
@@ -739,6 +773,97 @@ export default class SchemaFlow {
           y
         );
     }
+  }
+
+  // ##### Keybord
+
+  private key(e: KeyboardEvent) {
+    // this.dispatch('keydown', e);
+    if (e.key === 'Delete' || (e.key === 'Backspace' && e.metaKey)) {
+      console.log(this.drawflow.drawflow.Home.data);
+      this.removeNodeConnections('node-1');
+      switch (this.selection) {
+        case UIElement.NodeBlock:
+          if (this.ele_selected) this.removeNodeId(this.ele_selected.id);
+          break;
+        case UIElement.NodeConnection:
+          // this.removeConnection();
+          break;
+      }
+      // if (this.node_selected != null) {
+      //   if (
+      //     this.first_click.tagName !== 'INPUT' &&
+      //     this.first_click.tagName !== 'TEXTAREA' &&
+      //     this.first_click.hasAttribute('contenteditable') !== true
+      //   ) {
+      //     this.removeNodeId(this.node_selected.id);
+      //   }
+      // }
+      // if (this.connection_selected != null) {
+      //   this.removeConnection();
+      // }
+    }
+  }
+
+  // ##### Remove/Delete
+
+  private removeNodeId(id: string) {
+    // Delete Node Connections
+    this.removeNodeConnections(id);
+    // Delete Node Block from UI
+    const nodeElement: HTMLElement | null = <HTMLElement>(
+      this.container.querySelector(`#${id}`)
+    );
+    if (nodeElement) nodeElement.remove();
+    // Delete Node Block from Storage Object
+    console.log(this.drawflow.drawflow.Home.data);
+    this.drawflow.drawflow.Home.data.delete(this.nodeNumber(id));
+    console.log(this.drawflow.drawflow.Home.data);
+    // Dispatch
+    // this.dispatch('nodeRemoved', this.nodeNumber(id);
+  }
+
+  private removeNodeConnections(id: string) {
+    const arrayConnections: Array<ConnectionInput | ConnectionOutput> =
+      this.getNodeConnections(id);
+    for (const connection of arrayConnections) {
+      console.log(connection.svgid);
+      const svgEle = this.container.querySelector(`#${connection.svgid}`);
+      if (svgEle) svgEle.remove();
+    }
+    // TODO: Remove Connections In Map for all nodes with the connection
+  }
+
+  private getNodeConnections(
+    id: string,
+  ): Array<ConnectionInput | ConnectionOutput> {
+    const arrayConnections: Array<ConnectionInput | ConnectionOutput> =
+      new Array();
+    const nodes = this.drawflow.drawflow.Home.data;
+    const nodeNumber = this.nodeNumber(id);
+    for (const [key, value] of nodes.entries()) {
+      if (key == nodeNumber) {
+        // inputs
+        for (const inputs of value.inputs.values()) {
+          if (inputs.connections.length > 0) {
+            const connections = inputs.connections;
+            for (const connection of Object.values(connections)) {
+              arrayConnections.push(connection);
+            }
+          }
+        }
+        // outputs
+        for (const outputs of value.outputs.values()) {
+          if (outputs.connections.length > 0) {
+            const connections = outputs.connections;
+            for (const connection of Object.values(connections)) {
+              arrayConnections.push(connection);
+            }
+          }
+        }
+      }
+    }
+    return arrayConnections;
   }
 
   // ##### Private Utils
