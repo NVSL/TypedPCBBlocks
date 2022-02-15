@@ -1,51 +1,146 @@
+import interact from 'interactjs';
+import './SchemaFlow/Interact.css';
+
+/* The dragging code for '.draggable' from the demo above
+ * applies to this demo as well so it doesn't have to be repeated. */
+
+// enable draggables to be dropped into this
+interact('.dropzone').dropzone({
+  // only accept elements matching this CSS selector
+  accept: '#yes-drop',
+  // Require a 75% element overlap for a drop to be possible
+  overlap: 0.75,
+
+  // listen for drop related events:
+
+  ondropactivate: function (event) {
+    // add active dropzone feedback
+    event.target.classList.add('drop-active');
+  },
+  ondragenter: function (event) {
+    var draggableElement = event.relatedTarget;
+    var dropzoneElement = event.target;
+
+    // feedback the possibility of a drop
+    dropzoneElement.classList.add('drop-target');
+    draggableElement.classList.add('can-drop');
+    draggableElement.textContent = 'Dragged in';
+  },
+  ondragleave: function (event) {
+    // remove the drop feedback style
+    event.target.classList.remove('drop-target');
+    event.relatedTarget.classList.remove('can-drop');
+    event.relatedTarget.textContent = 'Dragged out';
+  },
+  ondrop: function (event) {
+    event.relatedTarget.textContent = 'Dropped';
+  },
+  ondropdeactivate: function (event) {
+    // remove active dropzone feedback
+    event.target.classList.remove('drop-active');
+    event.target.classList.remove('drop-target');
+  },
+});
+
+interact('.drag-drop').draggable({
+  inertia: true,
+  modifiers: [
+    interact.modifiers.restrictRect({
+      restriction: 'parent',
+      endOnly: true,
+    }),
+  ],
+  autoScroll: true,
+  // dragMoveListener from the dragging demo above
+  listeners: { move: dragMoveListener },
+});
+
+function dragMoveListener(event: any) {
+  var target = event.target;
+  // keep the dragged position in the data-x/data-y attributes
+  var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+  var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+  // translate the element
+  target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+
+  // update the posiion attributes
+  target.setAttribute('data-x', x);
+  target.setAttribute('data-y', y);
+}
+
 // import './style.css';
 // Tsch EDA
 // import { Tscheda, TschedaDebug } from 'tscheda';
 // Schema Flow
-import SchemaFlow from './SchemaFlow/SchemaFlow';
+// import SchemaFlow from './SchemaFlow/SchemaFlow';
 
-var id = <HTMLElement>document.getElementById('app');
-const editor = new SchemaFlow(id);
-editor.start();
+// var id = <HTMLElement>document.getElementById('app');
+// const editor = new SchemaFlow(id);
+// editor.start();
 
-var computeModule = `
-      <div>
-        <div class="title-box"><i class="fas fa-code"></i> Compute Module</div>
-        <div class="box">
-          <textarea df-template></textarea>
-        </div>
-      </div>
-      `;
-editor.addNode(
-  'computeModule',
-  { 1: 'GPIO' },
-  {
-    1: { name: 'I2C', max: 4 },
-    2: { name: 'GPIO', max: 2 },
-    3: { name: 'SPI', max: 1 },
-    4: { name: 'UART', max: 1 },
-  }, // 1:[type, max_connections]
-  100,
-  10,
-  'computeModule',
-  { template: 'Schematic here!' },
-  computeModule,
-);
-editor.addNode(
-  'computeModule2',
-  { 1: 'GPIO' },
-  {
-    1: { name: 'I2C', max: 4 },
-    2: { name: 'GPIO', max: 2 },
-    3: { name: 'SPI', max: 1 },
-    4: { name: 'UART', max: 1 },
-  }, // 1:[type, max_connections]
-  450,
-  10,
-  'computeModule',
-  { template: 'Schematic here!' },
-  computeModule,
-);
+// var computeModule = `
+//       <div>
+//         <div class="title-box"><i class="fas fa-code"></i> Compute Module</div>
+//         <div class="box">
+//           <textarea df-template></textarea>
+//         </div>
+//       </div>
+//       `;
+// var matModule = `
+//       <div>
+//         <div class="title-box"><i class="fas fa-code"></i> Mat Module</div>
+//         <div class="box">
+//           <textarea df-template></textarea>
+//         </div>
+//       </div>
+//       `;
+// editor.addNode(
+//   'computeModule',
+//   { 1: 'GPIO' },
+//   {
+//     1: { name: 'I2C', max: 4 },
+//     2: { name: 'GPIO', max: 2 },
+//     3: { name: 'SPI', max: 1 },
+//     4: { name: 'UART', max: 1 },
+//   }, // 1:[type, max_connections]
+//   100,
+//   10,
+//   'computeModule',
+//   { template: 'Schematic here!' },
+//   computeModule,
+// );
+// editor.addNode(
+//   'computeModule2',
+//   { 1: 'GPIO' },
+//   {
+//     1: { name: 'I2C', max: 4 },
+//     2: { name: 'GPIO', max: 2 },
+//     3: { name: 'SPI', max: 1 },
+//     4: { name: 'UART', max: 1 },
+//   }, // 1:[type, max_connections]
+//   450,
+//   10,
+//   'computeModule',
+//   { template: 'Schematic here!' },
+//   computeModule,
+// );
+
+// editor.addMat(
+//   'Mat1',
+//   { 1: 'GPIO' },
+//   {
+//     1: { name: 'I2C', max: 4 },
+//     2: { name: 'GPIO', max: 2 },
+//     3: { name: 'SPI', max: 1 },
+//     4: { name: 'UART', max: 1 },
+//   }, // 1:[type, max_connections]
+//   450,
+//   300,
+//   'mat',
+//   { template: 'Schematic here!' },
+//   matModule,
+// );
 
 // async function readURLFile(path: string) {
 //   let text = '';

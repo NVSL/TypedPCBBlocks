@@ -12,6 +12,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@interactjs/types@npm:1.10.11":
+  version: 1.10.11
+  resolution: "@interactjs/types@npm:1.10.11"
+  checksum: 1dc848db93598d81e88e4080cc5df24f0ad5f1b0290ed2ae97a5a6480ad11b9a4f4d3cae7a78f2408423e5abba693838da2b9ea1e01bfc8936e2b998cd559f97
+  languageName: node
+  linkType: hard
+
 "@npmcli/fs@npm:^1.0.0":
   version: 1.0.0
   resolution: "@npmcli/fs@npm:1.0.0"
@@ -190,6 +197,7 @@ __metadata:
   dependencies:
     "@types/relaxed-json": ^1.0.1
     fast-xml-parser: ^4.0.1
+    interactjs: ^1.10.11
     relaxed-json: ^1.0.3
     typescript: ^4.3.2
     vite: ^2.6.4
@@ -682,6 +690,15 @@ __metadata:
   version: 2.0.4
   resolution: "inherits@npm:2.0.4"
   checksum: 4a48a733847879d6cf6691860a6b1e3f0f4754176e4d71494c41f3475553768b10f84b5ce1d40fbd0e34e6bfbb864ee35858ad4dd2cf31e02fc4a154b724d7f1
+  languageName: node
+  linkType: hard
+
+"interactjs@npm:^1.10.11":
+  version: 1.10.11
+  resolution: "interactjs@npm:1.10.11"
+  dependencies:
+    "@interactjs/types": 1.10.11
+  checksum: 790f59d098b187bdfcc3d5abd6e0e3baada8f890f8f129cb24ad19276cd5ad537e34c88e12dc6eb8538a3f05bdf1881582fc428fa032c0801539488376e13189
   languageName: node
   linkType: hard
 
