@@ -1,12 +1,6 @@
-import './Node.css';
+/* PROYECTO CO-PILOTO FELIX */
+import './MatNode.css';
 import './SchemaFlow.css';
-
-// const app = document.querySelector<HTMLDivElement>('#app')!;
-
-// app.innerHTML = `
-//   <h1>Hello Vite?</h1>
-//   <a href="https://vitejs.dev/guide/features.html" target="_blank">Documentation</a>
-// `;
 
 // ENUM: Click selections
 enum UIElement {
@@ -126,6 +120,111 @@ export default class SchemaFlow {
   }
 
   public addNode(
+    name: string,
+    num_in: { [key: number]: string },
+    num_out: { [key: number]: { name: string; max: number } },
+    ele_pos_x: number,
+    ele_pos_y: number,
+    classoverride: string,
+    data: Object,
+    html: string,
+    typenode = false,
+  ) {
+    // Set node ID
+    var newNodeId: NodeID = this.nodeId; // Replace to use uuid -> this.getUuid();
+    this.nodeId++;
+
+    // Create Node HTML element
+    const parent = document.createElement('div');
+    parent.classList.add('parent-node');
+    const node = document.createElement('div');
+    node.innerHTML = '';
+    node.setAttribute('id', 'node-' + newNodeId);
+    node.classList.add('drawflow-node');
+    if (classoverride != '') {
+      node.classList.add(classoverride);
+    }
+
+    // Add Node HTML element input group
+    const inputs = document.createElement('div');
+    inputs.classList.add('inputs');
+
+    // Add Node HTML element inputs
+    const json_inputs: jsonInputs = new Map();
+    for (const [key, value] of Object.entries(num_in)) {
+      const input = document.createElement('div');
+      input.classList.add('input');
+      input.classList.add('input_' + key);
+      json_inputs.set('input_' + key, { connections: [], type: value }); // TODO: Change type to inputName
+      const type = document.createElement('div');
+      type.innerHTML = value;
+      type.classList.add('type');
+      input.appendChild(type);
+      inputs.appendChild(input);
+    }
+
+    // Add Node HTML element ouput group
+    const outputs = document.createElement('div');
+    outputs.classList.add('outputs');
+
+    // Add Node HTML element outputs
+    const json_outputs: jsonOutputs = new Map();
+    console.log('OUTPUT NUM:', Object.keys(num_out).length);
+    for (const [key, value] of Object.entries(num_out)) {
+      let iface_type = value.name;
+      let iface_max_connections = value.max;
+      const output = document.createElement('div');
+      output.classList.add('output');
+      output.classList.add('output_' + key);
+      json_outputs.set('output_' + key, {
+        connections: [],
+        type: iface_type,
+        max_connections: iface_max_connections,
+      });
+      const type = document.createElement('div'); // TODO: Change type to outputName
+      type.innerHTML = iface_type;
+      type.classList.add('type');
+      output.appendChild(type);
+      outputs.appendChild(output);
+    }
+    console.log('JSON OUTPUTS:', json_outputs);
+    /* TODO: Figure out how do listeners get called to know the connections. */
+    /* Then add connection types, they add CSS type in the input and output */
+    /* I can maybe add connection type using  { connections: [], type: "I2C" }*/
+
+    // Add Node HTML Content
+    const content = document.createElement('div');
+    content.classList.add('drawflow_content_node');
+    content.innerHTML = html;
+
+    node.appendChild(inputs);
+    node.appendChild(content);
+    node.appendChild(outputs);
+    node.style.top = ele_pos_y + 'px';
+    node.style.left = ele_pos_x + 'px';
+    parent.appendChild(node);
+    if (this.precanvas) {
+      this.precanvas.appendChild(parent);
+      var nodeData: Data = {
+        id: newNodeId,
+        name: name,
+        data: data,
+        class: classoverride,
+        html: html,
+        typenode: typenode,
+        inputs: json_inputs,
+        outputs: json_outputs,
+        pos_x: ele_pos_x,
+        pos_y: ele_pos_y,
+      };
+      this.drawflow.drawflow.Home.data.set(newNodeId, nodeData);
+      // this.dispatch('nodeCreated', newNodeId);
+    }
+
+    return newNodeId;
+  }
+
+  public addMat(
     name: string,
     num_in: { [key: number]: string },
     num_out: { [key: number]: { name: string; max: number } },
@@ -781,27 +880,16 @@ export default class SchemaFlow {
     // this.dispatch('keydown', e);
     if (e.key === 'Delete' || (e.key === 'Backspace' && e.metaKey)) {
       console.log(this.drawflow.drawflow.Home.data);
-      this.removeNodeConnections('node-1');
       switch (this.selection) {
         case UIElement.NodeBlock:
           if (this.ele_selected) this.removeNodeId(this.ele_selected.id);
           break;
         case UIElement.NodeConnection:
-          // this.removeConnection();
+          const svgID = this.connection_selected!.parentElement!.id;
+          console.log(svgID);
+          this.removeNodeConnections([svgID]);
           break;
       }
-      // if (this.node_selected != null) {
-      //   if (
-      //     this.first_click.tagName !== 'INPUT' &&
-      //     this.first_click.tagName !== 'TEXTAREA' &&
-      //     this.first_click.hasAttribute('contenteditable') !== true
-      //   ) {
-      //     this.removeNodeId(this.node_selected.id);
-      //   }
-      // }
-      // if (this.connection_selected != null) {
-      //   this.removeConnection();
-      // }
     }
   }
 
@@ -809,36 +897,62 @@ export default class SchemaFlow {
 
   private removeNodeId(id: string) {
     // Delete Node Connections
-    this.removeNodeConnections(id);
+    this.removeNodeIdConnections(id);
     // Delete Node Block from UI
     const nodeElement: HTMLElement | null = <HTMLElement>(
       this.container.querySelector(`#${id}`)
     );
     if (nodeElement) nodeElement.remove();
     // Delete Node Block from Storage Object
-    console.log(this.drawflow.drawflow.Home.data);
+    // console.log(this.drawflow.drawflow.Home.data);
     this.drawflow.drawflow.Home.data.delete(this.nodeNumber(id));
-    console.log(this.drawflow.drawflow.Home.data);
+    // console.log(this.drawflow.drawflow.Home.data);
     // Dispatch
     // this.dispatch('nodeRemoved', this.nodeNumber(id);
   }
 
-  private removeNodeConnections(id: string) {
-    const arrayConnections: Array<ConnectionInput | ConnectionOutput> =
-      this.getNodeConnections(id);
-    for (const connection of arrayConnections) {
-      console.log(connection.svgid);
-      const svgEle = this.container.querySelector(`#${connection.svgid}`);
-      if (svgEle) svgEle.remove();
-    }
-    // TODO: Remove Connections In Map for all nodes with the connection
+  private removeNodeIdConnections(id: string) {
+    const svgIDs: Array<string> = this.getNodeConnectionsSVGID(id);
+    this.removeNodeConnections(svgIDs);
   }
 
-  private getNodeConnections(
-    id: string,
-  ): Array<ConnectionInput | ConnectionOutput> {
-    const arrayConnections: Array<ConnectionInput | ConnectionOutput> =
-      new Array();
+  private removeNodeConnections(svgIDs: Array<string>) {
+    // Remove connections in UI
+    for (const svgID of svgIDs) {
+      console.log(svgID);
+      const svgEle = this.container.querySelector(`#${svgID}`);
+      if (svgEle) svgEle.remove();
+    }
+    // Remove connections in Map
+    const nodes = this.drawflow.drawflow.Home.data;
+    console.log('Nodes:', nodes);
+    for (const node of nodes.values()) {
+      for (const inputs of node.inputs.values()) {
+        if (inputs.connections.length > 0) {
+          const connections = inputs.connections;
+          connections.forEach((value, index) => {
+            if (svgIDs.includes(value.svgid)) {
+              connections.splice(index, 1);
+            }
+          });
+        }
+      }
+      // outputs
+      for (const outputs of node.outputs.values()) {
+        if (outputs.connections.length > 0) {
+          const connections = outputs.connections;
+          connections.forEach((value, index) => {
+            if (svgIDs.includes(value.svgid)) {
+              connections.splice(index, 1);
+            }
+          });
+        }
+      }
+    }
+  }
+
+  private getNodeConnectionsSVGID(id: string): Array<string> {
+    const arrayConnections: Array<string> = new Array();
     const nodes = this.drawflow.drawflow.Home.data;
     const nodeNumber = this.nodeNumber(id);
     for (const [key, value] of nodes.entries()) {
@@ -848,7 +962,7 @@ export default class SchemaFlow {
           if (inputs.connections.length > 0) {
             const connections = inputs.connections;
             for (const connection of Object.values(connections)) {
-              arrayConnections.push(connection);
+              arrayConnections.push(connection.svgid);
             }
           }
         }
@@ -857,7 +971,7 @@ export default class SchemaFlow {
           if (outputs.connections.length > 0) {
             const connections = outputs.connections;
             for (const connection of Object.values(connections)) {
-              arrayConnections.push(connection);
+              arrayConnections.push(connection.svgid);
             }
           }
         }
