@@ -1,0 +1,88 @@
+.drawflow .mat-node {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  background: cyan;
+  min-height: 40px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 15px 2px var(--border-color);
+  color: black;
+  z-index: 2;
+  padding: 0px;
+  width: 200px;
+}
+
+.drawflow .mat-node.selected {
+  background: white;
+  border: 1px solid #4ea9ff;
+  -webkit-box-shadow: 0 2px 20px 2px #4ea9ff;
+  box-shadow: 0 2px 20px 2px #4ea9ff;
+}
+
+.drawflow .mat-node:hover {
+  cursor: move;
+}
+
+.drawflow .mat-node .inputs,
+.drawflow .mat-node .outputs {
+  width: 0px;
+}
+
+.drawflow .mat-node .input,
+.drawflow .mat-node .output {
+  position: relative;
+  background: white;
+  border-radius: 50%;
+  cursor: crosshair;
+  z-index: 1;
+  margin-bottom: 5px;
+  height: 15px;
+  width: 15px;
+  border: 2px solid var(--border-color);
+}
+
+.drawflow .mat-node .input:hover,
+.drawflow .mat-node .output:hover {
+  background: #4ea9ff;
+}
+
+.drawflow .mat-node .input {
+  left: -10px;
+  top: 2px;
+  background: white;
+}
+.drawflow .mat-node .output {
+  right: 10px;
+  top: 2px;
+}
+
+.drawflow .mat-node .output .type {
+  color: black;
+  margin-top: -4px;
+  margin-left: 23px;
+}
+.drawflow .mat-node .input .type {
+  color: black;
+  margin-top: -4px;
+  margin-left: -55px;
+}
+
+.drawflow .mat-node .drawflow_content_node {
+  width: 100%;
+  display: block;
+}
+
+/*Personalized node (Mat)*/
+
+.mat-node.mat {
+  background: #f85d04;
+  text-align: center;
+  color: white;
+  /* width: 400px; */
+  height: 300px;
+}
+
+.mat-node.mat.selected {
+  background: #f85d04;
+}

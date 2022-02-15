@@ -1,3 +1,5 @@
+/* APP */
+
 :root {
   --border-color: #cacaca;
   --background-color: #ffffff;
@@ -29,13 +31,41 @@ body {
     linear-gradient(to bottom, var(--background-gird-line) 1px, transparent 1px);
 }
 
-/* Editing Drawflow */
+/* Drawflow */
+
+.drawflow {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  user-select: none;
+}
+
+.parent-drawflow {
+  display: flex;
+  overflow: hidden;
+  touch-action: none;
+  outline: none;
+}
+
+/* Drawflow Parent node*/
+
+.drawflow .parent-node {
+  position: relative;
+}
+
+/* Drawflow Node */
 
 .drawflow .drawflow-node {
-  background: var(--background-color);
+  display: flex;
+  align-items: center;
+  position: inherit;
+  background: cyan;
+  min-height: 40px;
+  border-radius: 4px;
   border: 1px solid var(--border-color);
-  -webkit-box-shadow: 0 2px 15px 2px var(--border-color);
   box-shadow: 0 2px 15px 2px var(--border-color);
+  color: black;
+  z-index: 2;
   padding: 0px;
   width: 200px;
 }
@@ -47,29 +77,23 @@ body {
   box-shadow: 0 2px 20px 2px #4ea9ff;
 }
 
-/* .drawflow .drawflow-node.selected .title-box {
-    color: #22598c;
-  } */
-
-.drawflow .connection .main-path {
-  stroke: #4ea9ff;
-  stroke-width: 3px;
+.drawflow .drawflow-node:hover {
+  cursor: move;
 }
 
-.drawflow .connection .point {
-  stroke: var(--border-color);
-  stroke-width: 2;
-  fill: white;
-  transform: translate(-9999px, -9999px);
-}
-
-.drawflow .connection .point.selected,
-.drawflow .connection .point:hover {
-  fill: #4ea9ff;
+.drawflow .drawflow-node .inputs,
+.drawflow .drawflow-node .outputs {
+  width: 0px;
 }
 
 .drawflow .drawflow-node .input,
 .drawflow .drawflow-node .output {
+  position: relative;
+  background: white;
+  border-radius: 50%;
+  cursor: crosshair;
+  z-index: 1;
+  margin-bottom: 5px;
   height: 15px;
   width: 15px;
   border: 2px solid var(--border-color);
@@ -80,13 +104,89 @@ body {
   background: #4ea9ff;
 }
 
-.drawflow .drawflow-node .output {
-  right: 10px;
-}
-
 .drawflow .drawflow-node .input {
   left: -10px;
+  top: 2px;
   background: white;
+}
+.drawflow .drawflow-node .output {
+  right: 10px;
+  top: 2px;
+}
+
+.drawflow .drawflow-node .output .type {
+  color: black;
+  margin-top: -4px;
+  margin-left: 23px;
+}
+.drawflow .drawflow-node .input .type {
+  color: black;
+  margin-top: -4px;
+  margin-left: -55px;
+}
+
+.drawflow .drawflow-node .drawflow_content_node {
+  width: 100%;
+  display: block;
+}
+
+/* Drawflow Connection */
+
+.drawflow svg {
+  z-index: 0;
+  position: absolute;
+  overflow: visible !important;
+}
+
+.drawflow .main-path {
+  fill: none;
+  stroke-width: 5px;
+  stroke: steelblue;
+}
+
+.drawflow .connection {
+  position: absolute;
+  transform: translate(9999px, 9999px);
+}
+
+.drawflow .connection .main-path {
+  stroke: #4ea9ff;
+  stroke-width: 3px;
+  fill: none;
+  stroke-width: 5px;
+  transform: translate(-9999px, -9999px);
+}
+
+.drawflow .connection .main-path:hover {
+  stroke: #1266ab;
+  cursor: pointer;
+}
+
+.drawflow .connection .main-path.selected {
+  stroke: #43b993;
+}
+
+/* Drawflow Delete */
+
+.drawflow-delete {
+  position: absolute;
+  display: block;
+  width: 30px;
+  height: 30px;
+  background: black;
+  color: white;
+  z-index: 4;
+  border: 2px solid white;
+  line-height: 30px;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 50%;
+  font-family: monospace;
+  cursor: pointer;
+  border: 2px solid #4ea9ff;
+  background: white;
+  color: #4ea9ff;
+  box-shadow: 0 2px 20px 2px #4ea9ff;
 }
 
 .drawflow > .drawflow-delete {
@@ -95,27 +195,29 @@ body {
   color: #43b993;
   -webkit-box-shadow: 0 2px 20px 2px #43b993;
   box-shadow: 0 2px 20px 2px #43b993;
+  margin-left: -15px;
+  margin-top: 15px;
 }
 
-.drawflow-delete {
-  border: 2px solid #4ea9ff;
-  background: white;
-  color: #4ea9ff;
-  -webkit-box-shadow: 0 2px 20px 2px #4ea9ff;
-  box-shadow: 0 2px 20px 2px #4ea9ff;
+.parent-node .drawflow-delete {
+  right: -15px;
+  top: -15px;
 }
+
+/* Drawflow Title */
 
 .drawflow-node .title-box {
   height: 50px;
   line-height: 50px;
-  /* background: var(--background-box-title);
-    border-bottom: 1px solid #e9e9e9; */
   border-radius: 4px 4px 0px 0px;
   padding-left: 10px;
 }
 .drawflow .title-box svg {
   position: initial;
 }
+
+/* Drawflow Box */
+
 .drawflow-node .box {
   padding: 10px 20px 20px 20px;
   font-size: 14px;
@@ -126,13 +228,7 @@ body {
   margin-bottom: 5px;
 }
 
-.drawflow-node.welcome {
-  width: 250px;
-}
-
-.drawflow-node.slack .title-box {
-  border-radius: 4px;
-}
+/* Drawflow Text area */
 
 .drawflow-node input,
 .drawflow-node select,
@@ -150,25 +246,8 @@ body {
   height: 100px;
 }
 
-/*Personalized node*/
-.drawflow-node.personalized {
-  background: red;
-  height: 200px;
-  text-align: center;
-  color: white;
-}
-.drawflow-node.personalized .input {
-  background: yellow;
-}
-.drawflow-node.personalized .output {
-  background: green;
-}
-
-.drawflow-node.personalized.selected {
-  background: blue;
-}
-
 /*Personalized node (computeModule)*/
+
 .drawflow-node.computeModule {
   background: #70ad47;
   height: 200px;
@@ -181,6 +260,7 @@ body {
 }
 
 /*Personalized node (pheripherial)*/
+
 .drawflow-node.pheripherial {
   background: #00b0f0;
   height: 200px;
