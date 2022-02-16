@@ -5,42 +5,81 @@ import './SchemaFlow/Interact.css';
  * applies to this demo as well so it doesn't have to be repeated. */
 
 // enable draggables to be dropped into this
-interact('.dropzone').dropzone({
-  // only accept elements matching this CSS selector
-  accept: '#yes-drop',
-  // Require a 75% element overlap for a drop to be possible
-  overlap: 0.75,
+interact('.dropzone')
+  .resizable({
+    // resize from all edges and corners
+    edges: { left: true, right: true, bottom: true, top: true },
 
-  // listen for drop related events:
+    listeners: {
+      move(event) {
+        var target = event.target;
+        var x = parseFloat(target.getAttribute('data-x')) || 0;
+        var y = parseFloat(target.getAttribute('data-y')) || 0;
+        // update the element's style
+        target.style.width = event.rect.width + 'px';
+        target.style.height = event.rect.height + 'px';
+        // translate when resizing from top or left edges
+        // x += event.deltaRect.left;
+        // y += event.deltaRect.top;
+        // target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+        // target.setAttribute('data-x', x);
+        // target.setAttribute('data-y', y);
+        // target.textContent =
+        //   Math.round(event.rect.width) +
+        //   '\u00D7' +
+        //   Math.round(event.rect.height);
+      },
+    },
+    modifiers: [
+      // keep the edges inside the parent
+      interact.modifiers.restrictEdges({
+        outer: 'parent',
+      }),
 
-  ondropactivate: function (event) {
-    // add active dropzone feedback
-    event.target.classList.add('drop-active');
-  },
-  ondragenter: function (event) {
-    var draggableElement = event.relatedTarget;
-    var dropzoneElement = event.target;
+      // minimum size
+      interact.modifiers.restrictSize({
+        min: { width: 100, height: 50 },
+      }),
+    ],
 
-    // feedback the possibility of a drop
-    dropzoneElement.classList.add('drop-target');
-    draggableElement.classList.add('can-drop');
-    draggableElement.textContent = 'Dragged in';
-  },
-  ondragleave: function (event) {
-    // remove the drop feedback style
-    event.target.classList.remove('drop-target');
-    event.relatedTarget.classList.remove('can-drop');
-    event.relatedTarget.textContent = 'Dragged out';
-  },
-  ondrop: function (event) {
-    event.relatedTarget.textContent = 'Dropped';
-  },
-  ondropdeactivate: function (event) {
-    // remove active dropzone feedback
-    event.target.classList.remove('drop-active');
-    event.target.classList.remove('drop-target');
-  },
-});
+    inertia: true,
+  })
+  .dropzone({
+    // only accept elements matching this CSS selector
+    accept: '#yes-drop',
+    // Require a 75% element overlap for a drop to be possible
+    overlap: 0.75,
+
+    // listen for drop related events:
+
+    ondropactivate: function (event) {
+      // add active dropzone feedback
+      event.target.classList.add('drop-active');
+    },
+    ondragenter: function (event) {
+      var draggableElement = event.relatedTarget;
+      var dropzoneElement = event.target;
+
+      // feedback the possibility of a drop
+      dropzoneElement.classList.add('drop-target');
+      draggableElement.classList.add('can-drop');
+      draggableElement.textContent = 'Dragged in';
+    },
+    ondragleave: function (event) {
+      // remove the drop feedback style
+      event.target.classList.remove('drop-target');
+      event.relatedTarget.classList.remove('can-drop');
+      event.relatedTarget.textContent = 'Dragged out';
+    },
+    ondrop: function (event) {
+      event.relatedTarget.textContent = 'Dropped';
+    },
+    ondropdeactivate: function (event) {
+      // remove active dropzone feedback
+      //event.target.classList.remove('drop-active');
+      event.target.classList.remove('drop-target');
+    },
+  });
 
 interact('.drag-drop').draggable({
   inertia: true,
