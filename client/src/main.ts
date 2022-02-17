@@ -4,82 +4,254 @@ import './SchemaFlow/Interact.css';
 /* The dragging code for '.draggable' from the demo above
  * applies to this demo as well so it doesn't have to be repeated. */
 
-// enable draggables to be dropped into this
-interact('.dropzone')
-  .resizable({
-    // resize from all edges and corners
-    edges: { left: true, right: true, bottom: true, top: true },
+interface ElementSizes {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+  width: number;
+  height: number;
+  marginTop: number;
+  marginBottom: number;
+  marginLeft: number;
+  marginRight: number;
+  marginWidth: number;
+  marginHeight: number;
+  paddinTop: number;
+  paddinBottom: number;
+  paddinLeft: number;
+  paddinRight: number;
+  paddingWidth: number;
+  paddingHeight: number;
+  borderTop: number;
+  borderBottom: number;
+  borderLeft: number;
+  borderRight: number;
+  borderWidth: number;
+  borderHeight: number;
+}
 
-    listeners: {
-      move(event) {
-        var target = event.target;
-        var x = parseFloat(target.getAttribute('data-x')) || 0;
-        var y = parseFloat(target.getAttribute('data-y')) || 0;
-        // update the element's style
-        target.style.width = event.rect.width + 'px';
+var parentElement = document.getElementById('outer-dropzone');
+const InteractEle = interact('.inner');
+
+InteractEle.resizable({
+  // resize from all edges and corners
+  edges: { left: true, right: true, bottom: true, top: true },
+
+  listeners: {
+    move(event) {
+      // Translate?
+      let translate: boolean = false;
+
+      // Position
+      const target = event.target;
+      let x = parseFloat(target.getAttribute('data-x')) || 0;
+      let y = parseFloat(target.getAttribute('data-y')) || 0;
+
+      // Get this sizes
+      const child = getSizes(target);
+
+      // Get parent sizes
+      const parent = getSizes(parentElement!);
+
+      // console.log(
+      //   'child:',
+      //   child.width,
+      //   child.height,
+      //   child.paddingHeight,
+      //   child.paddingWidth,
+      //   child.borderHeight,
+      //   child.borderWidth,
+      // );
+
+      // console.log(
+      //   'parent:',
+      //   parent.width,
+      //   parent.height,
+      //   parent.paddingHeight,
+      //   parent.paddingWidth,
+      //   parent.borderHeight,
+      //   parent.borderWidth,
+      // );
+
+      const childTopExtra = child.borderTop + child.paddinTop;
+      const childBottomExtra = child.borderBottom + child.paddinBottom;
+      const childLeftExtra = child.borderLeft + child.paddinLeft;
+      const childRightExtra = child.borderRight + child.paddinRight;
+
+      // Check for negatives
+      if (event.rect.top - childTopExtra <= 0) return;
+      if (event.rect.bottom - childBottomExtra <= 0) return;
+      if (event.rect.left - childLeftExtra <= 0) return;
+      if (event.rect.right - childRightExtra <= 0) return;
+
+      // Restrict sizes
+      if (
+        event.rect.top - childTopExtra >= parent.top &&
+        event.rect.bottom <= parent.bottom - childBottomExtra
+      ) {
         target.style.height = event.rect.height + 'px';
-        // translate when resizing from top or left edges
-        // x += event.deltaRect.left;
-        // y += event.deltaRect.top;
-        // target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
-        // target.setAttribute('data-x', x);
-        // target.setAttribute('data-y', y);
-        // target.textContent =
-        //   Math.round(event.rect.width) +
-        //   '\u00D7' +
-        //   Math.round(event.rect.height);
-      },
-    },
-    modifiers: [
-      // keep the edges inside the parent
-      interact.modifiers.restrictEdges({
-        outer: 'parent',
-      }),
+        y += event.deltaRect.top;
+        target.setAttribute('data-y', y);
+        translate = true;
+      }
+      if (
+        event.rect.left - childLeftExtra >= parent.left &&
+        event.rect.right <= parent.right - childRightExtra
+      ) {
+        target.style.width = event.rect.width + 'px';
+        x += event.deltaRect.left;
+        target.setAttribute('data-x', x);
+        translate = true;
+      }
+      // if (
+      //   event.rect.top - childTopExtra >= parent.top &&
+      //   event.rect.bottom <= parent.bottom - childBottomExtra
+      // ) {
+      //   console.log('Changing');
+      //   target.style.height = event.rect.height + 'px';
+      //   y += event.deltaRect.top;
+      //   target.setAttribute('data-y', y);
+      // }
+      // if (event.rect.bottom < parent.bottom) {
+      //   target.style.height = event.rect.height + 'px';
+      // }
+      // if (
+      //   event.rect.height <
+      //   parent.height - child.borderHeight - child.paddingHeight
+      // ) {
+      //   // Update the element's Height
+      //   target.style.height = event.rect.height + 'px';
+      // }
+      // if (
+      //   event.rect.width <
+      //   parent.width - child.borderWidth - child.paddingWidth
+      // ) {
+      //   // Update the element's Width
+      //   target.style.width = event.rect.width + 'px';
+      // }
 
-      // minimum size
-      interact.modifiers.restrictSize({
-        min: { width: 100, height: 50 },
-      }),
-    ],
+      if (translate)
+        target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
 
-    inertia: true,
-  })
-  .dropzone({
-    // only accept elements matching this CSS selector
-    accept: '#yes-drop',
-    // Require a 75% element overlap for a drop to be possible
-    overlap: 0.75,
+      target.textContent =
+        Math.round(event.rect.width) + '\u00D7' + Math.round(event.rect.height);
+    },
+  },
+});
 
-    // listen for drop related events:
+interact('.dropzone').dropzone({
+  // only accept elements matching this CSS selector
+  accept: '#yes-drop',
+  // Require a 75% element overlap for a drop to be possible
+  overlap: 0.75,
 
-    ondropactivate: function (event) {
-      // add active dropzone feedback
-      event.target.classList.add('drop-active');
-    },
-    ondragenter: function (event) {
-      var draggableElement = event.relatedTarget;
-      var dropzoneElement = event.target;
+  // listen for drop related events:
 
-      // feedback the possibility of a drop
-      dropzoneElement.classList.add('drop-target');
-      draggableElement.classList.add('can-drop');
-      draggableElement.textContent = 'Dragged in';
-    },
-    ondragleave: function (event) {
-      // remove the drop feedback style
-      event.target.classList.remove('drop-target');
-      event.relatedTarget.classList.remove('can-drop');
-      event.relatedTarget.textContent = 'Dragged out';
-    },
-    ondrop: function (event) {
-      event.relatedTarget.textContent = 'Dropped';
-    },
-    ondropdeactivate: function (event) {
-      // remove active dropzone feedback
-      //event.target.classList.remove('drop-active');
-      event.target.classList.remove('drop-target');
-    },
-  });
+  ondropactivate: function (event) {
+    // add active dropzone feedback
+    event.target.classList.add('drop-active');
+  },
+  ondragenter: function (event) {
+    var draggableElement = event.relatedTarget;
+    var dropzoneElement = event.target;
+
+    // feedback the possibility of a drop
+    dropzoneElement.classList.add('drop-target');
+    draggableElement.classList.add('can-drop');
+    draggableElement.textContent = 'Dragged in';
+  },
+  ondragleave: function (event) {
+    // remove the drop feedback style
+    event.target.classList.remove('drop-target');
+    event.relatedTarget.classList.remove('can-drop');
+    event.relatedTarget.textContent = 'Dragged out';
+  },
+  ondrop: function (event) {
+    event.relatedTarget.textContent = 'Dropped';
+  },
+  ondropdeactivate: function (event) {
+    // remove active dropzone feedback
+    //event.target.classList.remove('drop-active');
+    event.target.classList.remove('drop-target');
+  },
+});
+
+function getSizes(ele: HTMLElement): ElementSizes {
+  const parentRect = ele.getBoundingClientRect();
+  const parentStyle = window.getComputedStyle(ele);
+  const parentMarginWidth =
+    parseFloat(parentStyle.marginLeft) + parseFloat(parentStyle.marginRight);
+  const parentMarginHeight =
+    parseFloat(parentStyle.marginTop) + parseFloat(parentStyle.marginBottom);
+  const parentPaddingWidth =
+    parseFloat(parentStyle.paddingLeft) + parseFloat(parentStyle.paddingRight);
+  const parentPaddingHeight =
+    parseFloat(parentStyle.paddingTop) + parseFloat(parentStyle.paddingBottom);
+  const parentBorderWidth =
+    parseFloat(parentStyle.borderLeft) + parseFloat(parentStyle.borderRight);
+  const parentBorderHeight =
+    parseFloat(parentStyle.borderTop) + parseFloat(parentStyle.borderBottom);
+
+  let sizes;
+  if (parentStyle.boxSizing === 'border-box') {
+    sizes = {
+      top: parentRect.top,
+      bottom: parentRect.bottom,
+      left: parentRect.left,
+      right: parentRect.right,
+      width: parentRect.width,
+      height: parentRect.height,
+      marginTop: parseFloat(parentStyle.marginTop),
+      marginBottom: parseFloat(parentStyle.marginBottom),
+      marginLeft: parseFloat(parentStyle.marginLeft),
+      marginRight: parseFloat(parentStyle.marginRight),
+      marginWidth: parentMarginWidth,
+      marginHeight: parentMarginHeight,
+      paddinTop: parseFloat(parentStyle.paddingTop),
+      paddinBottom: parseFloat(parentStyle.paddingBottom),
+      paddinLeft: parseFloat(parentStyle.paddingLeft),
+      paddinRight: parseFloat(parentStyle.paddingRight),
+      paddingWidth: parentPaddingWidth,
+      paddingHeight: parentPaddingHeight,
+      borderTop: parseFloat(parentStyle.borderTop),
+      borderBottom: parseFloat(parentStyle.borderBottom),
+      borderLeft: parseFloat(parentStyle.borderLeft),
+      borderRight: parseFloat(parentStyle.borderRight),
+      borderWidth: parentBorderWidth,
+      borderHeight: parentBorderHeight,
+    };
+  } else {
+    sizes = {
+      top: parentRect.top,
+      bottom: parentRect.bottom - parentPaddingHeight - parentBorderHeight,
+      left: parentRect.left,
+      right: parentRect.right - parentPaddingHeight - parentBorderHeight,
+      width: parentRect.width - parentPaddingWidth - parentBorderWidth,
+      height: parentRect.height - parentPaddingHeight - parentBorderHeight,
+      marginTop: parseFloat(parentStyle.marginTop),
+      marginBottom: parseFloat(parentStyle.marginBottom),
+      marginLeft: parseFloat(parentStyle.marginLeft),
+      marginRight: parseFloat(parentStyle.marginRight),
+      marginWidth: parentMarginWidth,
+      marginHeight: parentMarginHeight,
+      paddinTop: parseFloat(parentStyle.paddingTop),
+      paddinBottom: parseFloat(parentStyle.paddingBottom),
+      paddinLeft: parseFloat(parentStyle.paddingLeft),
+      paddinRight: parseFloat(parentStyle.paddingRight),
+      paddingWidth: parentPaddingWidth,
+      paddingHeight: parentPaddingHeight,
+      borderTop: parseFloat(parentStyle.borderTop),
+      borderBottom: parseFloat(parentStyle.borderBottom),
+      borderLeft: parseFloat(parentStyle.borderLeft),
+      borderRight: parseFloat(parentStyle.borderRight),
+      borderWidth: parentBorderWidth,
+      borderHeight: parentBorderHeight,
+    };
+  }
+
+  return sizes;
+}
 
 interact('.drag-drop').draggable({
   inertia: true,

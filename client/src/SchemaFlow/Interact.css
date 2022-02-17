@@ -15,17 +15,18 @@
 }
 
 #inner-dropzone {
-  height: 80px;
+  height: 50px;
 }
 
 .dropzone {
   background-color: #bfe4ff;
   border: dashed 4px transparent;
+  padding: 4px;
   border-radius: 4px;
-  margin: 10px auto 30px;
-  padding: 10px;
   width: 80%;
   transition: background-color 0.3s;
+  /* Important for sizes */
+  box-sizing: border-box;
 }
 
 .drop-active {
@@ -41,8 +42,6 @@
 .drag-drop {
   display: inline-block;
   min-width: 40px;
-  padding: 2em 0.5em;
-  margin: 1rem 0 0 1rem;
 
   color: #fff;
   background-color: #29e;
