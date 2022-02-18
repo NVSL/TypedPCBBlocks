@@ -1,5 +1,16 @@
 import interact from 'interactjs';
 import './SchemaFlow/Interact.css';
+/*
+TODO: 
+Define: All mats will have a outer (information) and inner (droppable) zone. This will be good for distingushing between mats.
+Define: Mat's drop zones should be paralel (zone one | zone two)
+--->>>>> No!!!: Make it simple, mats over dragable and resizable mats, period. If there are more show a modal.
+- Restrict resizing when having two or more inner blocks. 
+- Differientate between parent and inner (droppable) zone, parent should be able to be dragged
+---->>>> 
+// TODO: 1 - Add buttons to add mats and nodes. 
+         2 - Add right click buttons to change z-index.
+*/
 
 /* The dragging code for '.draggable' from the demo above
  * applies to this demo as well so it doesn't have to be repeated. */
@@ -31,118 +42,149 @@ interface ElementSizes {
   borderHeight: number;
 }
 
-var parentElement = document.getElementById('outer-dropzone');
-const InteractEle = interact('.inner');
+const parentNode = document.getElementById('app');
+// interact('.inner').resizable({
+//   // resize from all edges and corners
+//   edges: { left: true, right: true, bottom: true, top: true },
 
-InteractEle.resizable({
-  // resize from all edges and corners
-  edges: { left: true, right: true, bottom: true, top: true },
+//   listeners: {
+//     move(event) {
+//       // Translate?
+//       let translate: boolean = false;
 
-  listeners: {
-    move(event) {
-      // Translate?
-      let translate: boolean = false;
+//       // Position
+//       const target = event.target;
+//       let x = parseFloat(target.getAttribute('data-x')) || 0;
+//       let y = parseFloat(target.getAttribute('data-y')) || 0;
 
-      // Position
-      const target = event.target;
-      let x = parseFloat(target.getAttribute('data-x')) || 0;
-      let y = parseFloat(target.getAttribute('data-y')) || 0;
+//       // Get this sizes
+//       const child = getSizes(target);
 
-      // Get this sizes
-      const child = getSizes(target);
+//       // Get parent sizes
+//       const parent = getSizes(parentElement!);
 
-      // Get parent sizes
-      const parent = getSizes(parentElement!);
+//       // console.log(
+//       //   'child:',
+//       //   child.width,
+//       //   child.height,
+//       //   child.paddingHeight,
+//       //   child.paddingWidth,
+//       //   child.borderHeight,
+//       //   child.borderWidth,
+//       // );
 
-      // console.log(
-      //   'child:',
-      //   child.width,
-      //   child.height,
-      //   child.paddingHeight,
-      //   child.paddingWidth,
-      //   child.borderHeight,
-      //   child.borderWidth,
-      // );
+//       // console.log(
+//       //   'parent:',
+//       //   parent.width,
+//       //   parent.height,
+//       //   parent.paddingHeight,
+//       //   parent.paddingWidth,
+//       //   parent.borderHeight,
+//       //   parent.borderWidth,
+//       // );
 
-      // console.log(
-      //   'parent:',
-      //   parent.width,
-      //   parent.height,
-      //   parent.paddingHeight,
-      //   parent.paddingWidth,
-      //   parent.borderHeight,
-      //   parent.borderWidth,
-      // );
+//       const childTopExtra = child.borderTop + child.paddinTop;
+//       const childBottomExtra = child.borderBottom + child.paddinBottom;
+//       const childLeftExtra = child.borderLeft + child.paddinLeft;
+//       const childRightExtra = child.borderRight + child.paddinRight;
 
-      const childTopExtra = child.borderTop + child.paddinTop;
-      const childBottomExtra = child.borderBottom + child.paddinBottom;
-      const childLeftExtra = child.borderLeft + child.paddinLeft;
-      const childRightExtra = child.borderRight + child.paddinRight;
+//       // Check for negatives
+//       if (event.rect.top - childTopExtra <= 0) return;
+//       if (event.rect.bottom - childBottomExtra <= 0) return;
+//       if (event.rect.left - childLeftExtra <= 0) return;
+//       if (event.rect.right - childRightExtra <= 0) return;
 
-      // Check for negatives
-      if (event.rect.top - childTopExtra <= 0) return;
-      if (event.rect.bottom - childBottomExtra <= 0) return;
-      if (event.rect.left - childLeftExtra <= 0) return;
-      if (event.rect.right - childRightExtra <= 0) return;
+//       // Restrict sizes
+//       if (
+//         event.rect.top - childTopExtra >= parent.top &&
+//         event.rect.bottom <= parent.bottom - childBottomExtra
+//       ) {
+//         target.style.height = event.rect.height + 'px';
+//         y += event.deltaRect.top;
+//         target.setAttribute('data-y', y);
+//         translate = true;
+//       }
+//       if (
+//         event.rect.left - childLeftExtra >= parent.left &&
+//         event.rect.right <= parent.right - childRightExtra
+//       ) {
+//         target.style.width = event.rect.width + 'px';
+//         x += event.deltaRect.left;
+//         target.setAttribute('data-x', x);
+//         translate = true;
+//       }
+//       // if (
+//       //   event.rect.top - childTopExtra >= parent.top &&
+//       //   event.rect.bottom <= parent.bottom - childBottomExtra
+//       // ) {
+//       //   console.log('Changing');
+//       //   target.style.height = event.rect.height + 'px';
+//       //   y += event.deltaRect.top;
+//       //   target.setAttribute('data-y', y);
+//       // }
+//       // if (event.rect.bottom < parent.bottom) {
+//       //   target.style.height = event.rect.height + 'px';
+//       // }
+//       // if (
+//       //   event.rect.height <
+//       //   parent.height - child.borderHeight - child.paddingHeight
+//       // ) {
+//       //   // Update the element's Height
+//       //   target.style.height = event.rect.height + 'px';
+//       // }
+//       // if (
+//       //   event.rect.width <
+//       //   parent.width - child.borderWidth - child.paddingWidth
+//       // ) {
+//       //   // Update the element's Width
+//       //   target.style.width = event.rect.width + 'px';
+//       // }
 
-      // Restrict sizes
-      if (
-        event.rect.top - childTopExtra >= parent.top &&
-        event.rect.bottom <= parent.bottom - childBottomExtra
-      ) {
-        target.style.height = event.rect.height + 'px';
-        y += event.deltaRect.top;
-        target.setAttribute('data-y', y);
-        translate = true;
-      }
-      if (
-        event.rect.left - childLeftExtra >= parent.left &&
-        event.rect.right <= parent.right - childRightExtra
-      ) {
+//       if (translate)
+//         target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+
+//       target.textContent =
+//         Math.round(event.rect.width) + '\u00D7' + Math.round(event.rect.height);
+//     },
+//   },
+// });
+
+interact('.mat')
+  .resizable({
+    // resize from all edges and corners
+    edges: { left: false, right: true, bottom: true, top: false },
+
+    listeners: {
+      move(event) {
+        var target = event.target;
         target.style.width = event.rect.width + 'px';
-        x += event.deltaRect.left;
-        target.setAttribute('data-x', x);
-        translate = true;
-      }
-      // if (
-      //   event.rect.top - childTopExtra >= parent.top &&
-      //   event.rect.bottom <= parent.bottom - childBottomExtra
-      // ) {
-      //   console.log('Changing');
-      //   target.style.height = event.rect.height + 'px';
-      //   y += event.deltaRect.top;
-      //   target.setAttribute('data-y', y);
-      // }
-      // if (event.rect.bottom < parent.bottom) {
-      //   target.style.height = event.rect.height + 'px';
-      // }
-      // if (
-      //   event.rect.height <
-      //   parent.height - child.borderHeight - child.paddingHeight
-      // ) {
-      //   // Update the element's Height
-      //   target.style.height = event.rect.height + 'px';
-      // }
-      // if (
-      //   event.rect.width <
-      //   parent.width - child.borderWidth - child.paddingWidth
-      // ) {
-      //   // Update the element's Width
-      //   target.style.width = event.rect.width + 'px';
-      // }
-
-      if (translate)
-        target.style.transform = 'translate(' + x + 'px,' + y + 'px)';
-
-      target.textContent =
-        Math.round(event.rect.width) + '\u00D7' + Math.round(event.rect.height);
+        target.style.height = event.rect.height + 'px';
+      },
     },
-  },
-});
+    modifiers: [
+      // minimum size
+      interact.modifiers.restrictSize({
+        min: { width: 100, height: 50 },
+      }),
+    ],
+
+    inertia: true,
+  })
+  .draggable({
+    inertia: true,
+    modifiers: [
+      interact.modifiers.restrictRect({
+        restriction: 'parent',
+        endOnly: true,
+      }),
+    ],
+    onmove: dragMoveListener,
+    onstart: onStartListener,
+  });
 
 interact('.dropzone').dropzone({
   // only accept elements matching this CSS selector
-  accept: '#yes-drop',
+  accept: '#yes-drop, .mat',
   // Require a 75% element overlap for a drop to be possible
   overlap: 0.75,
 
@@ -262,12 +304,19 @@ interact('.drag-drop').draggable({
     }),
   ],
   autoScroll: true,
-  // dragMoveListener from the dragging demo above
-  listeners: { move: dragMoveListener },
+  onmove: dragMoveListener,
+  onstart: onStartListener,
 });
+
+function onStartListener(event: any) {
+  // var target = event.target;
+  // target.parentNode.appendChild(target);
+  // TODO: Use z-indexes
+}
 
 function dragMoveListener(event: any) {
   var target = event.target;
+
   // keep the dragged position in the data-x/data-y attributes
   var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
   var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;

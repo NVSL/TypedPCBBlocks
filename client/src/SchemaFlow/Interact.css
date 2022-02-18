@@ -1,3 +1,19 @@
+html,
+body {
+  /* margin: 0px;
+  padding: 0px; */
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  font-family: 'Roboto', sans-serif;
+}
+
+#app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 .draggable {
   width: 25%;
   min-height: 6.5em;
@@ -14,11 +30,16 @@
   height: 140px;
 }
 
+#outer-dropzone2 {
+  height: 140px;
+}
+
 #inner-dropzone {
   height: 50px;
 }
 
 .dropzone {
+  position: relative;
   background-color: #bfe4ff;
   border: dashed 4px transparent;
   padding: 4px;
@@ -27,6 +48,25 @@
   transition: background-color 0.3s;
   /* Important for sizes */
   box-sizing: border-box;
+}
+
+.mat {
+  background-color: #bfe4ff;
+  border: dashed 4px transparent;
+  padding: 4px;
+  border-radius: 4px;
+  width: 80%;
+  transition: background-color 0.3s;
+  /* Important for sizes */
+  box-sizing: border-box;
+}
+
+#mats {
+  height: 50%;
+}
+
+#tschs {
+  height: 50%;
 }
 
 .drop-active {
@@ -40,6 +80,7 @@
 }
 
 .drag-drop {
+  position: relative;
   display: inline-block;
   min-width: 40px;
 
