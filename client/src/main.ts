@@ -1,5 +1,6 @@
 import interact from 'interactjs';
 import './SchemaFlow/Interact.css';
+import './SchemaFlow/ContextMenu.css';
 /*
 TODO: 
 Define: All mats will have a outer (information) and inner (droppable) zone. This will be good for distingushing between mats.
@@ -14,6 +15,14 @@ Define: Mat's drop zones should be paralel (zone one | zone two)
 
 /* The dragging code for '.draggable' from the demo above
  * applies to this demo as well so it doesn't have to be repeated. */
+
+enum MenuOption {
+  LayerTop = 'LayerTop',
+  LayerUp = 'LayerUp',
+  LayerDown = 'LayerDown',
+  LayerBottom = 'LayerBottom',
+  Delete = 'Delete',
+}
 
 interface ElementSizes {
   top: number;
@@ -42,7 +51,6 @@ interface ElementSizes {
   borderHeight: number;
 }
 
-const parentNode = document.getElementById('app');
 // interact('.inner').resizable({
 //   // resize from all edges and corners
 //   edges: { left: true, right: true, bottom: true, top: true },
@@ -308,6 +316,177 @@ interact('.drag-drop').draggable({
   onstart: onStartListener,
 });
 
+// ### UI Interface
+
+let tschEle = 0;
+
+// Button AddMat
+document.querySelector('#addMat')!.addEventListener('click', () => {
+  console.log('Hello World');
+  const matsEle = <HTMLElement>document.querySelector('#tschs')!;
+  matsEle.insertAdjacentHTML(
+    'beforeend',
+    `<div class="mat outer dropzone drop-active" tsch-ele=${tschEle} style="z-index: ${tschEle}">
+          MAT2
+        </div>`,
+  );
+  tschEle++;
+});
+
+// Button AddTsch
+document.querySelector('#addTsch')!.addEventListener('click', () => {
+  console.log('Hello World');
+  const matsEle = <HTMLElement>document.querySelector('#tschs')!;
+  matsEle.insertAdjacentHTML(
+    'beforeend',
+    `<div id="yes-drop" class="drag-drop" tsch-ele=${tschEle} style="z-index: ${tschEle}">#yes-drop</div>`,
+  );
+  tschEle++;
+});
+
+// General Click
+document.addEventListener('click', () => {
+  // Remove context menu
+  const contextMenu = <HTMLElement>document.querySelector('#contextMenu');
+  contextMenu.classList.remove('shown');
+});
+
+// Show Contextmenu
+document.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+  const contextMenu = <HTMLElement>document.querySelector('#contextMenu');
+  const posX =
+    e.clientX + 150 > document.documentElement.clientWidth
+      ? e.clientX - 150
+      : e.clientX;
+  const posY =
+    e.clientY + 140 + 55 > document.documentElement.clientHeight
+      ? e.clientY - 140
+      : e.clientY;
+  contextMenu.style.top = posY + 'px';
+  contextMenu.style.left = posX + 'px';
+  contextMenu.classList.add('shown');
+});
+
+// Contextmenu click
+document.querySelector('#contextMenu')!.addEventListener('click', (e) => {
+  const target = <HTMLElement>e.target;
+  const contextMenu = <HTMLElement>document.querySelector('#contextMenu')!;
+  const menuOption = <MenuOption | undefined>target.getAttribute('menu-option');
+  if (!menuOption) return;
+  console.log(menuOption);
+  processMenuOption(menuOption);
+  contextMenu.classList.remove('shown');
+});
+
+// ### Context Menu Functions
+
+function processMenuOption(option: MenuOption) {
+  const tschElements = <HTMLElement>document.querySelector('#tschs')!;
+  const zIndexesArray: Array<{
+    ele: HTMLElement;
+    tschEle: string;
+    zIndex: number;
+  }> = new Array();
+
+  // Fill zIndex Array
+  tschElements.childNodes.forEach((child) => {
+    const childEle = <HTMLElement>child;
+    const matStyle = window.getComputedStyle(childEle);
+    const tschEle = childEle.getAttribute('tsch-ele')!;
+    const zIndex = matStyle.getPropertyValue('z-index');
+    zIndexesArray.push({
+      ele: childEle,
+      tschEle: tschEle,
+      zIndex: parseFloat(zIndex),
+    });
+  });
+
+  console.log('Before', zIndexesArray);
+
+  // Sort
+  zIndexesArray.sort((a, b) =>
+    a.zIndex > b.zIndex ? 1 : b.zIndex > a.zIndex ? -1 : 0,
+  );
+
+  const eleToMove = '0';
+
+  switch (option) {
+    case MenuOption.LayerTop:
+      let minusOne: boolean = false;
+      const lastEle = { ...zIndexesArray[zIndexesArray.length - 1] };
+      console.log(lastEle.tschEle);
+      if (eleToMove != lastEle.tschEle) {
+        for (const ele of zIndexesArray) {
+          if (minusOne) {
+            ele.zIndex -= 1;
+          }
+          if (ele.tschEle == eleToMove) {
+            ele.zIndex = lastEle.zIndex;
+            minusOne = true;
+          }
+        }
+      }
+      break;
+    case MenuOption.LayerUp:
+      for (const [index, value] of zIndexesArray.entries()) {
+        if (value.tschEle == eleToMove) {
+          const nextEle = zIndexesArray[index + 1];
+          if (nextEle) {
+            // Swap +1
+            const tmp = value.zIndex;
+            value.zIndex = nextEle.zIndex;
+            nextEle.zIndex = tmp;
+          }
+        }
+      }
+      break;
+    case MenuOption.LayerDown:
+      for (const [index, value] of zIndexesArray.entries()) {
+        if (value.tschEle == eleToMove) {
+          const prevEle = zIndexesArray[index - 1];
+          if (prevEle) {
+            // Swap +1
+            const tmp = value.zIndex;
+            value.zIndex = prevEle.zIndex;
+            prevEle.zIndex = tmp;
+          }
+        }
+      }
+      break;
+    case MenuOption.LayerBottom:
+      let plusOne: boolean = true;
+      const firstEle = { ...zIndexesArray[0] };
+      console.log(firstEle.tschEle);
+      if (eleToMove != firstEle.tschEle) {
+        for (const ele of zIndexesArray) {
+          if (ele.tschEle == eleToMove) {
+            ele.zIndex = firstEle.zIndex;
+            console.log(ele.zIndex, firstEle.zIndex);
+            plusOne = false;
+          }
+          if (plusOne) {
+            ele.zIndex += 1;
+          }
+        }
+      }
+      break;
+    case MenuOption.Delete:
+      break;
+  }
+
+  // Apply Changes
+  console.log('After', zIndexesArray);
+  for (const ele of zIndexesArray) {
+    ele.ele.style.zIndex = ele.zIndex.toString();
+  }
+}
+
+function moveElementLayerUp(
+  eleToMove: HTMLElement,
+  eleList: NodeListOf<Element>,
+) {}
+
 function onStartListener(event: any) {
   // var target = event.target;
   // target.parentNode.appendChild(target);
@@ -328,135 +507,3 @@ function dragMoveListener(event: any) {
   target.setAttribute('data-x', x);
   target.setAttribute('data-y', y);
 }
-
-// import './style.css';
-// Tsch EDA
-// import { Tscheda, TschedaDebug } from 'tscheda';
-// Schema Flow
-// import SchemaFlow from './SchemaFlow/SchemaFlow';
-
-// var id = <HTMLElement>document.getElementById('app');
-// const editor = new SchemaFlow(id);
-// editor.start();
-
-// var computeModule = `
-//       <div>
-//         <div class="title-box"><i class="fas fa-code"></i> Compute Module</div>
-//         <div class="box">
-//           <textarea df-template></textarea>
-//         </div>
-//       </div>
-//       `;
-// var matModule = `
-//       <div>
-//         <div class="title-box"><i class="fas fa-code"></i> Mat Module</div>
-//         <div class="box">
-//           <textarea df-template></textarea>
-//         </div>
-//       </div>
-//       `;
-// editor.addNode(
-//   'computeModule',
-//   { 1: 'GPIO' },
-//   {
-//     1: { name: 'I2C', max: 4 },
-//     2: { name: 'GPIO', max: 2 },
-//     3: { name: 'SPI', max: 1 },
-//     4: { name: 'UART', max: 1 },
-//   }, // 1:[type, max_connections]
-//   100,
-//   10,
-//   'computeModule',
-//   { template: 'Schematic here!' },
-//   computeModule,
-// );
-// editor.addNode(
-//   'computeModule2',
-//   { 1: 'GPIO' },
-//   {
-//     1: { name: 'I2C', max: 4 },
-//     2: { name: 'GPIO', max: 2 },
-//     3: { name: 'SPI', max: 1 },
-//     4: { name: 'UART', max: 1 },
-//   }, // 1:[type, max_connections]
-//   450,
-//   10,
-//   'computeModule',
-//   { template: 'Schematic here!' },
-//   computeModule,
-// );
-
-// editor.addMat(
-//   'Mat1',
-//   { 1: 'GPIO' },
-//   {
-//     1: { name: 'I2C', max: 4 },
-//     2: { name: 'GPIO', max: 2 },
-//     3: { name: 'SPI', max: 1 },
-//     4: { name: 'UART', max: 1 },
-//   }, // 1:[type, max_connections]
-//   450,
-//   300,
-//   'mat',
-//   { template: 'Schematic here!' },
-//   matModule,
-// );
-
-// async function readURLFile(path: string) {
-//   let text = '';
-//   const respionse = await fetch(new Request(path));
-//   if (!respionse.ok) throw new Error(respionse.statusText);
-//   text = await respionse.text();
-//   return text;
-// }
-
-// async function eagelFile(
-//   filename: string,
-// ): Promise<{ data: string; filename: string }> {
-//   const tschPath = '../data/typedSchematics/';
-//   const data = await readURLFile(tschPath + filename);
-//   return { data: data, filename: filename };
-// }
-
-// async function led(): Promise<void> {
-//   console.log('\n--- LED DESIGN');
-//   try {
-//     const tscheda = new Tscheda('http://localhost:3000/data/typedConstraints/');
-//     const atmega328 = await tscheda.use(await eagelFile('atmega328.sch'));
-//     const led = await tscheda.use(await eagelFile('led_smd.sch'));
-//     const power5V12V = await tscheda.use(await eagelFile('power5V12V.sch'));
-//     const power5V = await tscheda.use(await eagelFile('power5V.sch'));
-
-//     const Mat5V12V = tscheda.newMat(power5V12V);
-//     const Mat5V = tscheda.newMat(power5V);
-
-//     tscheda.addMat('root', Mat5V12V);
-//     tscheda.addMat(Mat5V12V, Mat5V);
-
-//     tscheda.addTsch(Mat5V, atmega328);
-//     tscheda.addTsch(Mat5V, led);
-
-//     await tscheda.connect({ uuid: atmega328, protocol: 'GPIO-9' }, [
-//       { uuid: led, protocol: 'GPIO-0' },
-//     ]);
-
-//     tscheda.printConnectionMap();
-
-//     tscheda.drc();
-
-//     const jsonData = tscheda.generateJson();
-//     console.log('JSON OUTPUT', jsonData);
-//   } catch (e) {
-//     throw e;
-//   }
-
-//   return;
-// }
-
-// (async () => {
-//   TschedaDebug.enable(true, 1);
-//   await led();
-//   /* TODO:
-//   - Start UI
-//   */
-// })();

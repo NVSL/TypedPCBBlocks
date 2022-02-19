@@ -14,6 +14,10 @@ body {
   height: 100%;
 }
 
+#tschs {
+  height: 100%;
+}
+
 .draggable {
   width: 25%;
   min-height: 6.5em;
@@ -24,18 +28,6 @@ body {
   padding: 4%;
   touch-action: none;
   user-select: none;
-}
-
-#outer-dropzone {
-  height: 140px;
-}
-
-#outer-dropzone2 {
-  height: 140px;
-}
-
-#inner-dropzone {
-  height: 50px;
 }
 
 .dropzone {
@@ -51,6 +43,7 @@ body {
 }
 
 .mat {
+  height: 140px;
   background-color: #bfe4ff;
   border: dashed 4px transparent;
   padding: 4px;
@@ -59,14 +52,6 @@ body {
   transition: background-color 0.3s;
   /* Important for sizes */
   box-sizing: border-box;
-}
-
-#mats {
-  height: 50%;
-}
-
-#tschs {
-  height: 50%;
 }
 
 .drop-active {
@@ -83,14 +68,12 @@ body {
   position: relative;
   display: inline-block;
   min-width: 40px;
-
+  padding: 2em 0.5em;
   color: #fff;
   background-color: #29e;
   border: solid 2px #fff;
-
   touch-action: none;
   transform: translate(0px, 0px);
-
   transition: background-color 0.3s;
 }
 
