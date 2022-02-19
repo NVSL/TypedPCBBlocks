@@ -9,22 +9,19 @@
   <body>
     <div id="app">
       <!-- Interact JS -->
+      <button id="addMat">AddMat</button>
+      <button id="addTsch">AddTsch</button>
 
-      <div id="mats">
-        <div id="outer-dropzone" class="mat outer dropzone drop-active">
-          MAT
-        </div>
-      </div>
-      <div id="tschs">
-        <div id="outer-dropzone2" class="mat outer dropzone drop-active">
-          MAT 2
-        </div>
-        <div id="outer-dropzone3" class="mat outer dropzone drop-active">
-          MAT 3
-        </div>
-        <div id="no-drop" class="drag-drop">#no-drop</div>
-        <div id="yes-drop" class="drag-drop">#yes-drop</div>
-      </div>
+      <div id="tschs"></div>
+
+      <menu id="contextMenu" class="context-menu">
+        <a href="javascript:;" menu-option="LayerTop">Layer Top</a>
+        <a href="javascript:;" menu-option="LayerUp">Layer Up</a>
+        <a href="javascript:;" menu-option="LayerDown">Layer Down</a>
+        <a href="javascript:;" menu-option="LayerBottom">Layer Bottom</a>
+        <hr />
+        <a href="javascript:;" menu-option="Delete">Delete</a>
+      </menu>
 
       <!-- <div id="app" class="parent-drawflow" tabindex="0">
         <div class="drawflow">
