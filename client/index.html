@@ -8,12 +8,14 @@
   </head>
   <body>
     <div id="app">
-      <!-- Interact JS -->
+      <!-- Buttons -->
       <button id="addMat">AddMat</button>
       <button id="addTsch">AddTsch</button>
 
+      <!-- Typed Schematics Container -->
       <div id="tschs"></div>
 
+      <!-- Context Menu (Right Click)-->
       <menu id="contextMenu" class="context-menu">
         <a href="javascript:;" menu-option="LayerTop">Layer Top</a>
         <a href="javascript:;" menu-option="LayerUp">Layer Up</a>
@@ -22,58 +24,6 @@
         <hr />
         <a href="javascript:;" menu-option="Delete">Delete</a>
       </menu>
-
-      <!-- <div id="app" class="parent-drawflow" tabindex="0">
-        <div class="drawflow">
-          <div class="parent-node">
-            <div
-              id="node-2"
-              class="mat-node mat"
-              style="top: 300px; left: 100px"
-            >
-              <div class="inputs">
-                <div class="input input_1"><div class="type">GPIO</div></div>
-              </div>
-              <div class="drawflow_content_node">
-                <div>
-                  <div class="title-box"><i class="fas fa-code"></i> MAT</div>
-                  <div>
-                    <div
-                      id="node-1"
-                      class="drawflow-node computeModule"
-                      style="top: 10px; left: 100px"
-                    >
-                      <div class="inputs">
-                        <div class="input input_1">
-                          <div class="type">GPIO</div>
-                        </div>
-                      </div>
-                      <div class="drawflow_content_node">
-                        <div>
-                          <div class="title-box">
-                            <i class="fas fa-code"></i> Compute Module
-                          </div>
-                          <div class="box">
-                            <textarea df-template=""></textarea>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="outputs">
-                        <div class="output output_2">
-                          <div class="type">GPIO</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="outputs">
-                <div class="output output_2"><div class="type">GPIO</div></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div> -->
     </div>
     <script type="module" src="/src/main.ts" defer></script>
   </body>
