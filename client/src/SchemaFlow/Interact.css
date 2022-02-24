@@ -31,7 +31,7 @@ body {
 }
 
 .dropzone {
-  position: relative;
+  position: absolute;
   background-color: #bfe4ff;
   border: dashed 4px transparent;
   padding: 4px;
@@ -65,7 +65,7 @@ body {
 }
 
 .drag-drop {
-  position: relative;
+  position: absolute;
   display: inline-block;
   min-width: 40px;
   padding: 2em 0.5em;
