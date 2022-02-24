@@ -16,6 +16,9 @@ Define: Mat's drop zones should be paralel (zone one | zone two)
 /* The dragging code for '.draggable' from the demo above
  * applies to this demo as well so it doesn't have to be repeated. */
 
+// Global
+let _ele_selected: HTMLElement | null = null;
+
 enum MenuOption {
   LayerTop = 'LayerTop',
   LayerUp = 'LayerUp',
@@ -192,7 +195,7 @@ interact('.mat')
 
 interact('.dropzone').dropzone({
   // only accept elements matching this CSS selector
-  accept: '#yes-drop, .mat',
+  accept: '.drag-drop, .mat',
   // Require a 75% element overlap for a drop to be possible
   overlap: 0.75,
 
@@ -326,8 +329,8 @@ document.querySelector('#addMat')!.addEventListener('click', () => {
   const matsEle = <HTMLElement>document.querySelector('#tschs')!;
   matsEle.insertAdjacentHTML(
     'beforeend',
-    `<div class="mat outer dropzone drop-active" tsch-ele=${tschEle} style="z-index: ${tschEle}">
-          MAT2
+    `<div id="tsch-${tschEle}" class="mat outer dropzone drop-active" tsch-ele=${tschEle} style="z-index: ${tschEle}">
+          MAT${tschEle}
         </div>`,
   );
   tschEle++;
@@ -339,16 +342,20 @@ document.querySelector('#addTsch')!.addEventListener('click', () => {
   const matsEle = <HTMLElement>document.querySelector('#tschs')!;
   matsEle.insertAdjacentHTML(
     'beforeend',
-    `<div id="yes-drop" class="drag-drop" tsch-ele=${tschEle} style="z-index: ${tschEle}">#yes-drop</div>`,
+    `<div id="tsch-${tschEle}" class="drag-drop" tsch-ele=${tschEle} style="z-index: ${tschEle}">TSCH</div>`,
   );
   tschEle++;
 });
 
 // General Click
-document.addEventListener('click', () => {
+document.addEventListener('click', (e) => {
   // Remove context menu
+  const target = <HTMLElement>e.target;
   const contextMenu = <HTMLElement>document.querySelector('#contextMenu');
   contextMenu.classList.remove('shown');
+  if (target.id.includes('tsch')) {
+    _ele_selected = target;
+  }
 });
 
 // Show Contextmenu
@@ -389,6 +396,19 @@ function processMenuOption(option: MenuOption) {
     zIndex: number;
   }> = new Array();
 
+  // Get element to move
+  let eleToMove: string | null = null;
+  if (_ele_selected) {
+    eleToMove = _ele_selected.getAttribute('tsch-ele');
+    console.log('eleToMove', eleToMove);
+  } else {
+    return;
+  }
+
+  if (!eleToMove) {
+    return;
+  }
+
   // Fill zIndex Array
   tschElements.childNodes.forEach((child) => {
     const childEle = <HTMLElement>child;
@@ -408,8 +428,6 @@ function processMenuOption(option: MenuOption) {
   zIndexesArray.sort((a, b) =>
     a.zIndex > b.zIndex ? 1 : b.zIndex > a.zIndex ? -1 : 0,
   );
-
-  const eleToMove = '0';
 
   switch (option) {
     case MenuOption.LayerTop:
