@@ -1,83 +1,59 @@
 html,
 body {
-  /* margin: 0px;
-  padding: 0px; */
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  font-family: 'Roboto', sans-serif;
 }
 
 #app {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
 }
 
+/* TSCH'S Container */
 #tschs {
-  height: 100%;
+  position: relative;
+  height: 100vh;
 }
 
-.draggable {
-  width: 25%;
-  min-height: 6.5em;
-  margin: 1rem 0 0 1rem;
-  background-color: #29e;
-  color: white;
-  border-radius: 0.75em;
-  padding: 4%;
+/* TSCH'S General CSS */
+.tsch {
+  /* Position */
+  position: absolute;
+  transform: translate(0px, 0px);
+  /* Settings */
   touch-action: none;
-  user-select: none;
-}
-
-.dropzone {
-  position: absolute;
-  background-color: #bfe4ff;
-  border: dashed 4px transparent;
-  padding: 4px;
-  border-radius: 4px;
-  width: 80%;
-  transition: background-color 0.3s;
   /* Important for sizes */
   box-sizing: border-box;
 }
 
-.mat {
+/* MAT TSCH CSS */
+.tsch.matTsch {
   height: 140px;
+  width: 80%;
+  padding: 4px;
   background-color: #bfe4ff;
   border: dashed 4px transparent;
-  padding: 4px;
-  border-radius: 4px;
-  width: 80%;
-  transition: background-color 0.3s;
-  /* Important for sizes */
-  box-sizing: border-box;
-}
-
-.drop-active {
   border-color: #aaa;
+  border-radius: 4px;
+  transition: background-color 0.3s;
 }
 
-.drop-target {
-  background-color: #29e;
-  border-color: #fff;
-  border-style: solid;
-}
-
-.drag-drop {
-  position: absolute;
-  display: inline-block;
+/* BLOCK TSCH CSS */
+.tsch.blockTsch {
   min-width: 40px;
   padding: 2em 0.5em;
   color: #fff;
   background-color: #29e;
   border: solid 2px #fff;
-  touch-action: none;
-  transform: translate(0px, 0px);
   transition: background-color 0.3s;
 }
-
-.drag-drop.can-drop {
+.tsch.blockTsch.can-drop {
   color: #000;
   background-color: #4e4;
+}
+.tsch.blockTsch.is-dropped {
+  background-color: #29e;
+  border-color: #fff;
+  border-style: solid;
 }
