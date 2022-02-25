@@ -38,6 +38,9 @@ body {
   border-radius: 4px;
   transition: background-color 0.3s;
 }
+.tsch.matTsch.can-drop {
+  background-color: #29e;
+}
 
 /* BLOCK TSCH CSS */
 .tsch.blockTsch {
