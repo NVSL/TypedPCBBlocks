@@ -1,4 +1,5 @@
 import interact from 'interactjs';
+import { InteractEvent } from '@interactjs/core/InteractEvent';
 import './SchemaFlow/Interact.css';
 import './SchemaFlow/ContextMenu.css';
 
@@ -11,7 +12,8 @@ import './SchemaFlow/ContextMenu.css';
 
 // Global
 let _ele_selected: HTMLElement | null = null;
-let _tschNum: number = 0;
+let _tschId: number = 0;
+let _matId: number = 0;
 
 enum MenuOption {
   LayerTop = 'LayerTop',
@@ -67,26 +69,39 @@ interact('.matTsch').dropzone({
     // add active dropzone feedback
   },
   ondragenter: function (event) {
-    var draggableElement = event.relatedTarget;
-    var dropzoneElement = event.target;
+    const draggableElement = <HTMLElement>event.relatedTarget;
+    const dropzoneElement = <HTMLElement>event.target;
+
+    console.log('IsMat', isElementMat(draggableElement));
 
     // feedback the possibility of a drop
-    dropzoneElement.classList.add('is-dropped');
-    draggableElement.classList.add('can-drop');
-    draggableElement.textContent = 'Dragged in';
+    dropzoneElement.classList.add('can-drop');
+    if (isElementMat(draggableElement) == false) {
+      draggableElement.classList.add('can-drop');
+      draggableElement.textContent = 'Dragged in';
+    }
   },
   ondragleave: function (event) {
+    const draggableElement = <HTMLElement>event.relatedTarget;
+    const dropzoneElement = <HTMLElement>event.target;
+
     // remove the drop feedback style
-    event.target.classList.remove('is-dropped');
-    event.relatedTarget.classList.remove('can-drop');
-    event.relatedTarget.textContent = 'Dragged out';
+    dropzoneElement.classList.remove('can-drop');
+    if (isElementMat(draggableElement) == false) {
+      draggableElement.classList.remove('can-drop');
+      draggableElement.textContent = 'Dragged out';
+    }
   },
   ondrop: function (event) {
     event.relatedTarget.textContent = 'Dropped in ' + event.target.id;
   },
   ondropdeactivate: function (event) {
     // remove active dropzone feedback
-    event.target.classList.remove('is-dropped');
+    const draggableElement = event.relatedTarget;
+    const dropzoneElement = event.target;
+
+    dropzoneElement.classList.remove('can-drop');
+    draggableElement.classList.remove('can-drop');
   },
 });
 
@@ -112,23 +127,44 @@ function dragStart(event: any) {
   // console.log('Drag Start');
 }
 
-function dragMove(event: any) {
-  var target = event.target;
-
-  // keep the dragged position in the data-x/data-y attributes
-  var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-  var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-
-  // translate the element
-  target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
-
-  // Update the posiion attributes
-  target.setAttribute('data-x', x);
-  target.setAttribute('data-y', y);
+function dragMove(event: InteractEvent) {
+  var target = <HTMLElement>event.target;
+  setElementOffset(target, event.dx, event.dy);
 }
 
 function dragEnd(event: any) {
   // console.log('Drag End');
+}
+
+// ### Set/Get Element Position
+
+function isElementMat(target: HTMLElement): boolean {
+  return target.getAttribute('mat-id') ? true : false;
+}
+
+function setElementOffset(target: HTMLElement, dx: number, dy: number) {
+  // Get target positon
+  const pos: { x: number; y: number } = getElementPositon(target);
+  // Add mouse offset
+  pos.x += dx;
+  pos.y += dy;
+  // Set new positon
+  setElementPosition(target, pos.x, pos.y);
+}
+
+function setElementPosition(target: HTMLElement, x: number, y: number) {
+  // translate the element
+  target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+
+  // Update the posiion attributes
+  target.setAttribute('data-x', x.toString());
+  target.setAttribute('data-y', y.toString());
+}
+
+function getElementPositon(target: HTMLElement): { x: number; y: number } {
+  const x = parseFloat(target.getAttribute('data-x')!) || 0;
+  const y = parseFloat(target.getAttribute('data-y')!) || 0;
+  return { x: x, y: y };
 }
 
 // ### UI Interface
@@ -138,11 +174,12 @@ document.querySelector('#addMat')!.addEventListener('click', () => {
   const matsEle = <HTMLElement>document.querySelector('#tschs')!;
   matsEle.insertAdjacentHTML(
     'beforeend',
-    `<div id="tsch-${_tschNum}" class="tsch matTsch" tsch-ele=${_tschNum} style="z-index: ${_tschNum}">
-          MAT${_tschNum}
+    `<div id="tsch-${_tschId}" class="tsch matTsch" tsch-id="${_tschId}" mat-id="${_matId}" style="z-index: ${_tschId}">
+          MAT${_matId}
         </div>`,
   );
-  _tschNum++;
+  _tschId++;
+  _matId++;
 });
 
 // Button AddTsch
@@ -150,9 +187,9 @@ document.querySelector('#addTsch')!.addEventListener('click', () => {
   const matsEle = <HTMLElement>document.querySelector('#tschs')!;
   matsEle.insertAdjacentHTML(
     'beforeend',
-    `<div id="tsch-${_tschNum}" class="tsch blockTsch" tsch-ele=${_tschNum} style="z-index: ${_tschNum}">TSCH</div>`,
+    `<div id="tsch-${_tschId}" class="tsch blockTsch" tsch-id="${_tschId}" style="z-index: ${_tschId}">TSCH</div>`,
   );
-  _tschNum++;
+  _tschId++;
 });
 
 // ### Context Menu
@@ -201,14 +238,14 @@ function processMenuOption(option: MenuOption) {
   const tschElements = <HTMLElement>document.querySelector('#tschs')!;
   const zIndexesArray: Array<{
     ele: HTMLElement;
-    tschNum: string;
+    tschId: string;
     zIndex: number;
   }> = new Array();
 
   // Get element to move
   let eleToMove: string | null = null;
   if (_ele_selected) {
-    eleToMove = _ele_selected.getAttribute('tsch-ele');
+    eleToMove = _ele_selected.getAttribute('tsch-id');
     console.log('eleToMove', eleToMove);
   } else {
     return;
@@ -222,11 +259,11 @@ function processMenuOption(option: MenuOption) {
   tschElements.childNodes.forEach((child) => {
     const childEle = <HTMLElement>child;
     const matStyle = window.getComputedStyle(childEle);
-    const tschNum = childEle.getAttribute('tsch-ele')!;
+    const tschId = childEle.getAttribute('tsch-id')!;
     const zIndex = matStyle.getPropertyValue('z-index');
     zIndexesArray.push({
       ele: childEle,
-      tschNum: tschNum,
+      tschId: tschId,
       zIndex: parseFloat(zIndex),
     });
   });
@@ -241,14 +278,14 @@ function processMenuOption(option: MenuOption) {
     case MenuOption.LayerTop:
       let minusOne: boolean = false;
       const lastEle = { ...zIndexesArray[zIndexesArray.length - 1] };
-      console.log(lastEle.tschNum);
-      if (eleToMove != lastEle.tschNum) {
+      console.log(lastEle.tschId);
+      if (eleToMove != lastEle.tschId) {
         for (const ele of zIndexesArray) {
           // If eleToMove swap with last, the rest -1
           if (minusOne) {
             ele.zIndex -= 1;
           }
-          if (ele.tschNum == eleToMove) {
+          if (ele.tschId == eleToMove) {
             ele.zIndex = lastEle.zIndex;
             minusOne = true;
           }
@@ -257,7 +294,7 @@ function processMenuOption(option: MenuOption) {
       break;
     case MenuOption.LayerUp:
       for (const [index, value] of zIndexesArray.entries()) {
-        if (value.tschNum == eleToMove) {
+        if (value.tschId == eleToMove) {
           // Swap with next element
           const nextEle = zIndexesArray[index + 1];
           if (nextEle) {
@@ -270,7 +307,7 @@ function processMenuOption(option: MenuOption) {
       break;
     case MenuOption.LayerDown:
       for (const [index, value] of zIndexesArray.entries()) {
-        if (value.tschNum == eleToMove) {
+        if (value.tschId == eleToMove) {
           // Swap with previous element
           const prevEle = zIndexesArray[index - 1];
           if (prevEle) {
@@ -284,11 +321,11 @@ function processMenuOption(option: MenuOption) {
     case MenuOption.LayerBottom:
       let plusOne: boolean = true;
       const firstEle = { ...zIndexesArray[0] };
-      console.log(firstEle.tschNum);
-      if (eleToMove != firstEle.tschNum) {
+      console.log(firstEle.tschId);
+      if (eleToMove != firstEle.tschId) {
         for (const ele of zIndexesArray) {
           // If eleToMove swap with first, the rest +1
-          if (ele.tschNum == eleToMove) {
+          if (ele.tschId == eleToMove) {
             ele.zIndex = firstEle.zIndex;
             console.log(ele.zIndex, firstEle.zIndex);
             plusOne = false;
