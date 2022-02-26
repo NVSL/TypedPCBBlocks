@@ -10,10 +10,19 @@ import './SchemaFlow/ContextMenu.css';
 2. Start Merging
 */
 
+class Flow {
+  constructor() {
+    this.start();
+  }
+
+  private start() {}
+}
+
 // Global
 let _ele_selected: HTMLElement | null = null;
 let _tschId: number = 0;
 let _matId: number = 0;
+let dragMap: Map<HTMLElement, Array<HTMLElement>> = new Map();
 
 enum MenuOption {
   LayerTop = 'LayerTop',
@@ -91,9 +100,14 @@ interact('.matTsch').dropzone({
       draggableElement.classList.remove('can-drop');
       draggableElement.textContent = 'Dragged out';
     }
+    removeDragArray(dropzoneElement, draggableElement);
+    console.log('Leave', getDragArray(dropzoneElement));
   },
   ondrop: function (event) {
-    event.relatedTarget.textContent = 'Dropped in ' + event.target.id;
+    const draggableElement = <HTMLElement>event.relatedTarget;
+    const dropzoneElement = <HTMLElement>event.target;
+    draggableElement.textContent = 'Dropped in ' + event.target.id;
+    setDragArray(dropzoneElement, draggableElement);
   },
   ondropdeactivate: function (event) {
     // remove active dropzone feedback
@@ -130,17 +144,48 @@ function dragStart(event: any) {
 function dragMove(event: InteractEvent) {
   var target = <HTMLElement>event.target;
   setElementOffset(target, event.dx, event.dy);
+  setChildElementsOffset(target, event.dx, event.dy);
 }
 
 function dragEnd(event: any) {
   // console.log('Drag End');
 }
 
-// ### Set/Get Element Position
+// ### Set/Remove Drag Array
+
+function setDragArray(target: HTMLElement, value: HTMLElement) {
+  let elementsArray = dragMap.get(target);
+  if (elementsArray) {
+    if (!elementsArray.includes(value)) elementsArray.push(value);
+    else console.log('Already in mat');
+  } else {
+    elementsArray = new Array();
+    elementsArray.push(value);
+  }
+  dragMap.set(target, elementsArray);
+  console.log(elementsArray);
+}
+
+function getDragArray(target: HTMLElement): Array<HTMLElement> {
+  const elementsArray = dragMap.get(target);
+  return elementsArray ? elementsArray : [];
+}
+
+function removeDragArray(target: HTMLElement, value: HTMLElement) {
+  let elementsArray = dragMap.get(target);
+  if (elementsArray) {
+    if (elementsArray.includes(value)) {
+      const index = elementsArray.indexOf(value);
+      elementsArray.splice(index, 1);
+    }
+  }
+}
 
 function isElementMat(target: HTMLElement): boolean {
   return target.getAttribute('mat-id') ? true : false;
 }
+
+// ### Set/Get Element Position
 
 function setElementOffset(target: HTMLElement, dx: number, dy: number) {
   // Get target positon
@@ -150,6 +195,23 @@ function setElementOffset(target: HTMLElement, dx: number, dy: number) {
   pos.y += dy;
   // Set new positon
   setElementPosition(target, pos.x, pos.y);
+}
+
+function setChildElementsOffset(target: HTMLElement, dx: number, dy: number) {
+  for (const childTarget of getDragArray(target)) {
+    // Get childTarget positon
+    const pos: { x: number; y: number } = getElementPositon(childTarget);
+    // Add mouse offset
+    pos.x += dx;
+    pos.y += dy;
+    // Set new positon
+    setElementPosition(childTarget, pos.x, pos.y);
+
+    if (isElementMat(childTarget)) {
+      // If Mat, recursively modify positions
+      setChildElementsOffset(childTarget, dx, dy);
+    }
+  }
 }
 
 function setElementPosition(target: HTMLElement, x: number, y: number) {
@@ -200,6 +262,7 @@ document.addEventListener('click', (e) => {
   const target = <HTMLElement>e.target;
   const contextMenu = <HTMLElement>document.querySelector('#contextMenu');
   contextMenu.classList.remove('shown');
+  // Set default target selected
   if (target.id.includes('tsch')) {
     _ele_selected = target;
   }
@@ -208,6 +271,12 @@ document.addEventListener('click', (e) => {
 // Show Contextmenu
 document.addEventListener('contextmenu', (e) => {
   e.preventDefault();
+  // Set default target selected
+  const target = <HTMLElement>e.target;
+  if (target.id.includes('tsch')) {
+    _ele_selected = target;
+  }
+  // Open context menu
   const contextMenu = <HTMLElement>document.querySelector('#contextMenu');
   const posX =
     e.clientX + 150 > document.documentElement.clientWidth
