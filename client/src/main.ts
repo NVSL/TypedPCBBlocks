@@ -452,11 +452,11 @@ class Flow {
 const flow = new Flow('#tschs');
 
 // Button AddMat
-document.querySelector('#addMat')!.addEventListener('click', () => {
+document.querySelector('#addMatTsch')!.addEventListener('click', () => {
   flow.addMatTsch();
 });
 
 // Button AddTsch
-document.querySelector('#addTsch')!.addEventListener('click', () => {
+document.querySelector('#addBlockTsch')!.addEventListener('click', () => {
   flow.addBlockTsch();
 });
