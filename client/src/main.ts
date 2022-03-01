@@ -101,8 +101,6 @@ class Flow {
         const draggableElement = <HTMLElement>event.relatedTarget;
         const dropzoneElement = <HTMLElement>event.target;
 
-        console.log('IsMat', this.utilIsMatElement(draggableElement));
-
         // feedback the possibility of a drop
         dropzoneElement.classList.add('can-drop');
         if (this.utilIsMatElement(draggableElement) == false) {
@@ -121,7 +119,6 @@ class Flow {
           draggableElement.textContent = 'Dragged out';
         }
         this.dragarrayRemove(dropzoneElement, draggableElement);
-        console.log('Leave', this.dragarrayGet(dropzoneElement));
       },
       ondrop: (event) => {
         const draggableElement = <HTMLElement>event.relatedTarget;
@@ -188,7 +185,6 @@ class Flow {
         target.getAttribute('menu-option')
       );
       if (!menuOption) return;
-      console.log(menuOption);
       this.contextMenuProcessOptions(menuOption);
       contextMenu.classList.remove('shown');
     });
@@ -275,13 +271,11 @@ class Flow {
     let elementsArray = this._dragMap.get(target);
     if (elementsArray) {
       if (!elementsArray.includes(value)) elementsArray.push(value);
-      else console.log('Already in mat');
     } else {
       elementsArray = new Array();
       elementsArray.push(value);
     }
     this._dragMap.set(target, elementsArray);
-    console.log(elementsArray);
   }
 
   private dragarrayGet(target: HTMLElement): Array<HTMLElement> {
@@ -325,7 +319,6 @@ class Flow {
     let eleToMove: string | null = null;
     if (this._ele_selected) {
       eleToMove = this._ele_selected.getAttribute('tsch-id');
-      console.log('eleToMove', eleToMove);
     } else {
       return;
     }
@@ -357,7 +350,6 @@ class Flow {
       case MenuOptions.LayerTop:
         let minusOne: boolean = false;
         const lastEle = { ...zIndexesArray[zIndexesArray.length - 1] };
-        console.log(lastEle.tschId);
         if (eleToMove != lastEle.tschId) {
           for (const ele of zIndexesArray) {
             // If eleToMove swap with last, the rest -1
@@ -400,13 +392,11 @@ class Flow {
       case MenuOptions.LayerBottom:
         let plusOne: boolean = true;
         const firstEle = { ...zIndexesArray[0] };
-        console.log(firstEle.tschId);
         if (eleToMove != firstEle.tschId) {
           for (const ele of zIndexesArray) {
             // If eleToMove swap with first, the rest +1
             if (ele.tschId == eleToMove) {
               ele.zIndex = firstEle.zIndex;
-              console.log(ele.zIndex, firstEle.zIndex);
               plusOne = false;
             }
             if (plusOne) {
