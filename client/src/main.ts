@@ -20,12 +20,16 @@ enum MenuOptions {
 
 class Flow {
   // Global
+  private _htmlContainerTag: string = '';
   private _ele_selected: HTMLElement | null = null;
   private _tschId: number = 0;
   private _matId: number = 0;
   private _dragMap: Map<HTMLElement, Array<HTMLElement>> = new Map();
 
-  constructor() {
+  constructor(htmlContainerTag: string) {
+    // Set html container tag (e.g. #tschs, #container, .container)
+    this._htmlContainerTag = htmlContainerTag;
+
     // Start Listeners
     this.listenerGeneralClick();
     this.listenerMatTsch();
@@ -418,7 +422,9 @@ class Flow {
   // ### User Methods
   // TODO: Add container ID
   public addMatTsch() {
-    const matsEle = <HTMLElement>document.querySelector('#tschs')!;
+    const matsEle = <HTMLElement>(
+      document.querySelector(this._htmlContainerTag)!
+    );
     matsEle.insertAdjacentHTML(
       'beforeend',
       `<div id="tsch-${this._tschId}" class="tsch matTsch" tsch-id="${this._tschId}" mat-id="${this._matId}" style="z-index: ${this._tschId}">
@@ -430,7 +436,9 @@ class Flow {
   }
 
   public addBlockTsch() {
-    const matsEle = <HTMLElement>document.querySelector('#tschs')!;
+    const matsEle = <HTMLElement>(
+      document.querySelector(this._htmlContainerTag)!
+    );
     matsEle.insertAdjacentHTML(
       'beforeend',
       `<div id="tsch-${this._tschId}" class="tsch blockTsch" tsch-id="${this._tschId}" style="z-index: ${this._tschId}">TSCH</div>`,
@@ -441,7 +449,7 @@ class Flow {
 
 // ### UI Interface
 
-const flow = new Flow();
+const flow = new Flow('#tschs');
 
 // Button AddMat
 document.querySelector('#addMat')!.addEventListener('click', () => {
