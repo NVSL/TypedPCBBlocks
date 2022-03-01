@@ -26,15 +26,16 @@ class Flow {
   private _dragMap: Map<HTMLElement, Array<HTMLElement>> = new Map();
 
   constructor() {
-    this.generalClickStartListener();
-    this.contextMenuStartListeners();
-    this.matTschStartListener();
-    this.blockTschStartListener();
+    // Start Listeners
+    this.listenerGeneralClick();
+    this.listenerMatTsch();
+    this.listenerBlockTsch();
+    this.listenerContextMenu();
   }
 
   // ### Listeners
 
-  private generalClickStartListener() {
+  private listenerGeneralClick() {
     // General Click
     document.addEventListener('click', (e: MouseEvent) => {
       // Set default target selected
@@ -48,7 +49,7 @@ class Flow {
     });
   }
 
-  private matTschStartListener() {
+  private listenerMatTsch() {
     // Make Mat Tschs resizable
     interact('.matTsch')
       .resizable({
@@ -100,11 +101,11 @@ class Flow {
         const draggableElement = <HTMLElement>event.relatedTarget;
         const dropzoneElement = <HTMLElement>event.target;
 
-        console.log('IsMat', this.isElementMat(draggableElement));
+        console.log('IsMat', this.utilIsMatElement(draggableElement));
 
         // feedback the possibility of a drop
         dropzoneElement.classList.add('can-drop');
-        if (this.isElementMat(draggableElement) == false) {
+        if (this.utilIsMatElement(draggableElement) == false) {
           draggableElement.classList.add('can-drop');
           draggableElement.textContent = 'Dragged in';
         }
@@ -115,18 +116,18 @@ class Flow {
 
         // remove the drop feedback style
         dropzoneElement.classList.remove('can-drop');
-        if (this.isElementMat(draggableElement) == false) {
+        if (this.utilIsMatElement(draggableElement) == false) {
           draggableElement.classList.remove('can-drop');
           draggableElement.textContent = 'Dragged out';
         }
-        this.removeDragArray(dropzoneElement, draggableElement);
-        console.log('Leave', this.getDragArray(dropzoneElement));
+        this.dragarrayRemove(dropzoneElement, draggableElement);
+        console.log('Leave', this.dragarrayGet(dropzoneElement));
       },
       ondrop: (event) => {
         const draggableElement = <HTMLElement>event.relatedTarget;
         const dropzoneElement = <HTMLElement>event.target;
         draggableElement.textContent = 'Dropped in ' + event.target.id;
-        this.setDragArray(dropzoneElement, draggableElement);
+        this.dragarraySet(dropzoneElement, draggableElement);
       },
       ondropdeactivate: (event) => {
         // remove active dropzone feedback
@@ -138,7 +139,7 @@ class Flow {
       },
     });
   }
-  private blockTschStartListener() {
+  private listenerBlockTsch() {
     // Make Block Tsch draggable
     interact('.blockTsch').draggable({
       inertia: true,
@@ -155,112 +156,7 @@ class Flow {
     });
   }
 
-  // ### Drag Listeners
-
-  // TODO: For merging see if keep this or re-implement the dragging
-
-  private dragStart = (event: any) => {
-    // console.log('Drag Start' );
-  };
-
-  private dragMove = (event: InteractEvent) => {
-    const target = <HTMLElement>event.target;
-    this.setElementOffset(target, event.dx, event.dy);
-    this.setChildElementsOffset(target, event.dx, event.dy);
-  };
-
-  private dragEnd = (event: any) => {
-    // console.log('Drag End');
-  };
-
-  // ### Set/Get Element Position
-
-  private setElementOffset(target: HTMLElement, dx: number, dy: number) {
-    // Get target positon
-    const pos: { x: number; y: number } = this.getElementPositon(target);
-    // Add mouse offset
-    pos.x += dx;
-    pos.y += dy;
-    // Set new positon
-    this.setElementPosition(target, pos.x, pos.y);
-  }
-
-  private setChildElementsOffset(target: HTMLElement, dx: number, dy: number) {
-    for (const childTarget of this.getDragArray(target)) {
-      // Get childTarget positon
-      const pos: { x: number; y: number } = this.getElementPositon(childTarget);
-      // Add mouse offset
-      pos.x += dx;
-      pos.y += dy;
-      // Set new positon
-      this.setElementPosition(childTarget, pos.x, pos.y);
-
-      if (this.isElementMat(childTarget)) {
-        // If Mat, recursively modify positions
-        this.setChildElementsOffset(childTarget, dx, dy);
-      }
-    }
-  }
-
-  private setElementPosition(target: HTMLElement, x: number, y: number) {
-    // translate the element
-    target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
-
-    // Update the posiion attributes
-    target.setAttribute('data-x', x.toString());
-    target.setAttribute('data-y', y.toString());
-  }
-
-  private getElementPositon(target: HTMLElement): { x: number; y: number } {
-    const x = parseFloat(target.getAttribute('data-x')!) || 0;
-    const y = parseFloat(target.getAttribute('data-y')!) || 0;
-    return { x: x, y: y };
-  }
-
-  // ### Set/Remove Drag Array
-
-  private setDragArray(target: HTMLElement, value: HTMLElement) {
-    let elementsArray = this._dragMap.get(target);
-    if (elementsArray) {
-      if (!elementsArray.includes(value)) elementsArray.push(value);
-      else console.log('Already in mat');
-    } else {
-      elementsArray = new Array();
-      elementsArray.push(value);
-    }
-    this._dragMap.set(target, elementsArray);
-    console.log(elementsArray);
-  }
-
-  private getDragArray(target: HTMLElement): Array<HTMLElement> {
-    const elementsArray = this._dragMap.get(target);
-    return elementsArray ? elementsArray : [];
-  }
-
-  private removeDragArray(target: HTMLElement, value: HTMLElement) {
-    let elementsArray = this._dragMap.get(target);
-    if (elementsArray) {
-      if (elementsArray.includes(value)) {
-        const index = elementsArray.indexOf(value);
-        elementsArray.splice(index, 1);
-      }
-    }
-  }
-
-  // ### Utils
-
-  private isElementMat(target: HTMLElement): boolean {
-    return target.getAttribute('mat-id') ? true : false;
-  }
-
-  // ### Context Menu
-
-  private contextMenuRemove() {
-    const contextMenu = <HTMLElement>document.querySelector('#contextMenu');
-    contextMenu.classList.remove('shown');
-  }
-
-  private contextMenuStartListeners() {
+  private listenerContextMenu() {
     // Show Contextmenu
     document.addEventListener('contextmenu', (e: MouseEvent) => {
       e.preventDefault();
@@ -296,6 +192,124 @@ class Flow {
       this.contextMenuProcessOptions(menuOption);
       contextMenu.classList.remove('shown');
     });
+  }
+
+  // ### Drag Listeners
+
+  // TODO: For merging see if keep this or re-implement the dragging
+
+  private dragStart = (event: InteractEvent) => {
+    // console.log('Drag Start' );
+  };
+
+  private dragMove = (event: InteractEvent) => {
+    const target = <HTMLElement>event.target;
+    this.positionelementSetOffset(target, event.dx, event.dy);
+    this.positionelementSetChildsOffset(target, event.dx, event.dy);
+  };
+
+  private dragEnd = (event: InteractEvent) => {
+    // console.log('Drag End');
+  };
+
+  // ### Elements Positioning
+
+  // Move target element by an offset
+  private positionelementSetOffset(
+    target: HTMLElement,
+    dx: number,
+    dy: number,
+  ) {
+    // Get target positon
+    const pos: { x: number; y: number } = this.positionelementGet(target);
+    // Add mouse offset
+    pos.x += dx;
+    pos.y += dy;
+    // Set new positon
+    this.positionelementSet(target, pos.x, pos.y);
+  }
+
+  // Move target element childs by an offset
+  private positionelementSetChildsOffset(
+    target: HTMLElement,
+    dx: number,
+    dy: number,
+  ) {
+    for (const childTarget of this.dragarrayGet(target)) {
+      // Get childTarget positon
+      const pos: { x: number; y: number } =
+        this.positionelementGet(childTarget);
+      // Add mouse offset
+      pos.x += dx;
+      pos.y += dy;
+      // Set new positon
+      this.positionelementSet(childTarget, pos.x, pos.y);
+
+      if (this.utilIsMatElement(childTarget)) {
+        // If Mat, recursively modify positions
+        this.positionelementSetChildsOffset(childTarget, dx, dy);
+      }
+    }
+  }
+
+  // Move target element to a x&y postion
+  private positionelementSet(target: HTMLElement, x: number, y: number) {
+    // translate the element
+    target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+
+    // Update the posiion attributes
+    target.setAttribute('data-x', x.toString());
+    target.setAttribute('data-y', y.toString());
+  }
+
+  // Get target element x&y postion
+  private positionelementGet(target: HTMLElement): { x: number; y: number } {
+    const x = parseFloat(target.getAttribute('data-x')!) || 0;
+    const y = parseFloat(target.getAttribute('data-y')!) || 0;
+    return { x: x, y: y };
+  }
+
+  // ### Set/Remove Drag Array
+
+  private dragarraySet(target: HTMLElement, value: HTMLElement) {
+    let elementsArray = this._dragMap.get(target);
+    if (elementsArray) {
+      if (!elementsArray.includes(value)) elementsArray.push(value);
+      else console.log('Already in mat');
+    } else {
+      elementsArray = new Array();
+      elementsArray.push(value);
+    }
+    this._dragMap.set(target, elementsArray);
+    console.log(elementsArray);
+  }
+
+  private dragarrayGet(target: HTMLElement): Array<HTMLElement> {
+    const elementsArray = this._dragMap.get(target);
+    return elementsArray ? elementsArray : [];
+  }
+
+  private dragarrayRemove(target: HTMLElement, value: HTMLElement) {
+    let elementsArray = this._dragMap.get(target);
+    if (elementsArray) {
+      if (elementsArray.includes(value)) {
+        const index = elementsArray.indexOf(value);
+        elementsArray.splice(index, 1);
+      }
+    }
+  }
+
+  // ### Utils
+
+  private utilIsMatElement(target: HTMLElement): boolean {
+    return target.getAttribute('mat-id') ? true : false;
+  }
+
+  // ### Context Menu
+
+  private contextMenuRemove() {
+    const contextMenu = <HTMLElement>document.querySelector('#contextMenu');
+    contextMenu.classList.remove('shown');
   }
 
   // Contextmenu process options
