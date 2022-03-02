@@ -1,3 +1,10 @@
+:root {
+  --border-color: #cacaca;
+  --background-color: #ffffff;
+  --background-box-title: #f7f7f7;
+  --background-gird-line: #f1f1f1;
+}
+
 html,
 body {
   width: 100vw;
@@ -10,10 +17,24 @@ body {
   height: 100vh;
 }
 
-/* TSCH'S Container */
-#tschs {
+/* TSCH'S Container Parent */
+/* #tschs {
   position: relative;
   height: 100vh;
+} */
+/* Same as */
+/* Drawflow TODO: Rename to parent-drawflow to parent-tschs and drawflow to tschs*/
+/* TODO: Leave only parent-tschs? */
+/* Parent container */
+.tschs {
+  display: flex;
+  position: relative;
+  overflow: hidden;
+  touch-action: none;
+  outline: none;
+  width: 100vh;
+  height: 100vh;
+  user-select: none;
 }
 
 /* TSCH'S General CSS */
@@ -59,4 +80,103 @@ body {
   background-color: #29e;
   border-color: #fff;
   border-style: solid;
+}
+
+/* NODE CSS */
+
+/* Drawflow Parent node*/
+
+/* .tschs .parent-node {
+  position: relative;
+} */
+
+/* Drawflow Node */
+
+.tschs .drawflow-node {
+  display: flex;
+  position: relative;
+  align-items: center;
+  position: inherit;
+  background: cyan;
+  min-height: 40px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 15px 2px var(--border-color);
+  color: black;
+  z-index: 2;
+  padding: 0px;
+  width: 200px;
+}
+
+.tschs .drawflow-node.selected {
+  background: white;
+  border: 1px solid #4ea9ff;
+  -webkit-box-shadow: 0 2px 20px 2px #4ea9ff;
+  box-shadow: 0 2px 20px 2px #4ea9ff;
+}
+
+.tschs .drawflow-node:hover {
+  cursor: move;
+}
+
+.tschs .drawflow-node .inputs,
+.tschs .drawflow-node .outputs {
+  width: 0px;
+}
+
+.tschs .drawflow-node .input,
+.tschs .drawflow-node .output {
+  position: relative;
+  background: white;
+  border-radius: 50%;
+  cursor: crosshair;
+  z-index: 1;
+  margin-bottom: 5px;
+  height: 15px;
+  width: 15px;
+  border: 2px solid var(--border-color);
+}
+
+.tschs .drawflow-node .input:hover,
+.tschs .drawflow-node .output:hover {
+  background: #4ea9ff;
+}
+
+.tschs .drawflow-node .input {
+  left: -10px;
+  top: 2px;
+  background: white;
+}
+.tschs .drawflow-node .output {
+  right: 10px;
+  top: 2px;
+}
+
+.tschs .drawflow-node .output .type {
+  color: black;
+  margin-top: -4px;
+  margin-left: 23px;
+}
+.tschs .drawflow-node .input .type {
+  color: black;
+  margin-top: -4px;
+  margin-left: -55px;
+}
+
+.tschs .drawflow-node .drawflow_content_node {
+  width: 100%;
+  display: block;
+}
+
+/*Personalized node (computeModule)*/
+
+.drawflow-node.computeModule {
+  background: #70ad47;
+  height: 200px;
+  text-align: center;
+  color: white;
+}
+
+.drawflow-node.computeModule.selected {
+  background: #70ad47;
 }

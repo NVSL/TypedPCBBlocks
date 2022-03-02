@@ -3,11 +3,10 @@ import { InteractEvent } from '@interactjs/core/InteractEvent';
 import './SchemaFlow/Interact.css';
 import './SchemaFlow/ContextMenu.css';
 
-/* The dragging code for '.draggable' from the demo above
- * applies to this demo as well so it doesn't have to be repeated? */
 /*
-1. Try implementing this inside a class to see how to eficiently merge
 2. Start Merging
+ - TODO: Simplify CSS and HTML (replace drowflow-node by blockTsch as well as in the code)
+ - You should be able to drag and drop the node into the mat as well as interact with contextMenu 
 */
 
 enum MenuOptions {
@@ -20,15 +19,24 @@ enum MenuOptions {
 
 class Flow {
   // Global
-  private _htmlContainerTag: string = '';
-  private _ele_selected: HTMLElement | null = null;
+  private _htmlContainer: HTMLElement | null = null;
+  private _eleSelected: HTMLElement | null = null;
   private _tschId: number = 0;
   private _matId: number = 0;
   private _dragMap: Map<HTMLElement, Array<HTMLElement>> = new Map();
 
-  constructor(htmlContainerTag: string) {
+  constructor(htmlContainer: HTMLElement | null) {
     // Set html container tag (e.g. #tschs, #container, .container)
-    this._htmlContainerTag = htmlContainerTag;
+    this._htmlContainer = htmlContainer;
+    if (!this._htmlContainer) {
+      console.error('HTML Container Element not found');
+      return;
+    }
+
+    // Add canvas to container HML
+    // TODO: remove drawflow precanvas and leave only parent?
+    this._htmlContainer.classList.add('tschs');
+    this._htmlContainer.tabIndex = 0;
 
     // Start Listeners
     this.listenerGeneralClick();
@@ -45,7 +53,7 @@ class Flow {
       // Set default target selected
       const target = <HTMLElement>e.target;
       if (target.id.includes('tsch')) {
-        this._ele_selected = target;
+        this._eleSelected = target;
       }
 
       // Remove context menu
@@ -142,7 +150,7 @@ class Flow {
   }
   private listenerBlockTsch() {
     // Make Block Tsch draggable
-    interact('.blockTsch').draggable({
+    interact('.blockTsch, .drawflow-node').draggable({
       inertia: true,
       modifiers: [
         interact.modifiers.restrictRect({
@@ -164,7 +172,7 @@ class Flow {
       // Set default target selected
       const target = <HTMLElement>e.target;
       if (target.id.includes('tsch')) {
-        this._ele_selected = target;
+        this._eleSelected = target;
       }
       // Open context menu
       const contextMenu = <HTMLElement>document.querySelector('#contextMenu');
@@ -321,8 +329,8 @@ class Flow {
 
     // Get element to move
     let eleToMove: string | null = null;
-    if (this._ele_selected) {
-      eleToMove = this._ele_selected.getAttribute('tsch-id');
+    if (this._eleSelected) {
+      eleToMove = this._eleSelected.getAttribute('tsch-id');
     } else {
       return;
     }
@@ -422,10 +430,12 @@ class Flow {
   // ### User Methods
   // TODO: Add container ID
   public addMatTsch() {
-    const matsEle = <HTMLElement>(
-      document.querySelector(this._htmlContainerTag)!
-    );
-    matsEle.insertAdjacentHTML(
+    if (!this._htmlContainer) {
+      console.error('HTML Container Element not found');
+      return;
+    }
+
+    this._htmlContainer.insertAdjacentHTML(
       'beforeend',
       `<div id="tsch-${this._tschId}" class="tsch matTsch" tsch-id="${this._tschId}" mat-id="${this._matId}" style="z-index: ${this._tschId}">
           MAT${this._matId}
@@ -436,20 +446,122 @@ class Flow {
   }
 
   public addBlockTsch() {
-    const matsEle = <HTMLElement>(
-      document.querySelector(this._htmlContainerTag)!
-    );
-    matsEle.insertAdjacentHTML(
+    if (!this._htmlContainer) {
+      console.error('HTML Container Element not found');
+      return;
+    }
+    this._htmlContainer.insertAdjacentHTML(
       'beforeend',
       `<div id="tsch-${this._tschId}" class="tsch blockTsch" tsch-id="${this._tschId}" style="z-index: ${this._tschId}">TSCH</div>`,
     );
     this._tschId++;
   }
+
+  public addNode(
+    name: string,
+    num_in: { [key: number]: string },
+    num_out: { [key: number]: { name: string; max: number } },
+    ele_pos_x: number,
+    ele_pos_y: number,
+    classoverride: string,
+    data: Object,
+    html: string,
+    typenode = false,
+  ) {
+    // Set node ID
+    const newNodeId = 1;
+    // var newNodeId: NodeID = this.nodeId; // Replace to use uuid -> this.getUuid();
+    // this.nodeId++;
+
+    if (!this._htmlContainer) {
+      console.error('HTML container not found');
+      return;
+    }
+
+    // NODE
+    this._htmlContainer.insertAdjacentHTML(
+      'beforeend',
+      `<div
+        id="node-${newNodeId}"
+        class="drawflow-node ${classoverride}"
+        style="top: ${ele_pos_x}px; left: ${ele_pos_y}px"
+      ></div>`, // Insert as lastChild
+    );
+    const node = <HTMLElement>this._htmlContainer.lastChild;
+
+    // ADD INPUTS
+    node.insertAdjacentHTML(
+      'beforeend',
+      `<div class="inputs"></div>`, // Insert as lastChild
+    );
+    const inputs = <HTMLElement>node.lastChild;
+
+    // Add Node HTML element inputs
+    //const json_inputs: jsonInputs = new Map();
+    for (const [key, value] of Object.entries(num_in)) {
+      inputs.insertAdjacentHTML(
+        'beforeend',
+        `<div class="input input_${key}"><div class="type">${value}</div></div>`, // Insert as lastChild
+      );
+    }
+
+    // ADD CONTENT
+    node.insertAdjacentHTML(
+      'beforeend',
+      `<div class="drawflow_content_node">${html}</div>`, // Insert as lastChild
+    );
+
+    // ADD OUTPUTS
+    node.insertAdjacentHTML(
+      'beforeend',
+      `<div class="outputs"></div>`, // Insert as lastChild
+    );
+    const outputs = <HTMLElement>node.lastChild;
+
+    // Add Node HTML element outputs
+    //const json_outputs: jsonOutputs = new Map();
+    console.log('OUTPUT NUM:', Object.keys(num_out).length);
+    for (const [key, value] of Object.entries(num_out)) {
+      // json_outputs.set('output_' + key, {
+      //   connections: [],
+      //   type: value.name,
+      //   max_connections: value.max,
+      // });
+      outputs.insertAdjacentHTML(
+        'beforeend',
+        `<div class="output output_${key}"><div class="type">${value.name}</div></div>`, // Insert as lastChild
+      );
+    }
+    // console.log('JSON OUTPUTS:', json_outputs);
+    /* TODO: Figure out how do listeners get called to know the connections. */
+    /* Then add connection types, they add CSS type in the input and output */
+    /* I can maybe add connection type using  { connections: [], type: "I2C" }*/
+
+    // Add Node Data
+
+    // var nodeData: Data = {
+    //   id: newNodeId,
+    //   name: name,
+    //   data: data,
+    //   class: classoverride,
+    //   html: html,
+    //   typenode: typenode,
+    //   inputs: json_inputs,
+    //   outputs: json_outputs,
+    //   pos_x: ele_pos_x,
+    //   pos_y: ele_pos_y,
+    // };
+    // this.drawflow.drawflow.Home.data.set(newNodeId, nodeData);
+    // this.dispatch('nodeCreated', newNodeId);
+
+    return newNodeId;
+  }
 }
 
 // ### UI Interface
 
-const flow = new Flow('#tschs');
+const container = <HTMLElement>document.querySelector('#tschs');
+const flow = new Flow(container);
 
 // Button AddMat
 document.querySelector('#addMatTsch')!.addEventListener('click', () => {
@@ -460,3 +572,25 @@ document.querySelector('#addMatTsch')!.addEventListener('click', () => {
 document.querySelector('#addBlockTsch')!.addEventListener('click', () => {
   flow.addBlockTsch();
 });
+
+// Add Node
+var computeModule = `
+      <div>
+        <div class="title-box"><i class="fas fa-code"></i> Compute Module</div>
+      </div>
+      `;
+flow.addNode(
+  'computeModule',
+  { 1: 'GPIO' },
+  {
+    1: { name: 'GPIO', max: 2 },
+    2: { name: 'GPIO', max: 2 },
+    3: { name: 'SPI', max: 2 },
+    4: { name: 'UART', max: 2 },
+  }, // 1:[type, max_connections]
+  50,
+  50,
+  'computeModule',
+  { template: 'Schematic here!' },
+  computeModule,
+);
