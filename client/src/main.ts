@@ -21,6 +21,7 @@ class Flow {
   // Global
   private _htmlContainer: HTMLElement | null = null;
   private _eleSelected: HTMLElement | null = null;
+  private _tschSelected: HTMLElement | null = null;
   private _tschId: number = 0;
   private _matId: number = 0;
   private _dragMap: Map<HTMLElement, Array<HTMLElement>> = new Map();
@@ -48,13 +49,53 @@ class Flow {
   // ### Listeners
 
   private listenerGeneralClick() {
-    // General Click
-    document.addEventListener('click', (e: MouseEvent) => {
+    // // General Click
+    // document.addEventListener('click', (e: MouseEvent) => {
+    //   // Set default target selected
+    //   const target = <HTMLElement>e.target;
+    //   this._eleSelected = target;
+    //   if (target.id.includes('tsch')) {
+    //     this._tschSelected = target;
+    //   }
+    //   console.log(this._eleSelected);
+
+    //   // Remove context menu
+    //   this.contextMenuRemove();
+    // });
+
+    // General MouseDown
+    document.addEventListener('mousedown', (e: MouseEvent) => {
       // Set default target selected
       const target = <HTMLElement>e.target;
-      if (target.id.includes('tsch')) {
-        this._eleSelected = target;
+      this._eleSelected = target;
+      let parent = target;
+
+      // Check if it's context menu element click
+      let contextMenu: boolean = false;
+      parent = target;
+      while (parent) {
+        if (parent.classList.contains('context-menu')) {
+          contextMenu = true;
+        }
+        parent = parent.parentElement!;
       }
+
+      // if context menu don't unselect tsch, return
+      if (contextMenu) {
+        return;
+      }
+
+      // Select tsch selected if any
+      this._tschSelected = null;
+      parent = target;
+      while (parent) {
+        if (parent.classList.contains('tsch')) {
+          this._tschSelected = parent;
+        }
+        parent = parent.parentElement!;
+      }
+
+      console.log('ELE', this._eleSelected, 'TSCH', this._tschSelected);
 
       // Remove context menu
       this.contextMenuRemove();
@@ -117,7 +158,7 @@ class Flow {
         dropzoneElement.classList.add('can-drop');
         if (this.utilIsMatElement(draggableElement) == false) {
           draggableElement.classList.add('can-drop');
-          draggableElement.textContent = 'Dragged in';
+          // draggableElement.textContent = 'Dragged in';
         }
       },
       ondragleave: (event) => {
@@ -128,14 +169,14 @@ class Flow {
         dropzoneElement.classList.remove('can-drop');
         if (this.utilIsMatElement(draggableElement) == false) {
           draggableElement.classList.remove('can-drop');
-          draggableElement.textContent = 'Dragged out';
+          // draggableElement.textContent = 'Dragged out';
         }
         this.dragarrayRemove(dropzoneElement, draggableElement);
       },
       ondrop: (event) => {
         const draggableElement = <HTMLElement>event.relatedTarget;
         const dropzoneElement = <HTMLElement>event.target;
-        draggableElement.textContent = 'Dropped in ' + event.target.id;
+        // draggableElement.textContent = 'Dropped in ' + event.target.id;
         this.dragarraySet(dropzoneElement, draggableElement);
       },
       ondropdeactivate: (event) => {
@@ -150,7 +191,7 @@ class Flow {
   }
   private listenerBlockTsch() {
     // Make Block Tsch draggable
-    interact('.blockTsch, .drawflow-node').draggable({
+    interact('.blockTsch').draggable({
       inertia: true,
       modifiers: [
         interact.modifiers.restrictRect({
@@ -169,24 +210,33 @@ class Flow {
     // Show Contextmenu
     document.addEventListener('contextmenu', (e: MouseEvent) => {
       e.preventDefault();
-      // Set default target selected
+      let showContextMenu: boolean = false;
+
+      // Set default target selected, if child search until top
       const target = <HTMLElement>e.target;
-      if (target.id.includes('tsch')) {
-        this._eleSelected = target;
+      let parent = target;
+      while (parent) {
+        if (parent.classList.contains('tsch')) {
+          showContextMenu = true;
+        }
+        parent = parent.parentElement!;
       }
-      // Open context menu
-      const contextMenu = <HTMLElement>document.querySelector('#contextMenu');
-      const posX =
-        e.clientX + 150 > document.documentElement.clientWidth
-          ? e.clientX - 150
-          : e.clientX;
-      const posY =
-        e.clientY + 140 + 55 > document.documentElement.clientHeight
-          ? e.clientY - 140
-          : e.clientY;
-      contextMenu.style.top = posY + 'px';
-      contextMenu.style.left = posX + 'px';
-      contextMenu.classList.add('shown');
+
+      if (showContextMenu) {
+        // Open context menu
+        const contextMenu = <HTMLElement>document.querySelector('#contextMenu');
+        const posX =
+          e.clientX + 150 > document.documentElement.clientWidth
+            ? e.clientX - 150
+            : e.clientX;
+        const posY =
+          e.clientY + 140 + 55 > document.documentElement.clientHeight
+            ? e.clientY - 140
+            : e.clientY;
+        contextMenu.style.top = posY + 'px';
+        contextMenu.style.left = posX + 'px';
+        contextMenu.classList.add('shown');
+      }
     });
 
     // Contextmenu click
@@ -204,14 +254,18 @@ class Flow {
 
   // ### Drag Listeners
 
-  // TODO: For merging see if keep this or re-implement the dragging
-
   private dragStart = (event: InteractEvent) => {
-    // console.log('Drag Start' );
+    console.log('Drag Start', event);
   };
 
   private dragMove = (event: InteractEvent) => {
     const target = <HTMLElement>event.target;
+
+    if (this._eleSelected!.classList.contains('output')) {
+      console.log('Do nothing'); // TODO: Add net somehow here.
+      return;
+    }
+
     this.positionelementSetOffset(target, event.dx, event.dy);
     this.positionelementSetChildsOffset(target, event.dx, event.dy);
   };
@@ -329,8 +383,9 @@ class Flow {
 
     // Get element to move
     let eleToMove: string | null = null;
-    if (this._eleSelected) {
-      eleToMove = this._eleSelected.getAttribute('tsch-id');
+    if (this._tschSelected) {
+      eleToMove = this._tschSelected.getAttribute('tsch-id');
+      console.log('ELE TO MOVE', this._tschSelected);
     } else {
       return;
     }
@@ -458,18 +513,14 @@ class Flow {
   }
 
   public addNode(
-    name: string,
+    type: 'BlockTsch' | 'MatTsch',
     num_in: { [key: number]: string },
     num_out: { [key: number]: { name: string; max: number } },
     ele_pos_x: number,
     ele_pos_y: number,
     classoverride: string,
-    data: Object,
     html: string,
-    typenode = false,
   ) {
-    // Set node ID
-    const newNodeId = 1;
     // var newNodeId: NodeID = this.nodeId; // Replace to use uuid -> this.getUuid();
     // this.nodeId++;
 
@@ -478,16 +529,37 @@ class Flow {
       return;
     }
 
-    // NODE
-    this._htmlContainer.insertAdjacentHTML(
-      'beforeend',
-      `<div
-        id="node-${newNodeId}"
-        class="drawflow-node ${classoverride}"
-        style="top: ${ele_pos_x}px; left: ${ele_pos_y}px"
-      ></div>`, // Insert as lastChild
-    );
-    const node = <HTMLElement>this._htmlContainer.lastChild;
+    let node: HTMLElement;
+    switch (type) {
+      case 'BlockTsch':
+        // BLOCK TSCH
+        this._htmlContainer.insertAdjacentHTML(
+          'beforeend',
+          `<div
+            id="tsch-${this._tschId}"
+            class="tsch blockTsch ${classoverride}"
+            tsch-id="${this._tschId}"
+            style="z-index: ${this._tschId}; top: ${ele_pos_x}px; left: ${ele_pos_y}px"
+           ></div>`, // Insert as lastChild
+        );
+        node = <HTMLElement>this._htmlContainer.lastChild;
+        this._tschId++;
+        break;
+      case 'MatTsch':
+        // BLOCK TSCH
+        this._htmlContainer.insertAdjacentHTML(
+          'beforeend',
+          `<div
+            id="tsch-${this._tschId}"
+            class="tsch matTsch ${classoverride}"
+            tsch-id="${this._tschId}" mat-id="${this._matId}"
+            style="z-index: ${this._tschId}; top: ${ele_pos_x}px; left: ${ele_pos_y}px"
+           ></div>`, // Insert as lastChild
+        );
+        node = <HTMLElement>this._htmlContainer.lastChild;
+        this._matId++;
+        break;
+    }
 
     // ADD INPUTS
     node.insertAdjacentHTML(
@@ -508,7 +580,7 @@ class Flow {
     // ADD CONTENT
     node.insertAdjacentHTML(
       'beforeend',
-      `<div class="drawflow_content_node">${html}</div>`, // Insert as lastChild
+      `<div class="content">${html}</div>`, // Insert as lastChild
     );
 
     // ADD OUTPUTS
@@ -520,7 +592,6 @@ class Flow {
 
     // Add Node HTML element outputs
     //const json_outputs: jsonOutputs = new Map();
-    console.log('OUTPUT NUM:', Object.keys(num_out).length);
     for (const [key, value] of Object.entries(num_out)) {
       // json_outputs.set('output_' + key, {
       //   connections: [],
@@ -554,7 +625,12 @@ class Flow {
     // this.drawflow.drawflow.Home.data.set(newNodeId, nodeData);
     // this.dispatch('nodeCreated', newNodeId);
 
-    return newNodeId;
+    switch (type) {
+      case 'BlockTsch':
+        return this._tschId;
+      case 'MatTsch':
+        return this._matId;
+    }
   }
 }
 
@@ -580,7 +656,7 @@ var computeModule = `
       </div>
       `;
 flow.addNode(
-  'computeModule',
+  'BlockTsch',
   { 1: 'GPIO' },
   {
     1: { name: 'GPIO', max: 2 },
@@ -591,6 +667,25 @@ flow.addNode(
   50,
   50,
   'computeModule',
-  { template: 'Schematic here!' },
   computeModule,
+);
+
+var matModule = `
+      <div>
+        <div class="title-box"><i class="fas fa-code"></i>MAT</div>
+      </div>
+      `;
+flow.addNode(
+  'MatTsch',
+  { 1: 'GPIO' },
+  {
+    1: { name: 'GPIO', max: 2 },
+    2: { name: 'GPIO', max: 2 },
+    3: { name: 'SPI', max: 2 },
+    4: { name: 'UART', max: 2 },
+  }, // 1:[type, max_connections]
+  50,
+  50,
+  '',
+  matModule,
 );
