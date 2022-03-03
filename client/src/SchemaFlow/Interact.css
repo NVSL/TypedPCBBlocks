@@ -17,115 +17,56 @@ body {
   height: 100vh;
 }
 
-/* TSCH'S Container Parent */
-/* #tschs {
-  position: relative;
-  height: 100vh;
-} */
-/* Same as */
-/* Drawflow TODO: Rename to parent-drawflow to parent-tschs and drawflow to tschs*/
-/* TODO: Leave only parent-tschs? */
-/* Parent container */
+/* PARENT TSCHS CONTAINER  */
 .tschs {
   display: flex;
   position: relative;
   overflow: hidden;
   touch-action: none;
   outline: none;
-  width: 100vh;
+  width: 100vw;
   height: 100vh;
   user-select: none;
 }
 
-/* TSCH'S General CSS */
-.tsch {
+/* TSCH'S Nodes General CSS */
+.tschs .tsch {
   /* Position */
+  display: flex;
   position: absolute;
   transform: translate(0px, 0px);
+  z-index: 2;
   /* Settings */
   touch-action: none;
-  /* Important for sizes */
-  box-sizing: border-box;
-}
-
-/* MAT TSCH CSS */
-.tsch.matTsch {
-  height: 140px;
-  width: 80%;
-  padding: 4px;
-  background-color: #bfe4ff;
-  border: dashed 4px transparent;
-  border-color: #aaa;
-  border-radius: 4px;
-  transition: background-color 0.3s;
-}
-.tsch.matTsch.can-drop {
-  background-color: #29e;
-}
-
-/* BLOCK TSCH CSS */
-.tsch.blockTsch {
-  min-width: 40px;
-  padding: 2em 0.5em;
-  color: #fff;
-  background-color: #29e;
-  border: solid 2px #fff;
-  transition: background-color 0.3s;
-}
-.tsch.blockTsch.can-drop {
-  color: #000;
-  background-color: #4e4;
-}
-.tsch.blockTsch.is-dropped {
-  background-color: #29e;
-  border-color: #fff;
-  border-style: solid;
-}
-
-/* NODE CSS */
-
-/* Drawflow Parent node*/
-
-/* .tschs .parent-node {
-  position: relative;
-} */
-
-/* Drawflow Node */
-
-.tschs .drawflow-node {
-  display: flex;
-  position: relative;
+  box-sizing: border-box; /* Important for sizes */
+  /* Size */
+  min-height: 50px;
+  min-width: 150px;
+  /* Style */
   align-items: center;
-  position: inherit;
-  background: cyan;
-  min-height: 40px;
   border-radius: 4px;
   border: 1px solid var(--border-color);
   box-shadow: 0 2px 15px 2px var(--border-color);
   color: black;
-  z-index: 2;
-  padding: 0px;
-  width: 200px;
 }
 
-.tschs .drawflow-node.selected {
-  background: white;
+.tschs .tsch.selected {
   border: 1px solid #4ea9ff;
   -webkit-box-shadow: 0 2px 20px 2px #4ea9ff;
   box-shadow: 0 2px 20px 2px #4ea9ff;
 }
 
-.tschs .drawflow-node:hover {
+.tschs .tsch:hover {
   cursor: move;
 }
 
-.tschs .drawflow-node .inputs,
-.tschs .drawflow-node .outputs {
+.tschs .tsch .inputs,
+.tschs .tsch .outputs {
   width: 0px;
 }
 
-.tschs .drawflow-node .input,
-.tschs .drawflow-node .output {
+.tschs .tsch .input,
+.tschs .tsch .output {
   position: relative;
   background: white;
   border-radius: 50%;
@@ -137,46 +78,76 @@ body {
   border: 2px solid var(--border-color);
 }
 
-.tschs .drawflow-node .input:hover,
-.tschs .drawflow-node .output:hover {
+.tschs .tsch .input:hover,
+.tschs .tsch .output:hover {
   background: #4ea9ff;
 }
 
-.tschs .drawflow-node .input {
+.tschs .tsch .input {
   left: -10px;
   top: 2px;
   background: white;
 }
-.tschs .drawflow-node .output {
+.tschs .tsch .output {
   right: 10px;
   top: 2px;
 }
 
-.tschs .drawflow-node .output .type {
+.tschs .tsch .output .type {
   color: black;
   margin-top: -4px;
   margin-left: 23px;
 }
-.tschs .drawflow-node .input .type {
+.tschs .tsch .input .type {
   color: black;
   margin-top: -4px;
   margin-left: -55px;
 }
 
-.tschs .drawflow-node .drawflow_content_node {
+.tschs .tsch .content {
   width: 100%;
+  height: 100%;
   display: block;
 }
 
-/*Personalized node (computeModule)*/
-
-.drawflow-node.computeModule {
-  background: #70ad47;
-  height: 200px;
+/* BLOCK TSCH CSS */
+.tschs .tsch.blockTsch {
+  width: 200px;
   text-align: center;
+}
+/* .tsch.blockTsch.can-drop {
+  -webkit-box-shadow: 0 2px 20px 2px #4e4;
+  box-shadow: 0 2px 20px 2px #4e4;
+}
+.tsch.blockTsch.is-dropped {
+  background-color: #29e;
+} */
+
+/* PERSONALIZED TSCH */
+
+.tschs .tsch.computeModule {
+  background: #70ad47;
   color: white;
 }
 
-.drawflow-node.computeModule.selected {
+.tschs .tsch.computeModule.selected {
   background: #70ad47;
+}
+
+/* MAT TSCH CSS */
+.tschs .tsch.matTsch {
+  height: 140px;
+  width: 540px;
+  padding-left: 4px;
+  padding-right: 4px;
+  background-color: #bfe4ff;
+  border: dashed 4px transparent;
+  border-color: #aaa;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+  vertical-align: top!;
+  text-align: left;
+}
+.tschs .tsch.matTsch.can-drop {
+  background-color: #29e;
 }
