@@ -1,0 +1,35 @@
+/* Drawflow Connection */
+
+.tschs svg {
+  z-index: inherit;
+  position: absolute;
+  overflow: visible !important;
+}
+
+.tschs .main-path {
+  fill: none;
+  stroke-width: 5px;
+  stroke: steelblue;
+}
+
+.tschs .connection {
+  position: absolute;
+  transform: translate(9999px, 9999px);
+}
+
+.tschs .connection .main-path {
+  stroke: #4ea9ff;
+  stroke-width: 3px;
+  fill: none;
+  stroke-width: 5px;
+  transform: translate(-9999px, -9999px);
+}
+
+.tschs .connection .main-path:hover {
+  stroke: #1266ab;
+  cursor: pointer;
+}
+
+.tschs .connection .main-path.selected {
+  stroke: #43b993;
+}

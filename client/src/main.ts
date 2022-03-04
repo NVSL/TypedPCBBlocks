@@ -1,14 +1,20 @@
 import interact from 'interactjs';
 import { InteractEvent } from '@interactjs/core/InteractEvent';
+import svgConnection from './svgConnection';
 import './SchemaFlow/Interact.css';
 import './SchemaFlow/ContextMenu.css';
+import './SchemaFlow/SvgConnection.css';
 
 /*
 2. Start Merging
- - TODO: Simplify CSS and HTML (replace drowflow-node by blockTsch as well as in the code)
- - You should be able to drag and drop the node into the mat as well as interact with contextMenu 
+ - I stoped on svgConnection.connect
+ - I'm missing to add type Checking to svgConnection.connect, that requires adding this.drowflow
+ - After that implement Path Delete and Node Delete
+ - Also missing to check how to deal with svgConnection indexes. 
+      Maybe have 3 layers: First Mats, Second Nodes, Third Block Tschs
 */
 
+// Context Menu Options Slections
 enum MenuOptions {
   LayerTop = 'LayerTop',
   LayerUp = 'LayerUp',
@@ -17,14 +23,38 @@ enum MenuOptions {
   Delete = 'Delete',
 }
 
+// Element Selections
+enum UIElement {
+  None = 'None',
+  NodeBlock = 'NodeBlock',
+  NodeOutput = 'NodeOutput',
+  NodeConnection = 'NodeConnection',
+  Connection = 'Connection',
+  Editor = 'Editor',
+}
+
 class Flow {
   // Global
   private _htmlContainer: HTMLElement | null = null;
   private _eleSelected: HTMLElement | null = null;
   private _tschSelected: HTMLElement | null = null;
+  private _uiEleMouseDown: UIElement = UIElement.None;
+  private _uiEleSelected: UIElement = UIElement.None;
   private _tschId: number = 0;
   private _matId: number = 0;
   private _dragMap: Map<HTMLElement, Array<HTMLElement>> = new Map();
+
+  // SVG
+  private _connectionEle: SVGSVGElement | null = null;
+  private _connectionSelected: HTMLElement | null = null;
+
+  // Configurable options
+  module: string = 'Home';
+  zoom = 1;
+  zoom_max = 1.6;
+  zoom_min = 0.5;
+  zoom_value = 0.1;
+  zoom_last_value = 1;
 
   constructor(htmlContainer: HTMLElement | null) {
     // Set html container tag (e.g. #tschs, #container, .container)
@@ -65,7 +95,7 @@ class Flow {
 
     // General MouseDown
     document.addEventListener('mousedown', (e: MouseEvent) => {
-      // Set default target selected
+      // Get default target selection
       const target = <HTMLElement>e.target;
       this._eleSelected = target;
       let parent = target;
@@ -80,12 +110,17 @@ class Flow {
         parent = parent.parentElement!;
       }
 
-      // if context menu don't unselect tsch, return
+      // if context menu click ignore and return
       if (contextMenu) {
         return;
       }
 
-      // Select tsch selected if any
+      // Remove previous tsch selection if any
+      if (this._tschSelected) {
+        this._tschSelected.classList.remove('selected');
+      }
+
+      // Get TSCH is selected or is parent of inner elements.
       this._tschSelected = null;
       parent = target;
       while (parent) {
@@ -95,7 +130,33 @@ class Flow {
         parent = parent.parentElement!;
       }
 
-      console.log('ELE', this._eleSelected, 'TSCH', this._tschSelected);
+      // Get UI Element Selected
+      switch (this._eleSelected.classList[0]) {
+        case 'tschs':
+          console.log('Editor Selected');
+          this._uiEleMouseDown = UIElement.Editor;
+          break;
+        case 'output':
+          console.log('Output Selected');
+          this._uiEleMouseDown = UIElement.NodeOutput;
+          break;
+        case 'main-path':
+          console.log('Connection Selected');
+          this._uiEleMouseDown = UIElement.NodeConnection;
+          // this.connection_selected = this.ele_selected;
+          // this.connection_selected.classList.add('selected');
+          break;
+        default:
+          // If parent is a tsch then selection is NodeBlock
+          console.log('Node Selected');
+          if (this._tschSelected) {
+            this._uiEleMouseDown = UIElement.NodeBlock;
+            this._tschSelected.classList.add('selected');
+          }
+          break;
+      }
+
+      this._uiEleSelected = this._uiEleMouseDown;
 
       // Remove context menu
       this.contextMenuRemove();
@@ -255,23 +316,74 @@ class Flow {
   // ### Drag Listeners
 
   private dragStart = (event: InteractEvent) => {
-    console.log('Drag Start', event);
+    switch (this._uiEleMouseDown) {
+      case UIElement.NodeOutput:
+        if (!this._htmlContainer) return;
+        this._connectionEle = svgConnection.draw(this._htmlContainer);
+        break;
+    }
   };
 
   private dragMove = (event: InteractEvent) => {
     const target = <HTMLElement>event.target;
 
-    if (this._eleSelected!.classList.contains('output')) {
-      console.log('Do nothing'); // TODO: Add net somehow here.
-      return;
-    }
+    if (!this._eleSelected) return;
+    if (!this._htmlContainer) return;
 
-    this.positionelementSetOffset(target, event.dx, event.dy);
-    this.positionelementSetChildsOffset(target, event.dx, event.dy);
+    // if (this._eleSelected!.classList.contains('output')) {
+    //   console.log('Do nothing'); // TODO: Add net somehow here.
+    //   return;
+    // }
+
+    switch (this._uiEleMouseDown) {
+      case UIElement.NodeOutput:
+        if (!this._connectionEle) return;
+        svgConnection.update(
+          this._htmlContainer,
+          this._eleSelected,
+          this._connectionEle,
+          this.zoom,
+          event.clientX,
+          event.clientY,
+        );
+        break;
+      case UIElement.NodeBlock:
+        this.positionelementSetOffset(target, event.dx, event.dy);
+        this.positionelementSetChildsOffset(target, event.dx, event.dy);
+
+        if (!this._tschSelected) return;
+        // Update Connections
+        console.log('Update Node');
+        svgConnection.updateNode(
+          this._htmlContainer,
+          this.zoom,
+          this._tschSelected.id,
+        );
+        break;
+    }
   };
 
   private dragEnd = (event: InteractEvent) => {
-    // console.log('Drag End');
+    switch (this._uiEleMouseDown) {
+      case UIElement.NodeOutput:
+        // Get MouseUp Element
+        const ele_last = (<HTMLElement>(
+          document.elementFromPoint(event.clientX, event.clientY)
+        )).parentElement;
+        console.log(ele_last);
+        if (!this._eleSelected) return;
+        if (!ele_last) return;
+        if (!this._connectionEle) return;
+        if (!this._htmlContainer) return;
+        svgConnection.connect(
+          this._eleSelected,
+          ele_last,
+          this._connectionEle,
+          this._htmlContainer,
+          1,
+        );
+        break;
+    }
   };
 
   // ### Elements Positioning
@@ -385,7 +497,6 @@ class Flow {
     let eleToMove: string | null = null;
     if (this._tschSelected) {
       eleToMove = this._tschSelected.getAttribute('tsch-id');
-      console.log('ELE TO MOVE', this._tschSelected);
     } else {
       return;
     }
@@ -398,13 +509,15 @@ class Flow {
     tschElements.childNodes.forEach((child) => {
       const childEle = <HTMLElement>child;
       const matStyle = window.getComputedStyle(childEle);
-      const tschId = childEle.getAttribute('tsch-id')!;
-      const zIndex = matStyle.getPropertyValue('z-index');
-      zIndexesArray.push({
-        ele: childEle,
-        tschId: tschId,
-        zIndex: parseFloat(zIndex),
-      });
+      const tschId = childEle.getAttribute('tsch-id');
+      if (tschId) {
+        const zIndex = matStyle.getPropertyValue('z-index');
+        zIndexesArray.push({
+          ele: childEle,
+          tschId: tschId,
+          zIndex: parseFloat(zIndex),
+        });
+      }
     });
 
     // Sort zIndex Array
@@ -664,8 +777,23 @@ flow.addNode(
     3: { name: 'SPI', max: 2 },
     4: { name: 'UART', max: 2 },
   }, // 1:[type, max_connections]
-  50,
-  50,
+  100,
+  100,
+  'computeModule',
+  computeModule,
+);
+
+flow.addNode(
+  'BlockTsch',
+  { 1: 'GPIO' },
+  {
+    1: { name: 'GPIO', max: 2 },
+    2: { name: 'GPIO', max: 2 },
+    3: { name: 'SPI', max: 2 },
+    4: { name: 'UART', max: 2 },
+  }, // 1:[type, max_connections]
+  100,
+  500,
   'computeModule',
   computeModule,
 );
@@ -684,8 +812,28 @@ flow.addNode(
     3: { name: 'SPI', max: 2 },
     4: { name: 'UART', max: 2 },
   }, // 1:[type, max_connections]
-  50,
-  50,
+  300,
+  100,
+  '',
+  matModule,
+);
+
+var matModule = `
+      <div>
+        <div class="title-box"><i class="fas fa-code"></i>MAT</div>
+      </div>
+      `;
+flow.addNode(
+  'MatTsch',
+  { 1: 'GPIO' },
+  {
+    1: { name: 'GPIO', max: 2 },
+    2: { name: 'GPIO', max: 2 },
+    3: { name: 'SPI', max: 2 },
+    4: { name: 'UART', max: 2 },
+  }, // 1:[type, max_connections]
+  500,
+  100,
   '',
   matModule,
 );
