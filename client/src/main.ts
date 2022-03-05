@@ -8,7 +8,7 @@ import './SchemaFlow/SvgConnection.css';
 /*
 2. Start Merging
  - I stoped on svgConnection.connect
- - I'm missing to add type Checking to svgConnection.connect, that requires adding this.drowflow
+ - I'm missing to add protocol type Checking to svgConnection.connect, that requires adding this.drowflow
  - After that implement Path Delete and Node Delete
  - Also missing to check how to deal with svgConnection indexes. 
       Maybe have 3 layers: First Mats, Second Nodes, Third Block Tschs
@@ -33,6 +33,59 @@ enum UIElement {
   Editor = 'Editor',
 }
 
+// Connections Mapping Data
+type NodeID = number;
+
+interface ConnectionOutput {
+  svgid: string;
+  node: number;
+  output: string;
+}
+
+interface ConnectionInput {
+  svgid: string;
+  node: number;
+  input: string;
+}
+
+// IFACE: jsonInputs
+interface jsonInputsData {
+  connections: Array<ConnectionInput>;
+  type: string;
+}
+type jsonInputs = Map<string, jsonInputsData>;
+
+// IFACE: jsonOutputs
+interface jsonOutputsData {
+  connections: Array<ConnectionOutput>;
+  type: string;
+  max_connections: number;
+}
+type jsonOutputs = Map<string, jsonOutputsData>;
+
+// IFACE: Data
+interface Data {
+  id: number;
+  name: string;
+  data: Object; // For HTML variables, Not used
+  class: string;
+  html: string;
+  typenode: boolean; // For HTML types (e.g., Vue) not used
+  inputs: jsonInputs;
+  outputs: jsonOutputs;
+  pos_x: number;
+  pos_y: number;
+}
+
+// IFACE: DrawFlow (Main)
+interface DrawFlow {
+  drawflow: {
+    Home: {
+      data: Map<NodeID, Data>;
+    };
+  };
+}
+
 class Flow {
   // Global
   private _htmlContainer: HTMLElement | null = null;
@@ -48,13 +101,16 @@ class Flow {
   private _connectionEle: SVGSVGElement | null = null;
   private _connectionSelected: HTMLElement | null = null;
 
+  // Connections Mapping Data
+  public drawflow: DrawFlow = { drawflow: { Home: { data: new Map() } } }; // Nodes Object
+
   // Configurable options
-  module: string = 'Home';
-  zoom = 1;
-  zoom_max = 1.6;
-  zoom_min = 0.5;
-  zoom_value = 0.1;
-  zoom_last_value = 1;
+  public module: string = 'Home';
+  public zoom = 1;
+  public zoom_max = 1.6;
+  public zoom_min = 0.5;
+  public zoom_value = 0.1;
+  public zoom_last_value = 1;
 
   constructor(htmlContainer: HTMLElement | null) {
     // Set html container tag (e.g. #tschs, #container, .container)
