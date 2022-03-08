@@ -13,7 +13,29 @@
       <button id="addBlockTsch">AddTsch</button>
 
       <!-- Typed Schematics Container -->
-      <div id="tschs"></div>
+      <div id="tschs">
+        <svg
+          id="svgdefs"
+          xmlns="http://www.w3.org/2000/svg"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+        >
+          <defs>
+            <!-- simple dot marker definition -->
+            <marker
+              id="dot"
+              viewBox="0 0 10 10"
+              refX="5"
+              refY="5"
+              markerWidth="5"
+              markerHeight="5"
+            >
+              <circle cx="5" cy="5" r="3" fill="blue"></circle>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+
+      <!-- marker-start="url(#dot)" marker-end="url(#dot)" -->
 
       <!-- Context Menu (Right Click)-->
       <menu id="contextMenu" class="context-menu">
