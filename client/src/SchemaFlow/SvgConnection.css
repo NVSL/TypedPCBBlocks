@@ -1,7 +1,7 @@
 /* Drawflow Connection */
 
 .tschs svg {
-  z-index: inherit;
+  z-index: 46;
   position: absolute;
   overflow: visible !important;
 }

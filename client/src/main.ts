@@ -37,13 +37,13 @@ enum UIElement {
 type NodeID = number;
 
 interface ConnectionOutput {
-  svgid: string;
+  svgid: number;
   node: number;
   output: string;
 }
 
 interface ConnectionInput {
-  svgid: string;
+  svgid: number;
   node: number;
   input: string;
 }
@@ -66,11 +66,8 @@ type jsonOutputs = Map<string, jsonOutputsData>;
 // IFACE: Data
 interface Data {
   id: number;
-  name: string;
-  data: Object; // For HTML variables, Not used
   class: string;
   html: string;
-  typenode: boolean; // For HTML types (e.g., Vue) not used
   inputs: jsonInputs;
   outputs: jsonOutputs;
   pos_x: number;
@@ -98,6 +95,7 @@ class Flow {
   private _dragMap: Map<HTMLElement, Array<HTMLElement>> = new Map();
 
   // SVG
+  private _connectionID: number = 1;
   private _connectionEle: SVGSVGElement | null = null;
   private _connectionSelected: HTMLElement | null = null;
 
@@ -135,20 +133,6 @@ class Flow {
   // ### Listeners
 
   private listenerGeneralClick() {
-    // // General Click
-    // document.addEventListener('click', (e: MouseEvent) => {
-    //   // Set default target selected
-    //   const target = <HTMLElement>e.target;
-    //   this._eleSelected = target;
-    //   if (target.id.includes('tsch')) {
-    //     this._tschSelected = target;
-    //   }
-    //   console.log(this._eleSelected);
-
-    //   // Remove context menu
-    //   this.contextMenuRemove();
-    // });
-
     // General MouseDown
     document.addEventListener('mousedown', (e: MouseEvent) => {
       // Get default target selection
@@ -426,18 +410,22 @@ class Flow {
         const ele_last = (<HTMLElement>(
           document.elementFromPoint(event.clientX, event.clientY)
         )).parentElement;
-        console.log(ele_last);
+        console.log('Element Mouse Up:', ele_last);
         if (!this._eleSelected) return;
         if (!ele_last) return;
         if (!this._connectionEle) return;
         if (!this._htmlContainer) return;
-        svgConnection.connect(
+        const conected = svgConnection.connect(
           this._eleSelected,
           ele_last,
           this._connectionEle,
           this._htmlContainer,
           1,
+          this.drawflow,
         );
+        if (conected) {
+          this._connectionID++;
+        }
         break;
     }
   };
@@ -549,6 +537,11 @@ class Flow {
       zIndex: number;
     }> = new Array();
 
+    if (!this._tschSelected) return;
+
+    // Layers options is only available for Mats
+    if (!this.utilIsMatElement(this._tschSelected)) return;
+
     // Get element to move
     let eleToMove: string | null = null;
     if (this._tschSelected) {
@@ -561,18 +554,20 @@ class Flow {
       return;
     }
 
-    // Fill zIndex Array with current tsch elements
+    // Fill zIndex Array with current tsch elements (Only Mat Elements)
     tschElements.childNodes.forEach((child) => {
       const childEle = <HTMLElement>child;
-      const matStyle = window.getComputedStyle(childEle);
-      const tschId = childEle.getAttribute('tsch-id');
-      if (tschId) {
-        const zIndex = matStyle.getPropertyValue('z-index');
-        zIndexesArray.push({
-          ele: childEle,
-          tschId: tschId,
-          zIndex: parseFloat(zIndex),
-        });
+      if (this.utilIsMatElement(childEle)) {
+        const matStyle = window.getComputedStyle(childEle);
+        const tschId = childEle.getAttribute('tsch-id');
+        if (tschId) {
+          const zIndex = matStyle.getPropertyValue('z-index');
+          zIndexesArray.push({
+            ele: childEle,
+            tschId: tschId,
+            zIndex: parseFloat(zIndex),
+          });
+        }
       }
     });
 
@@ -690,8 +685,8 @@ class Flow {
     classoverride: string,
     html: string,
   ) {
-    // var newNodeId: NodeID = this.nodeId; // Replace to use uuid -> this.getUuid();
-    // this.nodeId++;
+    const nodeId = this._tschId;
+    this._tschId++;
 
     if (!this._htmlContainer) {
       console.error('HTML container not found');
@@ -705,24 +700,23 @@ class Flow {
         this._htmlContainer.insertAdjacentHTML(
           'beforeend',
           `<div
-            id="tsch-${this._tschId}"
+            id="tsch-${nodeId}"
             class="tsch blockTsch ${classoverride}"
-            tsch-id="${this._tschId}"
-            style="z-index: ${this._tschId}; top: ${ele_pos_x}px; left: ${ele_pos_y}px"
+            tsch-id="${nodeId}"
+            style="z-index: 45; top: ${ele_pos_x}px; left: ${ele_pos_y}px"
            ></div>`, // Insert as lastChild
         );
         node = <HTMLElement>this._htmlContainer.lastChild;
-        this._tschId++;
         break;
       case 'MatTsch':
         // BLOCK TSCH
         this._htmlContainer.insertAdjacentHTML(
           'beforeend',
           `<div
-            id="tsch-${this._tschId}"
+            id="tsch-${nodeId}"
             class="tsch matTsch ${classoverride}"
-            tsch-id="${this._tschId}" mat-id="${this._matId}"
-            style="z-index: ${this._tschId}; top: ${ele_pos_x}px; left: ${ele_pos_y}px"
+            tsch-id="${nodeId}" mat-id="${this._matId}"
+            style="z-index: ${nodeId}; top: ${ele_pos_x}px; left: ${ele_pos_y}px"
            ></div>`, // Insert as lastChild
         );
         node = <HTMLElement>this._htmlContainer.lastChild;
@@ -736,14 +730,14 @@ class Flow {
       `<div class="inputs"></div>`, // Insert as lastChild
     );
     const inputs = <HTMLElement>node.lastChild;
-
     // Add Node HTML element inputs
-    //const json_inputs: jsonInputs = new Map();
+    const json_inputs: jsonInputs = new Map();
     for (const [key, value] of Object.entries(num_in)) {
       inputs.insertAdjacentHTML(
         'beforeend',
         `<div class="input input_${key}"><div class="type">${value}</div></div>`, // Insert as lastChild
       );
+      json_inputs.set('input_' + key, { connections: [], type: value });
     }
 
     // ADD CONTENT
@@ -758,50 +752,38 @@ class Flow {
       `<div class="outputs"></div>`, // Insert as lastChild
     );
     const outputs = <HTMLElement>node.lastChild;
-
     // Add Node HTML element outputs
-    //const json_outputs: jsonOutputs = new Map();
+    const json_outputs: jsonOutputs = new Map();
     for (const [key, value] of Object.entries(num_out)) {
-      // json_outputs.set('output_' + key, {
-      //   connections: [],
-      //   type: value.name,
-      //   max_connections: value.max,
-      // });
       outputs.insertAdjacentHTML(
         'beforeend',
         `<div class="output output_${key}"><div class="type">${value.name}</div></div>`, // Insert as lastChild
       );
+      json_outputs.set('output_' + key, {
+        connections: [],
+        type: value.name,
+        max_connections: value.max,
+      });
     }
-    // console.log('JSON OUTPUTS:', json_outputs);
-    /* TODO: Figure out how do listeners get called to know the connections. */
-    /* Then add connection types, they add CSS type in the input and output */
-    /* I can maybe add connection type using  { connections: [], type: "I2C" }*/
 
-    // Add Node Data
-
-    // var nodeData: Data = {
-    //   id: newNodeId,
-    //   name: name,
-    //   data: data,
-    //   class: classoverride,
-    //   html: html,
-    //   typenode: typenode,
-    //   inputs: json_inputs,
-    //   outputs: json_outputs,
-    //   pos_x: ele_pos_x,
-    //   pos_y: ele_pos_y,
-    // };
-    // this.drawflow.drawflow.Home.data.set(newNodeId, nodeData);
+    // Add Node Data to Connection Data
+    const nodeData: Data = {
+      id: nodeId,
+      class: classoverride,
+      html: html,
+      inputs: json_inputs,
+      outputs: json_outputs,
+      pos_x: ele_pos_x,
+      pos_y: ele_pos_y,
+    };
+    this.drawflow.drawflow.Home.data.set(nodeId, nodeData);
     // this.dispatch('nodeCreated', newNodeId);
 
-    switch (type) {
-      case 'BlockTsch':
-        return this._tschId;
-      case 'MatTsch':
-        return this._matId;
-    }
+    return nodeId;
   }
 }
+
+export { DrawFlow, jsonOutputsData, jsonInputsData };
 
 // ### UI Interface
 
@@ -829,7 +811,7 @@ flow.addNode(
   { 1: 'GPIO' },
   {
     1: { name: 'GPIO', max: 2 },
-    2: { name: 'GPIO', max: 2 },
+    2: { name: 'I2C', max: 2 },
     3: { name: 'SPI', max: 2 },
     4: { name: 'UART', max: 2 },
   }, // 1:[type, max_connections]
@@ -839,57 +821,52 @@ flow.addNode(
   computeModule,
 );
 
+var pheripherial = `
+      <div>
+        <div class="title-box"><i class="fas fa-code"></i> Pheripherial</div>
+      </div>
+      `;
 flow.addNode(
   'BlockTsch',
-  { 1: 'GPIO' },
   {
-    1: { name: 'GPIO', max: 2 },
-    2: { name: 'GPIO', max: 2 },
-    3: { name: 'SPI', max: 2 },
-    4: { name: 'UART', max: 2 },
+    1: 'GPIO',
+    2: 'I2C',
+    3: 'SPI',
+    4: 'UART',
   }, // 1:[type, max_connections]
+  {},
   100,
   500,
-  'computeModule',
-  computeModule,
+  'pheripherial',
+  pheripherial,
 );
 
-var matModule = `
+const matModule5V = `
       <div>
-        <div class="title-box"><i class="fas fa-code"></i>MAT</div>
+        <div class="title-box"><i class="fas fa-code"></i>MAT 5V</div>
       </div>
       `;
 flow.addNode(
   'MatTsch',
-  { 1: 'GPIO' },
-  {
-    1: { name: 'GPIO', max: 2 },
-    2: { name: 'GPIO', max: 2 },
-    3: { name: 'SPI', max: 2 },
-    4: { name: 'UART', max: 2 },
-  }, // 1:[type, max_connections]
+  { 1: 'I2C' },
+  {}, // 1:[type, max_connections]
+  500,
+  100,
+  '',
+  matModule5V,
+);
+
+const matModule3V3 = `
+      <div>
+        <div class="title-box"><i class="fas fa-code"></i>MAT 3.3V</div>
+      </div>
+      `;
+flow.addNode(
+  'MatTsch',
+  {},
+  {}, // 1:[type, max_connections]
   300,
   100,
   '',
-  matModule,
-);
-
-var matModule = `
-      <div>
-        <div class="title-box"><i class="fas fa-code"></i>MAT</div>
-      </div>
-      `;
-flow.addNode(
-  'MatTsch',
-  { 1: 'GPIO' },
-  {
-    1: { name: 'GPIO', max: 2 },
-    2: { name: 'GPIO', max: 2 },
-    3: { name: 'SPI', max: 2 },
-    4: { name: 'UART', max: 2 },
-  }, // 1:[type, max_connections]
-  500,
-  100,
-  '',
-  matModule,
+  matModule3V3,
 );

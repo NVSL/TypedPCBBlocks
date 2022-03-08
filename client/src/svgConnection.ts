@@ -1,3 +1,5 @@
+import { DrawFlow, jsonOutputsData, jsonInputsData } from './main';
+
 export default {
   draw(container: HTMLElement): SVGSVGElement {
     const svgEle = document.createElementNS(
@@ -299,18 +301,19 @@ export default {
     eleConnection: SVGSVGElement,
     eleContainer: HTMLElement,
     connectionID: number,
-  ) {
+    connectionMap: DrawFlow,
+  ): boolean {
     // Check if last element is an input circle connection
     if (eleLast.classList[0] !== 'input') {
       eleConnection.remove();
-      return;
+      return false;
     }
 
     const input = this.parentContainsTsch(eleLast);
     const output = this.parentContainsTsch(eleFirst);
 
-    if (!input) return;
-    if (!output) return;
+    if (!input) return false;
+    if (!output) return false;
 
     const input_id = input.id;
     const input_class = eleLast.classList[1];
@@ -320,7 +323,7 @@ export default {
     // Check if it's not the same tsch element
     if (output_id === input_id) {
       eleConnection.remove();
-      return;
+      return false;
     }
 
     // Check if connection alrady exists
@@ -337,85 +340,63 @@ export default {
       ).length !== 0
     ) {
       console.log('Drag End | Connection already exist');
-      return;
+      return false;
     }
 
-    // Make connection for now
-
-    eleConnection.id = 'connection-' + connectionID;
-    eleConnection.classList.add('node_in_' + input_id);
-    eleConnection.classList.add('node_out_' + output_id);
-    eleConnection.classList.add(output_class);
-    eleConnection.classList.add(input_class);
-
-    console.log('Connected :)');
-
-    return;
-
     // Conection doestn't exist save connection
+    try {
+      const inputNodeNumber = this.nodeNumber(input);
+      const outputNodeNumber = this.nodeNumber(output);
 
-    const inputNodeNumber = this.nodeNumber(input);
-    const outputNodeNumber = this.nodeNumber(output);
+      if (inputNodeNumber == null) throw 'input node id not found';
+      if (outputNodeNumber === null) throw 'output node id not found';
 
-    const outputClass = this.drawflow.drawflow.Home.data
-      .get(outputNodeNumber)!
-      .outputs.get(output_class)!;
-    const inputClass = this.drawflow.drawflow.Home.data
-      .get(inputNodeNumber)!
-      .inputs.get(input_class)!;
+      const outputClass: jsonOutputsData = connectionMap.drawflow.Home.data
+        .get(outputNodeNumber)!
+        .outputs.get(output_class)!;
+      const inputClass: jsonInputsData = connectionMap.drawflow.Home.data
+        .get(inputNodeNumber)!
+        .inputs.get(input_class)!;
 
-    // Get Types
-    const output_type = outputClass.type;
-    const input_type = inputClass.type;
+      // Get Types
+      const output_type = outputClass.type;
+      const input_type = inputClass.type;
 
-    // Get Current Connections number
-    const output_current_conections = outputClass.connections.length;
-    const output_max_connections = outputClass.max_connections;
+      // Get Current Connections number
+      const output_current_conections = outputClass.connections.length;
+      const output_max_connections = outputClass.max_connections;
 
-    // Check Types
-    if (output_type === input_type) {
-      console.log('Drag End | Output type == input type');
-      // Check max connections
-      if (output_current_conections < output_max_connections) {
-        console.log('Make connection');
-        // Make connection
-        // TODO: Increment connection ID outside
-        // const connectionID =
-        // this.connectionID++;
-        eleConnection.id = 'connection-' + connectionID;
-        eleConnection.classList.add('node_in_' + input_id);
-        eleConnection.classList.add('node_out_' + output_id);
-        eleConnection.classList.add(output_class);
-        eleConnection.classList.add(input_class);
+      // Check Types
+      if (output_type !== input_type) throw 'Type mismatch';
 
-        outputClass.connections.push({
-          svgid: connectionID,
-          node: inputNodeNumber,
-          output: input_class,
-        });
-        inputClass.connections.push({
-          svgid: connectionID,
-          node: outputNodeNumber,
-          input: output_class,
-        });
-        // this.updateConnectionNodes('node-' + outputNodeNumber);
-        // this.updateConnectionNodes('node-' + inputNodeNumber);
-        // this.dispatch('connectionCreated', {
-        //   output_id: outputNodeNumber,
-        //   input_id: inputNodeNumber,
-        //   output_class: output_class,
-        //   input_class: input_class,
-        // });
-      } else {
-        console.warn('Max connections reached');
-        // this.dispatch('connectionCancel', true);
-        eleConnection.remove();
-      }
-    } else {
-      // Cancel connection (type mismatch)
-      console.warn('Type mismatch');
-      // this.dispatch('connectionCancel', true);
+      // Check Max Connections allowed
+      if (output_current_conections >= output_max_connections)
+        throw 'Max connections reached';
+
+      // Make connection
+      eleConnection.id = 'connection-' + connectionID;
+      eleConnection.classList.add('node_in_' + input_id);
+      eleConnection.classList.add('node_out_' + output_id);
+      eleConnection.classList.add(output_class);
+      eleConnection.classList.add(input_class);
+
+      outputClass.connections.push({
+        svgid: connectionID,
+        node: inputNodeNumber,
+        output: input_class,
+      });
+      inputClass.connections.push({
+        svgid: connectionID,
+        node: outputNodeNumber,
+        input: output_class,
+      });
+
+      console.log('Connected!');
+      return true;
+    } catch (e) {
+      console.warn(e);
       eleConnection.remove();
+      return false;
     }
   },
   parentContainsTsch(ele: HTMLElement): HTMLElement | null {
@@ -430,8 +411,10 @@ export default {
   },
   nodeNumber(ele: HTMLElement): number | null {
     const tschEle = this.parentContainsTsch(ele);
+    console.log('Node Number, tschELE', tschEle);
     if (tschEle) {
       const id = tschEle.getAttribute('tsch-id');
+      console.log('TSCH ID', id);
       return parseInt(id!);
     }
     return null;

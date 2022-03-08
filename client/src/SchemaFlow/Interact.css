@@ -5,6 +5,8 @@
   --background-gird-line: #f1f1f1;
 }
 
+/* TODO: Move html, body and app out of Interact */
+/* TODO: Rename Interact with a diferent name*/
 html,
 body {
   width: 100vw;
@@ -15,6 +17,14 @@ body {
 #app {
   width: 100vw;
   height: 100vh;
+  background: var(--background-color);
+  background-size: 25px 25px;
+  background-image: linear-gradient(
+      to right,
+      var(--background-gird-line) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, var(--background-gird-line) 1px, transparent 1px);
 }
 
 /* PARENT TSCHS CONTAINER  */
@@ -35,7 +45,6 @@ body {
   display: flex;
   position: absolute;
   transform: translate(0px, 0px);
-  z-index: 2;
   /* Settings */
   touch-action: none;
   box-sizing: border-box; /* Important for sizes */
@@ -43,7 +52,6 @@ body {
   min-height: 50px;
   min-width: 150px;
   /* Style */
-  align-items: center;
   border-radius: 4px;
   border: 1px solid var(--border-color);
   box-shadow: 0 2px 15px 2px var(--border-color);
@@ -71,7 +79,6 @@ body {
   background: white;
   border-radius: 50%;
   cursor: crosshair;
-  z-index: 1;
   margin-bottom: 5px;
   height: 15px;
   width: 15px;
@@ -114,6 +121,7 @@ body {
 .tschs .tsch.blockTsch {
   width: 200px;
   text-align: center;
+  align-items: center;
 }
 /* .tsch.blockTsch.can-drop {
   -webkit-box-shadow: 0 2px 20px 2px #4e4;
@@ -123,15 +131,26 @@ body {
   background-color: #29e;
 } */
 
-/* PERSONALIZED TSCH */
+/* PERSONALIZED TSCH's */
 
+/* Compute Module */
 .tschs .tsch.computeModule {
-  background: #70ad47;
+  background: #7fba00;
   color: white;
 }
 
 .tschs .tsch.computeModule.selected {
-  background: #70ad47;
+  background: #7fba00;
+}
+
+/* Pheripherials */
+.tschs .tsch.pheripherial {
+  background: #00a4ef;
+  color: white;
+}
+
+.tschs .tsch.pheripherial.selected {
+  background: #00a4ef;
 }
 
 /* MAT TSCH CSS */
@@ -140,14 +159,23 @@ body {
   width: 540px;
   padding-left: 4px;
   padding-right: 4px;
-  background-color: #bfe4ff;
+  background-color: #eb3d3d;
+  /* https://cssgradient.io/ */
+  /* background: rgb(235, 61, 61);
+  background: linear-gradient(
+    90deg,
+    rgba(235, 61, 61, 1) 0%,
+    rgba(154, 40, 40, 1) 100%,
+    rgba(139, 27, 17, 1) 100%
+  ); */
   border: dashed 4px transparent;
-  border-color: #aaa;
+  border-color: #636262;
   border-radius: 4px;
   transition: background-color 0.3s;
   vertical-align: top!;
-  text-align: left;
+  text-align: center;
+  color: white;
 }
 .tschs .tsch.matTsch.can-drop {
-  background-color: #29e;
+  background-color: #cc2f2f;
 }
