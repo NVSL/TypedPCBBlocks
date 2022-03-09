@@ -12,13 +12,14 @@ body {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
+  font-family: 'Segoe UI', Arial, sans-serif;
 }
 
 #app {
   width: 100vw;
   height: 100vh;
   background: var(--background-color);
-  background-size: 25px 25px;
+  background-size: 10px 10px;
   background-image: linear-gradient(
       to right,
       var(--background-gird-line) 1px,
@@ -157,8 +158,8 @@ body {
 .tschs .tsch.matTsch {
   height: 140px;
   width: 540px;
-  padding-left: 4px;
-  padding-right: 4px;
+  /* padding-left: 4px;
+  padding-right: 4px; */
   background-color: #eb3d3d;
   /* https://cssgradient.io/ */
   /* background: rgb(235, 61, 61);
@@ -172,8 +173,8 @@ body {
   border-color: #636262;
   border-radius: 4px;
   transition: background-color 0.3s;
-  vertical-align: top!;
   text-align: center;
+  align-items: center;
   color: white;
 }
 .tschs .tsch.matTsch.can-drop {

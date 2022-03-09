@@ -1,4 +1,8 @@
 /* Drawflow Connection */
+#svgdefs {
+  width: 0;
+  height: 0;
+}
 
 .tschs svg {
   z-index: 46;
@@ -32,4 +36,8 @@
 
 .tschs .connection .main-path.selected {
   stroke: #43b993;
+}
+
+.tschs .connectionCircle {
+  fill: black;
 }
