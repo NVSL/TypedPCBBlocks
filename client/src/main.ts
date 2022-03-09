@@ -9,6 +9,7 @@ import './SchemaFlow/SvgConnection.css';
 2. Start Merging
  - I stoped on svgConnection.connect
  - I'm missing to add protocol type Checking to svgConnection.connect, that requires adding this.drowflow
+ - Solve Hacky problem
  - After that implement Path Delete and Node Delete
  - Also missing to check how to deal with svgConnection indexes. 
       Maybe have 3 layers: First Mats, Second Nodes, Third Block Tschs
@@ -118,10 +119,23 @@ class Flow {
       return;
     }
 
-    // Add canvas to container HML
+    // Add canvas to container HTML
     // TODO: remove drawflow precanvas and leave only parent?
     this._htmlContainer.classList.add('tschs');
     this._htmlContainer.tabIndex = 0;
+
+    // Append svg defs
+    this._htmlContainer.insertAdjacentHTML(
+      'beforeend',
+      `<svg id="svgdefs" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+          <defs>
+            <!-- simple dot marker definition -->
+            <marker id="dot" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5">
+              <circle class="connectionCircle" cx="5" cy="5" r="3"></circle>
+            </marker>
+          </defs>
+        </svg>`, // Insert as lastChild
+    );
 
     // Start Listeners
     this.listenerGeneralClick();
@@ -170,6 +184,8 @@ class Flow {
         parent = parent.parentElement!;
       }
 
+      console.log('Mouse Down Target', target, e.clientX, e.clientY);
+
       // Get UI Element Selected
       switch (this._eleSelected.classList[0]) {
         case 'tschs':
@@ -201,6 +217,10 @@ class Flow {
       // Remove context menu
       this.contextMenuRemove();
     });
+
+    document.addEventListener('mouseup', (e: MouseEvent) => {
+      console.log('Mouse Up Target', e.clientX, e.clientY);
+    });
   }
 
   private listenerMatTsch() {
@@ -229,10 +249,11 @@ class Flow {
       .draggable({
         modifiers: [
           // Restrict to parent view
-          interact.modifiers.restrictRect({
-            restriction: 'parent',
-            endOnly: true,
-          }),
+          // NOTE: This causes dragging svg to not be moved and getting bad X,Y
+          // interact.modifiers.restrictRect({
+          //   restriction: 'parent',
+          //   endOnly: true,
+          // }),
         ],
         inertia: true,
         onmove: this.dragMove,
@@ -295,10 +316,11 @@ class Flow {
     interact('.blockTsch').draggable({
       inertia: true,
       modifiers: [
-        interact.modifiers.restrictRect({
-          restriction: 'parent',
-          endOnly: true,
-        }),
+        // NOTE: This causes dragging svg to not be moved and getting bad X,Y
+        // interact.modifiers.restrictRect({
+        //   restriction: 'parent',
+        //   endOnly: true,
+        // }),
       ],
       autoScroll: true,
       onmove: this.dragMove,
@@ -362,6 +384,9 @@ class Flow {
         this._connectionEle = svgConnection.draw(this._htmlContainer);
         break;
     }
+
+    // Disable svg tag pointers to get correct element below mouse
+    svgConnection.disablePointerEvents();
   };
 
   private dragMove = (event: InteractEvent) => {
@@ -392,13 +417,22 @@ class Flow {
         this.positionelementSetChildsOffset(target, event.dx, event.dy);
 
         if (!this._tschSelected) return;
-        // Update Connections
-        console.log('Update Node');
-        svgConnection.updateNode(
-          this._htmlContainer,
-          this.zoom,
-          this._tschSelected.id,
-        );
+
+        if (this.utilIsMatElement(this._tschSelected)) {
+          // Is tschMat
+          console.log('Update All Nodes');
+          svgConnection.updateAllNodes(this._htmlContainer, this.zoom);
+        } else {
+          // Is tschBlock
+          // Update Connections
+          console.log('Update Node');
+          svgConnection.updateNode(
+            this._htmlContainer,
+            this.zoom,
+            this._tschSelected.id,
+          );
+        }
+
         break;
     }
   };
@@ -410,7 +444,17 @@ class Flow {
         const ele_last = (<HTMLElement>(
           document.elementFromPoint(event.clientX, event.clientY)
         )).parentElement;
+        //this.getElementsFromPoint(event.clientX, event.clientY);
         console.log('Element Mouse Up:', ele_last);
+        console.log(
+          'Element Mouse Up Real:',
+          <HTMLElement>document.elementFromPoint(event.clientX, event.clientY),
+        );
+        console.log('X,Y', event.clientX, event.clientY);
+        console.log('X,Y', event.clientX0, event.clientY0);
+        console.log('X,Y', event.clientX0, event.clientY0);
+        console.log('Current Target', event.currentTarget);
+        //console.log(document.elementFromPoint(111, 593));
         if (!this._eleSelected) return;
         if (!ele_last) return;
         if (!this._connectionEle) return;
@@ -420,7 +464,7 @@ class Flow {
           ele_last,
           this._connectionEle,
           this._htmlContainer,
-          1,
+          this._connectionID,
           this.drawflow,
         );
         if (conected) {
@@ -428,6 +472,9 @@ class Flow {
         }
         break;
     }
+
+    // Enable svg pointer events again
+    svgConnection.enablePointerEvents();
   };
 
   // ### Elements Positioning
