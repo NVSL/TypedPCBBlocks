@@ -62,20 +62,6 @@ export default {
       container.getBoundingClientRect().y *
         (container.clientHeight / (container.clientHeight * zoom));
 
-    // hacky:
-    // When trying to find the element below the mouse it's the svg.
-    // So set the update x, y positon -1,-1 pixels from the mouse.
-    // Otherwhise you could use this to find all elements at X,Y
-    // and then find the element we want:
-    // var res = [];
-    // var ele = document.elementFromPoint(x, y);
-    // while (ele && ele.tagName != 'BODY' && ele.tagName != 'HTML') {
-    //   res.push(ele);
-    //   ele.style.display = 'none';
-    //   ele = document.elementFromPoint(x, y);
-    // }
-    // Solved: with pointer-event hide/show for all svgs
-
     const lineCurve = this.createCurvature(
       line_x,
       line_y,
@@ -351,7 +337,7 @@ export default {
       return false;
     }
 
-    // Check if connection alrady exists
+    // Check if connection alredy exists
     if (
       eleContainer.querySelectorAll(
         '.connection.node_in_' +
@@ -436,10 +422,8 @@ export default {
   },
   nodeNumber(ele: HTMLElement): number | null {
     const tschEle = this.parentContainsTsch(ele);
-    console.log('Node Number, tschELE', tschEle);
     if (tschEle) {
       const id = tschEle.getAttribute('tsch-id');
-      console.log('TSCH ID', id);
       return parseInt(id!);
     }
     return null;
@@ -449,7 +433,6 @@ export default {
       document.querySelectorAll('svg')
     );
     svgElements.forEach((svgEle) => {
-      console.log('Element Drag', svgEle);
       svgEle.style.pointerEvents = 'none';
     });
   },
@@ -458,7 +441,6 @@ export default {
       document.querySelectorAll('svg')
     );
     svgElements.forEach((svgEle) => {
-      console.log('Element Drag', svgEle);
       svgEle.style.pointerEvents = 'all';
     });
   },

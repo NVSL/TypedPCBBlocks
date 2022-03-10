@@ -7,9 +7,7 @@ import './SchemaFlow/SvgConnection.css';
 
 /*
 2. Start Merging
- - I stoped on svgConnection.connect
- - I'm missing to add protocol type Checking to svgConnection.connect, that requires adding this.drowflow
- - Solve Hacky problem
+ - Add updateAllNodes when resizing Mat
  - After that implement Path Delete and Node Delete
  - Also missing to check how to deal with svgConnection indexes. 
       Maybe have 3 layers: First Mats, Second Nodes, Third Block Tschs
@@ -184,8 +182,6 @@ class Flow {
         parent = parent.parentElement!;
       }
 
-      console.log('Mouse Down Target', target, e.clientX, e.clientY);
-
       // Get UI Element Selected
       switch (this._eleSelected.classList[0]) {
         case 'tschs':
@@ -216,10 +212,6 @@ class Flow {
 
       // Remove context menu
       this.contextMenuRemove();
-    });
-
-    document.addEventListener('mouseup', (e: MouseEvent) => {
-      console.log('Mouse Up Target', e.clientX, e.clientY);
     });
   }
 
@@ -395,11 +387,6 @@ class Flow {
     if (!this._eleSelected) return;
     if (!this._htmlContainer) return;
 
-    // if (this._eleSelected!.classList.contains('output')) {
-    //   console.log('Do nothing'); // TODO: Add net somehow here.
-    //   return;
-    // }
-
     switch (this._uiEleMouseDown) {
       case UIElement.NodeOutput:
         if (!this._connectionEle) return;
@@ -420,12 +407,10 @@ class Flow {
 
         if (this.utilIsMatElement(this._tschSelected)) {
           // Is tschMat
-          console.log('Update All Nodes');
           svgConnection.updateAllNodes(this._htmlContainer, this.zoom);
         } else {
           // Is tschBlock
           // Update Connections
-          console.log('Update Node');
           svgConnection.updateNode(
             this._htmlContainer,
             this.zoom,
@@ -444,17 +429,6 @@ class Flow {
         const ele_last = (<HTMLElement>(
           document.elementFromPoint(event.clientX, event.clientY)
         )).parentElement;
-        //this.getElementsFromPoint(event.clientX, event.clientY);
-        console.log('Element Mouse Up:', ele_last);
-        console.log(
-          'Element Mouse Up Real:',
-          <HTMLElement>document.elementFromPoint(event.clientX, event.clientY),
-        );
-        console.log('X,Y', event.clientX, event.clientY);
-        console.log('X,Y', event.clientX0, event.clientY0);
-        console.log('X,Y', event.clientX0, event.clientY0);
-        console.log('Current Target', event.currentTarget);
-        //console.log(document.elementFromPoint(111, 593));
         if (!this._eleSelected) return;
         if (!ele_last) return;
         if (!this._connectionEle) return;
