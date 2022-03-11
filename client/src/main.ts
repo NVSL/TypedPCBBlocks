@@ -7,11 +7,20 @@ import './SchemaFlow/SvgConnection.css';
 
 /*
 2. Start Merging
- - Add updateAllNodes when resizing Mat
  - After that implement Path Delete and Node Delete
+ - Add different context menu for mat and block tschs
+ - Add a context menu for input and outputs to move them left/right
+ - Start integration with Tsch Lib
  - Also missing to check how to deal with svgConnection indexes. 
       Maybe have 3 layers: First Mats, Second Nodes, Third Block Tschs
 */
+
+// Context Menus
+enum ContextMenus {
+  MatTsch = 'MatTsch',
+  BlockTsch = 'BlockTsch',
+  Connection = 'Connection',
+}
 
 // Context Menu Options Slections
 enum MenuOptions {
@@ -97,6 +106,9 @@ class Flow {
   private _connectionID: number = 1;
   private _connectionEle: SVGSVGElement | null = null;
   private _connectionSelected: HTMLElement | null = null;
+
+  // Context Menues
+  private _contextMenuSelected: ContextMenus | null = null;
 
   // Connections Mapping Data
   public drawflow: DrawFlow = { drawflow: { Home: { data: new Map() } } }; // Nodes Object
@@ -210,8 +222,8 @@ class Flow {
 
       this._uiEleSelected = this._uiEleMouseDown;
 
-      // Remove context menu
-      this.contextMenuRemove();
+      // Remove context menus
+      this.contextMenusRemove();
     });
   }
 
@@ -221,15 +233,6 @@ class Flow {
       .resizable({
         // Resize only left|bottom
         edges: { left: false, right: true, bottom: true, top: false },
-
-        listeners: {
-          move(event) {
-            // Move elment
-            var target = event.target;
-            target.style.width = event.rect.width + 'px';
-            target.style.height = event.rect.height + 'px';
-          },
-        },
         modifiers: [
           // Minimum size
           interact.modifiers.restrictSize({
@@ -237,6 +240,9 @@ class Flow {
           }),
         ],
         inertia: true,
+        onstart: this.resizeStart,
+        onmove: this.resizeMove,
+        onend: this.resizeEnd,
       })
       .draggable({
         modifiers: [
@@ -248,8 +254,8 @@ class Flow {
           // }),
         ],
         inertia: true,
-        onmove: this.dragMove,
         onstart: this.dragStart,
+        onmove: this.dragMove,
         onend: this.dragEnd,
       });
 
@@ -315,8 +321,8 @@ class Flow {
         // }),
       ],
       autoScroll: true,
-      onmove: this.dragMove,
       onstart: this.dragStart,
+      onmove: this.dragMove,
       onend: this.dragEnd,
     });
   }
@@ -325,51 +331,85 @@ class Flow {
     // Show Contextmenu
     document.addEventListener('contextmenu', (e: MouseEvent) => {
       e.preventDefault();
+      this._contextMenuSelected = null;
       let showContextMenu: boolean = false;
 
       // Set default target selected, if child search until top
       const target = <HTMLElement>e.target;
       let parent = target;
-      while (parent) {
+      loop: while (parent) {
         if (parent.classList.contains('tsch')) {
-          showContextMenu = true;
+          if (parent.classList.contains('matTsch')) {
+            this._contextMenuSelected = ContextMenus.MatTsch;
+          }
+          if (parent.classList.contains('blockTsch')) {
+            this._contextMenuSelected = ContextMenus.BlockTsch;
+          }
+        }
+        if (parent.classList.contains('connection')) {
+          this._contextMenuSelected = ContextMenus.Connection;
         }
         parent = parent.parentElement!;
       }
 
-      if (showContextMenu) {
-        // Open context menu
-        const contextMenu = <HTMLElement>document.querySelector('#contextMenu');
-        const posX =
-          e.clientX + 150 > document.documentElement.clientWidth
-            ? e.clientX - 150
-            : e.clientX;
-        const posY =
-          e.clientY + 140 + 55 > document.documentElement.clientHeight
-            ? e.clientY - 140
-            : e.clientY;
-        contextMenu.style.top = posY + 'px';
-        contextMenu.style.left = posX + 'px';
-        contextMenu.classList.add('shown');
+      console.log('Context Menu Selected', this._contextMenuSelected);
+
+      switch (this._contextMenuSelected) {
+        case ContextMenus.MatTsch:
+          this.contextMenuShow('#contextMenuMat', e);
+          break;
+        case ContextMenus.BlockTsch:
+          this.contextMenuShow('#contextMenuBlock', e);
+          break;
+        case ContextMenus.Connection:
+          this.contextMenuShow('#contextMenuConnection', e);
+          break;
+        default:
+          return;
       }
     });
 
-    // Contextmenu click
-    document.querySelector('#contextMenu')!.addEventListener('click', (e) => {
-      const target = <HTMLElement>e.target;
-      const contextMenu = <HTMLElement>document.querySelector('#contextMenu')!;
-      const menuOption = <MenuOptions | undefined>(
-        target.getAttribute('menu-option')
-      );
-      if (!menuOption) return;
-      this.contextMenuProcessOptions(menuOption);
-      contextMenu.classList.remove('shown');
-    });
+    // Add Contextmenu Listeners
+    this.contextMenuAddListener('#contextMenuMat', this.contextMenuProcessMat);
+    this.contextMenuAddListener(
+      '#contextMenuBlock',
+      this.contextMenuProcessBlock,
+    );
+    this.contextMenuAddListener(
+      '#contextMenuConnection',
+      this.contextMenuProcessConnection,
+    );
   }
 
   // ### Drag Listeners
 
   private dragStart = (event: InteractEvent) => {
+    this.mouseStart(event, 'drag');
+  };
+
+  private dragMove = (event: InteractEvent) => {
+    this.mouseMove(event, 'drag');
+  };
+
+  private dragEnd = (event: InteractEvent) => {
+    this.mouseEnd(event, 'drag');
+  };
+
+  private resizeStart = (event: InteractEvent) => {
+    this.mouseStart(event, 'resize');
+  };
+
+  private resizeMove = (event: InteractEvent) => {
+    this.mouseMove(event, 'resize');
+  };
+
+  private resizeEnd = (event: InteractEvent) => {
+    this.mouseEnd(event, 'resize');
+  };
+
+  // ### Mouse Operations
+
+  private mouseStart = (event: InteractEvent, eventType: 'drag' | 'resize') => {
     switch (this._uiEleMouseDown) {
       case UIElement.NodeOutput:
         if (!this._htmlContainer) return;
@@ -381,7 +421,7 @@ class Flow {
     svgConnection.disablePointerEvents();
   };
 
-  private dragMove = (event: InteractEvent) => {
+  private mouseMove = (event: InteractEvent, eventType: 'drag' | 'resize') => {
     const target = <HTMLElement>event.target;
 
     if (!this._eleSelected) return;
@@ -400,29 +440,40 @@ class Flow {
         );
         break;
       case UIElement.NodeBlock:
-        this.positionelementSetOffset(target, event.dx, event.dy);
-        this.positionelementSetChildsOffset(target, event.dx, event.dy);
+        switch (eventType) {
+          case 'drag':
+            this.positionelementSetOffset(target, event.dx, event.dy);
+            this.positionelementSetChildsOffset(target, event.dx, event.dy);
 
-        if (!this._tschSelected) return;
+            if (!this._tschSelected) return;
 
-        if (this.utilIsMatElement(this._tschSelected)) {
-          // Is tschMat
-          svgConnection.updateAllNodes(this._htmlContainer, this.zoom);
-        } else {
-          // Is tschBlock
-          // Update Connections
-          svgConnection.updateNode(
-            this._htmlContainer,
-            this.zoom,
-            this._tschSelected.id,
-          );
+            if (this.utilIsMatElement(this._tschSelected)) {
+              // Is tschMat
+              svgConnection.updateAllNodes(this._htmlContainer, this.zoom);
+            } else {
+              // Is tschBlock
+              // Update Connections
+              svgConnection.updateNode(
+                this._htmlContainer,
+                this.zoom,
+                this._tschSelected.id,
+              );
+            }
+            break;
+          case 'resize':
+            // Resize Mat Tsch
+            target.style.width = event.rect.width + 'px';
+            target.style.height = event.rect.height + 'px';
+            // Update node connections
+            if (this._htmlContainer)
+              svgConnection.updateAllNodes(this._htmlContainer, this.zoom);
+            break;
         }
-
         break;
     }
   };
 
-  private dragEnd = (event: InteractEvent) => {
+  private mouseEnd = (event: InteractEvent, eventType: 'drag' | 'resize') => {
     switch (this._uiEleMouseDown) {
       case UIElement.NodeOutput:
         // Get MouseUp Element
@@ -440,6 +491,7 @@ class Flow {
           this._htmlContainer,
           this._connectionID,
           this.drawflow,
+          this.zoom,
         );
         if (conected) {
           this._connectionID++;
@@ -544,13 +596,50 @@ class Flow {
 
   // ### Context Menu
 
-  private contextMenuRemove() {
-    const contextMenu = <HTMLElement>document.querySelector('#contextMenu');
-    contextMenu.classList.remove('shown');
+  private contextMenuShow(tag: string, e: MouseEvent) {
+    const contextMenu = <HTMLElement>document.querySelector(tag);
+
+    if (!contextMenu) return;
+
+    // Position Context Menu
+    const posX =
+      e.clientX + 150 > document.documentElement.clientWidth
+        ? e.clientX - 150
+        : e.clientX;
+    const posY =
+      e.clientY + 140 + 55 > document.documentElement.clientHeight
+        ? e.clientY - 140
+        : e.clientY;
+    contextMenu.style.top = posY + 'px';
+    contextMenu.style.left = posX + 'px';
+    contextMenu.classList.add('shown');
   }
 
-  // Contextmenu process options
-  private contextMenuProcessOptions(option: MenuOptions) {
+  private contextMenusRemove() {
+    let contextMenu;
+    contextMenu = <HTMLElement>document.querySelector('#contextMenuMat');
+    if (contextMenu) contextMenu.classList.remove('shown');
+    contextMenu = <HTMLElement>document.querySelector('#contextMenuBlock');
+    if (contextMenu) contextMenu.classList.remove('shown');
+    contextMenu = <HTMLElement>document.querySelector('#contextMenuConnection');
+    if (contextMenu) contextMenu.classList.remove('shown');
+  }
+
+  private contextMenuAddListener(tag: string, callback: Function) {
+    document.querySelector(tag)!.addEventListener('click', (e) => {
+      const target = <HTMLElement>e.target;
+      const contextMenu = <HTMLElement>document.querySelector(tag)!;
+      const menuOption = <MenuOptions | undefined>(
+        target.getAttribute('menu-option')
+      );
+      if (!menuOption) return;
+      callback(menuOption);
+      contextMenu.classList.remove('shown');
+    });
+  }
+
+  // Contextmenu process Mat options
+  private contextMenuProcessMat = (option: MenuOptions) => {
     const tschElements = <HTMLElement>document.querySelector('#tschs')!;
     const zIndexesArray: Array<{
       ele: HTMLElement;
@@ -665,7 +754,15 @@ class Flow {
     for (const ele of zIndexesArray) {
       ele.ele.style.zIndex = ele.zIndex.toString();
     }
-  }
+  };
+
+  private contextMenuProcessBlock = (option: MenuOptions) => {
+    console.log('Block Context Click', option);
+  };
+
+  private contextMenuProcessConnection = (option: MenuOptions) => {
+    console.log('Connection Context Click', option);
+  };
 
   // ### User Methods
   // TODO: Add container ID
@@ -870,7 +967,7 @@ const matModule5V = `
 flow.addNode(
   'MatTsch',
   { 1: 'I2C' },
-  {}, // 1:[type, max_connections]
+  { 1: { name: 'GPIO', max: 2 } }, // 1:[type, max_connections]
   500,
   100,
   '',
