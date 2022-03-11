@@ -313,6 +313,7 @@ export default {
     eleContainer: HTMLElement,
     connectionID: number,
     connectionMap: DrawFlow,
+    zoom: number,
   ): boolean {
     // Check if last element is an input circle connection
     if (eleLast.classList[0] !== 'input') {
@@ -403,6 +404,9 @@ export default {
       });
 
       console.log('Connected!');
+
+      // Update all Nodes to fit connection in circle center
+      this.updateAllNodes(eleContainer, zoom);
       return true;
     } catch (e) {
       console.warn(e);
