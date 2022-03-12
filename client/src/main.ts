@@ -1,6 +1,7 @@
 import interact from 'interactjs';
 import { InteractEvent } from '@interactjs/core/InteractEvent';
 import svgConnection from './svgConnection';
+import Delete from './Delete';
 import './SchemaFlow/Interact.css';
 import './SchemaFlow/ContextMenu.css';
 import './SchemaFlow/SvgConnection.css';
