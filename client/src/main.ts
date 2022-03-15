@@ -180,17 +180,26 @@ class Flow {
         return;
       }
 
-      // Remove previous tsch selection if any
+      // Remove previous tsch (mat or block) selection if any
       if (this._tschSelected) {
         this._tschSelected.classList.remove('selected');
+        this._tschSelected = null;
       }
 
-      // Get TSCH is selected or is parent of inner elements.
-      this._tschSelected = null;
+      // Remove previous connection selection if any
+      if (this._connectionSelected) {
+        this._connectionSelected.children[0].classList.remove('selected');
+        this._connectionSelected = null;
+      }
+
+      // Get selected tsch if any
       parent = target;
       while (parent) {
         if (parent.classList.contains('tsch')) {
           this._tschSelected = parent;
+        }
+        if (parent.classList.contains('connection')) {
+          this._connectionSelected = parent;
         }
         parent = parent.parentElement!;
       }
@@ -208,8 +217,9 @@ class Flow {
         case 'main-path':
           console.log('Connection Selected');
           this._uiEleMouseDown = UIElement.NodeConnection;
-          // this.connection_selected = this.ele_selected;
-          // this.connection_selected.classList.add('selected');
+          if (this._connectionSelected) {
+            this._connectionSelected.children[0].classList.add('selected');
+          }
           break;
         default:
           // If parent is a tsch then selection is NodeBlock
@@ -748,6 +758,14 @@ class Flow {
         }
         break;
       case MenuOptions.Delete:
+        console.log('Delete click', this._tschSelected);
+        if (!this._tschSelected) return;
+        if (!this._htmlContainer) return;
+        Delete.removeNodeId(
+          this._tschSelected,
+          this._htmlContainer,
+          this.drawflow,
+        );
         break;
     }
 
@@ -759,10 +777,44 @@ class Flow {
 
   private contextMenuProcessBlock = (option: MenuOptions) => {
     console.log('Block Context Click', option);
+    switch (option) {
+      case MenuOptions.Delete:
+        console.log('Delete click', this._tschSelected);
+        if (!this._tschSelected) return;
+        if (!this._htmlContainer) return;
+        Delete.removeNodeId(
+          this._tschSelected,
+          this._htmlContainer,
+          this.drawflow,
+        );
+        break;
+    }
   };
 
   private contextMenuProcessConnection = (option: MenuOptions) => {
     console.log('Connection Context Click', option);
+    switch (option) {
+      case MenuOptions.Delete:
+        console.log('Delete click', this._connectionSelected);
+        if (!this._htmlContainer) return;
+        if (!this._connectionSelected) return;
+        // Get connection id
+        const connectionNum = Delete.connectionNumber(this._connectionSelected);
+        if (!connectionNum) {
+          console.error(
+            'Connection number not found in element',
+            this._connectionSelected,
+          );
+          return;
+        }
+        // Delete connection
+        Delete.removeNodeConnections(
+          [connectionNum],
+          this._htmlContainer,
+          this.drawflow,
+        );
+        break;
+    }
   };
 
   // ### User Methods
