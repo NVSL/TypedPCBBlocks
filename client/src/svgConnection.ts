@@ -387,6 +387,7 @@ export default {
 
       // Make connection
       eleConnection.id = 'connection-' + connectionID;
+      eleConnection.setAttribute('connection-id', connectionID.toString());
       eleConnection.classList.add('node_in_' + input_id);
       eleConnection.classList.add('node_out_' + output_id);
       eleConnection.classList.add(output_class);

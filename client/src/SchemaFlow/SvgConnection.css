@@ -35,7 +35,11 @@
 }
 
 .tschs .connection .main-path.selected {
-  stroke: #43b993;
+  /* stroke: #43b993;
+  border: 1px solid #4ea9ff;
+  -webkit-box-shadow: 0 2px 20px 2px #4ea9ff;
+  box-shadow: 0 2px 20px 2px #4ea9ff; */
+  filter: drop-shadow(0px 0px 8px #4ea9ff);
 }
 
 .tschs .connectionCircle {
