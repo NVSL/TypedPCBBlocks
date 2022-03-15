@@ -2,7 +2,7 @@ import './style.css';
 // Tsch EDA
 import { Tscheda, TschedaDebug } from 'tscheda';
 // Schema Flow
-import SchemaFlow from './SchemaFlow/SchemaFlow';
+import SchemaFlow from './SchemaFlow';
 
 var id = <HTMLElement>document.getElementById('app');
 const editor = new SchemaFlow(id);

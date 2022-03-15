@@ -1,19 +1,22 @@
+// Third-party libraries
 import interact from 'interactjs';
 import { InteractEvent } from '@interactjs/core/InteractEvent';
-import svgConnection from './svgConnection';
-import Delete from './Delete';
-import './SchemaFlow/Interact.css';
-import './SchemaFlow/ContextMenu.css';
-import './SchemaFlow/SvgConnection.css';
+// Flow libraries and CSS
+import SvgConnection from './Flow/SvgConnection';
+import ContextMenu from './Flow/ContextMenu';
+import Utils from './Flow/Utils';
+import './Flow/SvgConnection.css';
+import './Flow/ContextMenu.css';
+import './Flow/Flow.css';
 
 /*
 2. Start Merging
  - After that implement Path Delete and Node Delete
  - Add different context menu for mat and block tschs
+ - Refactor (missing changing contextMenu.contextMenu func to ContextMenu.func)
  - Add a context menu for input and outputs to move them left/right
+ - See how to deal with connections overlaping blocks, maybe add weights to connections? 
  - Start integration with Tsch Lib
- - Also missing to check how to deal with svgConnection indexes. 
-      Maybe have 3 layers: First Mats, Second Nodes, Third Block Tschs
 */
 
 // Context Menus
@@ -40,6 +43,14 @@ enum UIElement {
   NodeConnection = 'NodeConnection',
   Connection = 'Connection',
   Editor = 'Editor',
+}
+
+// Flow variables for context menu processing
+interface FlowState {
+  tschSelected: HTMLElement | null;
+  connectionSelected: HTMLElement | null;
+  htmlContainer: HTMLElement | null;
+  drawflow: DrawFlow;
 }
 
 // Connections Mapping Data
@@ -148,11 +159,13 @@ class Flow {
         </svg>`, // Insert as lastChild
     );
 
-    // Start Listeners
-    this.listenerGeneralClick();
-    this.listenerMatTsch();
-    this.listenerBlockTsch();
-    this.listenerContextMenu();
+    window.addEventListener('DOMContentLoaded', () => {
+      // Start Listeners
+      this.listenerGeneralClick();
+      this.listenerMatTsch();
+      this.listenerBlockTsch();
+      this.listenerContextMenu();
+    });
   }
 
   // ### Listeners
@@ -234,7 +247,7 @@ class Flow {
       this._uiEleSelected = this._uiEleMouseDown;
 
       // Remove context menus
-      this.contextMenusRemove();
+      ContextMenu.contextMenusRemove();
     });
   }
 
@@ -287,7 +300,7 @@ class Flow {
 
         // feedback the possibility of a drop
         dropzoneElement.classList.add('can-drop');
-        if (this.utilIsMatElement(draggableElement) == false) {
+        if (Utils.utilIsMatElement(draggableElement) == false) {
           draggableElement.classList.add('can-drop');
           // draggableElement.textContent = 'Dragged in';
         }
@@ -298,7 +311,7 @@ class Flow {
 
         // remove the drop feedback style
         dropzoneElement.classList.remove('can-drop');
-        if (this.utilIsMatElement(draggableElement) == false) {
+        if (Utils.utilIsMatElement(draggableElement) == false) {
           draggableElement.classList.remove('can-drop');
           // draggableElement.textContent = 'Dragged out';
         }
@@ -343,7 +356,6 @@ class Flow {
     document.addEventListener('contextmenu', (e: MouseEvent) => {
       e.preventDefault();
       this._contextMenuSelected = null;
-      let showContextMenu: boolean = false;
 
       // Set default target selected, if child search until top
       const target = <HTMLElement>e.target;
@@ -367,29 +379,53 @@ class Flow {
 
       switch (this._contextMenuSelected) {
         case ContextMenus.MatTsch:
-          this.contextMenuShow('#contextMenuMat', e);
+          ContextMenu.contextMenuShow('#contextMenuMat', e);
           break;
         case ContextMenus.BlockTsch:
-          this.contextMenuShow('#contextMenuBlock', e);
+          ContextMenu.contextMenuShow('#contextMenuBlock', e);
           break;
         case ContextMenus.Connection:
-          this.contextMenuShow('#contextMenuConnection', e);
+          ContextMenu.contextMenuShow('#contextMenuConnection', e);
           break;
         default:
           return;
       }
     });
 
-    // Add Contextmenu Listeners
-    this.contextMenuAddListener('#contextMenuMat', this.contextMenuProcessMat);
+    // Context Menu Mat Listener
+    this.contextMenuAddListener(
+      '#contextMenuMat',
+      ContextMenu.contextMenuProcessMat,
+    );
+    // Context Menu Block Listener
     this.contextMenuAddListener(
       '#contextMenuBlock',
-      this.contextMenuProcessBlock,
+      ContextMenu.contextMenuProcessBlock,
     );
+    // Context Menu Connection Listener
     this.contextMenuAddListener(
       '#contextMenuConnection',
-      this.contextMenuProcessConnection,
+      ContextMenu.contextMenuProcessConnection,
     );
+  }
+
+  private contextMenuAddListener(tag: string, callback: Function) {
+    document.querySelector(tag)!.addEventListener('click', (e) => {
+      const target = <HTMLElement>e.target;
+      const contextMenu = <HTMLElement>document.querySelector(tag)!;
+      const menuOption = <MenuOptions | undefined>(
+        target.getAttribute('menu-option')
+      );
+      if (!menuOption) return;
+      const flowState: FlowState = {
+        tschSelected: this._tschSelected,
+        connectionSelected: this._connectionSelected,
+        htmlContainer: this._htmlContainer,
+        drawflow: this.drawflow,
+      };
+      callback(menuOption, flowState);
+      contextMenu.classList.remove('shown');
+    });
   }
 
   // ### Drag Listeners
@@ -424,12 +460,12 @@ class Flow {
     switch (this._uiEleMouseDown) {
       case UIElement.NodeOutput:
         if (!this._htmlContainer) return;
-        this._connectionEle = svgConnection.draw(this._htmlContainer);
+        this._connectionEle = SvgConnection.draw(this._htmlContainer);
         break;
     }
 
     // Disable svg tag pointers to get correct element below mouse
-    svgConnection.disablePointerEvents();
+    SvgConnection.disablePointerEvents();
   };
 
   private mouseMove = (event: InteractEvent, eventType: 'drag' | 'resize') => {
@@ -441,7 +477,7 @@ class Flow {
     switch (this._uiEleMouseDown) {
       case UIElement.NodeOutput:
         if (!this._connectionEle) return;
-        svgConnection.update(
+        SvgConnection.update(
           this._htmlContainer,
           this._eleSelected,
           this._connectionEle,
@@ -458,13 +494,13 @@ class Flow {
 
             if (!this._tschSelected) return;
 
-            if (this.utilIsMatElement(this._tschSelected)) {
+            if (Utils.utilIsMatElement(this._tschSelected)) {
               // Is tschMat
-              svgConnection.updateAllNodes(this._htmlContainer, this.zoom);
+              SvgConnection.updateAllNodes(this._htmlContainer, this.zoom);
             } else {
               // Is tschBlock
               // Update Connections
-              svgConnection.updateNode(
+              SvgConnection.updateNode(
                 this._htmlContainer,
                 this.zoom,
                 this._tschSelected.id,
@@ -477,7 +513,7 @@ class Flow {
             target.style.height = event.rect.height + 'px';
             // Update node connections
             if (this._htmlContainer)
-              svgConnection.updateAllNodes(this._htmlContainer, this.zoom);
+              SvgConnection.updateAllNodes(this._htmlContainer, this.zoom);
             break;
         }
         break;
@@ -495,7 +531,7 @@ class Flow {
         if (!ele_last) return;
         if (!this._connectionEle) return;
         if (!this._htmlContainer) return;
-        const conected = svgConnection.connect(
+        const conected = SvgConnection.connect(
           this._eleSelected,
           ele_last,
           this._connectionEle,
@@ -511,7 +547,7 @@ class Flow {
     }
 
     // Enable svg pointer events again
-    svgConnection.enablePointerEvents();
+    SvgConnection.enablePointerEvents();
   };
 
   // ### Elements Positioning
@@ -547,7 +583,7 @@ class Flow {
       // Set new positon
       this.positionelementSet(childTarget, pos.x, pos.y);
 
-      if (this.utilIsMatElement(childTarget)) {
+      if (Utils.utilIsMatElement(childTarget)) {
         // If Mat, recursively modify positions
         this.positionelementSetChildsOffset(childTarget, dx, dy);
       }
@@ -598,224 +634,6 @@ class Flow {
       }
     }
   }
-
-  // ### Utils
-
-  private utilIsMatElement(target: HTMLElement): boolean {
-    return target.getAttribute('mat-id') ? true : false;
-  }
-
-  // ### Context Menu
-
-  private contextMenuShow(tag: string, e: MouseEvent) {
-    const contextMenu = <HTMLElement>document.querySelector(tag);
-
-    if (!contextMenu) return;
-
-    // Position Context Menu
-    const posX =
-      e.clientX + 150 > document.documentElement.clientWidth
-        ? e.clientX - 150
-        : e.clientX;
-    const posY =
-      e.clientY + 140 + 55 > document.documentElement.clientHeight
-        ? e.clientY - 140
-        : e.clientY;
-    contextMenu.style.top = posY + 'px';
-    contextMenu.style.left = posX + 'px';
-    contextMenu.classList.add('shown');
-  }
-
-  private contextMenusRemove() {
-    let contextMenu;
-    contextMenu = <HTMLElement>document.querySelector('#contextMenuMat');
-    if (contextMenu) contextMenu.classList.remove('shown');
-    contextMenu = <HTMLElement>document.querySelector('#contextMenuBlock');
-    if (contextMenu) contextMenu.classList.remove('shown');
-    contextMenu = <HTMLElement>document.querySelector('#contextMenuConnection');
-    if (contextMenu) contextMenu.classList.remove('shown');
-  }
-
-  private contextMenuAddListener(tag: string, callback: Function) {
-    document.querySelector(tag)!.addEventListener('click', (e) => {
-      const target = <HTMLElement>e.target;
-      const contextMenu = <HTMLElement>document.querySelector(tag)!;
-      const menuOption = <MenuOptions | undefined>(
-        target.getAttribute('menu-option')
-      );
-      if (!menuOption) return;
-      callback(menuOption);
-      contextMenu.classList.remove('shown');
-    });
-  }
-
-  // Contextmenu process Mat options
-  private contextMenuProcessMat = (option: MenuOptions) => {
-    const tschElements = <HTMLElement>document.querySelector('#tschs')!;
-    const zIndexesArray: Array<{
-      ele: HTMLElement;
-      tschId: string;
-      zIndex: number;
-    }> = new Array();
-
-    if (!this._tschSelected) return;
-
-    // Layers options is only available for Mats
-    if (!this.utilIsMatElement(this._tschSelected)) return;
-
-    // Get element to move
-    let eleToMove: string | null = null;
-    if (this._tschSelected) {
-      eleToMove = this._tschSelected.getAttribute('tsch-id');
-    } else {
-      return;
-    }
-
-    if (!eleToMove) {
-      return;
-    }
-
-    // Fill zIndex Array with current tsch elements (Only Mat Elements)
-    tschElements.childNodes.forEach((child) => {
-      const childEle = <HTMLElement>child;
-      if (this.utilIsMatElement(childEle)) {
-        const matStyle = window.getComputedStyle(childEle);
-        const tschId = childEle.getAttribute('tsch-id');
-        if (tschId) {
-          const zIndex = matStyle.getPropertyValue('z-index');
-          zIndexesArray.push({
-            ele: childEle,
-            tschId: tschId,
-            zIndex: parseFloat(zIndex),
-          });
-        }
-      }
-    });
-
-    // Sort zIndex Array
-    zIndexesArray.sort((a, b) =>
-      a.zIndex > b.zIndex ? 1 : b.zIndex > a.zIndex ? -1 : 0,
-    );
-
-    // Update zIndex depending of option
-    switch (option) {
-      case MenuOptions.LayerTop:
-        let minusOne: boolean = false;
-        const lastEle = { ...zIndexesArray[zIndexesArray.length - 1] };
-        if (eleToMove != lastEle.tschId) {
-          for (const ele of zIndexesArray) {
-            // If eleToMove swap with last, the rest -1
-            if (minusOne) {
-              ele.zIndex -= 1;
-            }
-            if (ele.tschId == eleToMove) {
-              ele.zIndex = lastEle.zIndex;
-              minusOne = true;
-            }
-          }
-        }
-        break;
-      case MenuOptions.LayerUp:
-        for (const [index, value] of zIndexesArray.entries()) {
-          if (value.tschId == eleToMove) {
-            // Swap with next element
-            const nextEle = zIndexesArray[index + 1];
-            if (nextEle) {
-              const tmp = value.zIndex;
-              value.zIndex = nextEle.zIndex;
-              nextEle.zIndex = tmp;
-            }
-          }
-        }
-        break;
-      case MenuOptions.LayerDown:
-        for (const [index, value] of zIndexesArray.entries()) {
-          if (value.tschId == eleToMove) {
-            // Swap with previous element
-            const prevEle = zIndexesArray[index - 1];
-            if (prevEle) {
-              const tmp = value.zIndex;
-              value.zIndex = prevEle.zIndex;
-              prevEle.zIndex = tmp;
-            }
-          }
-        }
-        break;
-      case MenuOptions.LayerBottom:
-        let plusOne: boolean = true;
-        const firstEle = { ...zIndexesArray[0] };
-        if (eleToMove != firstEle.tschId) {
-          for (const ele of zIndexesArray) {
-            // If eleToMove swap with first, the rest +1
-            if (ele.tschId == eleToMove) {
-              ele.zIndex = firstEle.zIndex;
-              plusOne = false;
-            }
-            if (plusOne) {
-              ele.zIndex += 1;
-            }
-          }
-        }
-        break;
-      case MenuOptions.Delete:
-        console.log('Delete click', this._tschSelected);
-        if (!this._tschSelected) return;
-        if (!this._htmlContainer) return;
-        Delete.removeNodeId(
-          this._tschSelected,
-          this._htmlContainer,
-          this.drawflow,
-        );
-        break;
-    }
-
-    // Apply zIndex Changes
-    for (const ele of zIndexesArray) {
-      ele.ele.style.zIndex = ele.zIndex.toString();
-    }
-  };
-
-  private contextMenuProcessBlock = (option: MenuOptions) => {
-    console.log('Block Context Click', option);
-    switch (option) {
-      case MenuOptions.Delete:
-        console.log('Delete click', this._tschSelected);
-        if (!this._tschSelected) return;
-        if (!this._htmlContainer) return;
-        Delete.removeNodeId(
-          this._tschSelected,
-          this._htmlContainer,
-          this.drawflow,
-        );
-        break;
-    }
-  };
-
-  private contextMenuProcessConnection = (option: MenuOptions) => {
-    console.log('Connection Context Click', option);
-    switch (option) {
-      case MenuOptions.Delete:
-        console.log('Delete click', this._connectionSelected);
-        if (!this._htmlContainer) return;
-        if (!this._connectionSelected) return;
-        // Get connection id
-        const connectionNum = Delete.connectionNumber(this._connectionSelected);
-        if (!connectionNum) {
-          console.error(
-            'Connection number not found in element',
-            this._connectionSelected,
-          );
-          return;
-        }
-        // Delete connection
-        Delete.removeNodeConnections(
-          [connectionNum],
-          this._htmlContainer,
-          this.drawflow,
-        );
-        break;
-    }
-  };
 
   // ### User Methods
   // TODO: Add container ID
@@ -954,7 +772,7 @@ class Flow {
   }
 }
 
-export { DrawFlow, jsonOutputsData, jsonInputsData };
+export { DrawFlow, jsonOutputsData, jsonInputsData, FlowState, MenuOptions };
 
 // ### UI Interface
 
