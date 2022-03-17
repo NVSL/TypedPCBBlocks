@@ -14,6 +14,7 @@ import './Flow.css';
  - After that implement Path Delete and Node Delete
  - Add different context menu for mat and block tschs
  - Refactor (missing changing contextMenu.contextMenu func to ContextMenu.func)
+ - Refactor (missing to check if dataflow changes are correct after inputs/outputs to ios)
  - Add a context menu for input and outputs to move them left/right
  - See how to deal with connections overlaping blocks, maybe add weights to connections? 
  - Start integration with Tsch Lib
@@ -69,10 +70,17 @@ interface ConnectionInput {
   input: string;
 }
 
+interface ConnectionData {
+  svgid: number;
+  node: number;
+  io: string;
+}
+
 // IFACE: jsonInputs
 interface jsonInputsData {
   connections: Array<ConnectionInput>;
   type: string;
+  max_connections: number;
 }
 type jsonInputs = Map<string, jsonInputsData>;
 
@@ -84,13 +92,20 @@ interface jsonOutputsData {
 }
 type jsonOutputs = Map<string, jsonOutputsData>;
 
+// IFACE: jsonIOs
+interface nodeIOData {
+  connections: Array<ConnectionData>;
+  type: string;
+  max_connections: number;
+}
+type nodeIOs = Map<string, nodeIOData>;
+
 // IFACE: Data
 interface Data {
   id: number;
   class: string;
   html: string;
-  inputs: jsonInputs;
-  outputs: jsonOutputs;
+  ios: nodeIOs;
   pos_x: number;
   pos_y: number;
 }
@@ -225,7 +240,9 @@ class Flow {
           this._uiEleMouseDown = UIElement.Editor;
           break;
         case 'type':
-          switch (this._eleSelected.parentElement!.classList[0]) {
+          // Correct element selection to parent
+          this._eleSelected = this._eleSelected.parentElement!;
+          switch (this._eleSelected.classList[0]) {
             case 'input':
               this._uiEleMouseDown = UIElement.NodeInput;
               break;
@@ -537,11 +554,32 @@ class Flow {
 
   private mouseEnd = (event: InteractEvent, eventType: 'drag' | 'resize') => {
     switch (this._uiEleMouseDown) {
+      case UIElement.NodeInput:
       case UIElement.NodeOutput:
         // Get MouseUp Element
-        const ele_last = (<HTMLElement>(
+        let ele_last = <HTMLElement>(
           document.elementFromPoint(event.clientX, event.clientY)
-        )).parentElement;
+        );
+
+        // Check if element or it's parent contains input or output class.
+        if (
+          !(
+            ele_last.classList.contains('input') ||
+            ele_last.classList.contains('output')
+          )
+        ) {
+          ele_last = <HTMLElement>ele_last.parentElement;
+          if (
+            !(
+              ele_last.classList.contains('input') ||
+              ele_last.classList.contains('output')
+            )
+          ) {
+            console.warn('Mouse end target element could not be defined');
+            return;
+          }
+        }
+
         if (!this._eleSelected) return;
         if (!ele_last) return;
         if (!this._connectionEle) return;
@@ -682,7 +720,7 @@ class Flow {
 
   public addNode(
     type: 'BlockTsch' | 'MatTsch',
-    num_in: { [key: number]: string },
+    num_in: { [key: number]: { name: string; max: number } },
     num_out: { [key: number]: { name: string; max: number } },
     ele_pos_x: number,
     ele_pos_y: number,
@@ -728,6 +766,10 @@ class Flow {
         break;
     }
 
+    // SET IOs
+    let IOKey: number = 0;
+    const nodesIOs: nodeIOs = new Map();
+
     // ADD INPUTS
     node.insertAdjacentHTML(
       'beforeend',
@@ -735,13 +777,18 @@ class Flow {
     );
     const inputs = <HTMLElement>node.lastChild;
     // Add Node HTML element inputs
-    const json_inputs: jsonInputs = new Map();
-    for (const [key, value] of Object.entries(num_in)) {
+    // const json_inputs: jsonInputs = new Map();
+    for (const value of Object.values(num_in)) {
       inputs.insertAdjacentHTML(
         'beforeend',
-        `<div class="input input_${key}"><div class="type">${value}</div></div>`, // Insert as lastChild
+        `<div class="input io_${IOKey}"><div class="type">${value.name}</div></div>`, // Insert as lastChild
       );
-      json_inputs.set('input_' + key, { connections: [], type: value });
+      nodesIOs.set('io_' + IOKey, {
+        connections: [],
+        type: value.name,
+        max_connections: value.max,
+      });
+      IOKey++;
     }
 
     // ADD CONTENT
@@ -757,17 +804,18 @@ class Flow {
     );
     const outputs = <HTMLElement>node.lastChild;
     // Add Node HTML element outputs
-    const json_outputs: jsonOutputs = new Map();
-    for (const [key, value] of Object.entries(num_out)) {
+    // const json_outputs: jsonOutputs = new Map();
+    for (const value of Object.values(num_out)) {
       outputs.insertAdjacentHTML(
         'beforeend',
-        `<div class="output output_${key}"><div class="type">${value.name}</div></div>`, // Insert as lastChild
+        `<div class="output io_${IOKey}"><div class="type">${value.name}</div></div>`, // Insert as lastChild
       );
-      json_outputs.set('output_' + key, {
+      nodesIOs.set('io_' + IOKey, {
         connections: [],
         type: value.name,
         max_connections: value.max,
       });
+      IOKey++;
     }
 
     // Add Node Data to Connection Data
@@ -775,8 +823,7 @@ class Flow {
       id: nodeId,
       class: classoverride,
       html: html,
-      inputs: json_inputs,
-      outputs: json_outputs,
+      ios: nodesIOs,
       pos_x: ele_pos_x,
       pos_y: ele_pos_y,
     };
@@ -787,11 +834,4 @@ class Flow {
   }
 }
 
-export {
-  Flow,
-  DrawFlow,
-  jsonOutputsData,
-  jsonInputsData,
-  FlowState,
-  MenuOptions,
-};
+export { Flow, DrawFlow, nodeIOData, jsonInputsData, FlowState, MenuOptions };
