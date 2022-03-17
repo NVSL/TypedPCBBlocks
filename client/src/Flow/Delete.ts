@@ -1,4 +1,4 @@
-import { DrawFlow } from '../main';
+import { DrawFlow } from './Flow';
 
 // TODO: Change NodeNumber and ConnectionNumber to string
 

@@ -1,4 +1,4 @@
-import { FlowState, MenuOptions } from '../main';
+import { FlowState, MenuOptions } from './Flow';
 import Delete from './Delete';
 import Utils from './Utils';
 

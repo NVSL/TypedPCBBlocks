@@ -1,4 +1,4 @@
-import { DrawFlow, jsonOutputsData, jsonInputsData } from '../main';
+import { DrawFlow, jsonOutputsData, jsonInputsData } from './Flow';
 
 export default {
   draw(container: HTMLElement): SVGSVGElement {
