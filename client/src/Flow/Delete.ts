@@ -59,20 +59,10 @@ export default {
     // Remove connections in Map
     const nodes = drawflow.drawflow.Home.data;
     for (const node of nodes.values()) {
-      for (const inputs of node.inputs.values()) {
+      // ios
+      for (const inputs of node.ios.values()) {
         if (inputs.connections.length > 0) {
           const connections = inputs.connections;
-          connections.forEach((value, index) => {
-            if (svgIDs.includes(value.svgid)) {
-              connections.splice(index, 1);
-            }
-          });
-        }
-      }
-      // outputs
-      for (const outputs of node.outputs.values()) {
-        if (outputs.connections.length > 0) {
-          const connections = outputs.connections;
           connections.forEach((value, index) => {
             if (svgIDs.includes(value.svgid)) {
               connections.splice(index, 1);
@@ -92,19 +82,10 @@ export default {
     const nodeNumber = this.nodeNumber(nodeElement);
     for (const [key, value] of nodes.entries()) {
       if (key == nodeNumber) {
-        // inputs
-        for (const inputs of value.inputs.values()) {
+        // input/outpus
+        for (const inputs of value.ios.values()) {
           if (inputs.connections.length > 0) {
             const connections = inputs.connections;
-            for (const connection of Object.values(connections)) {
-              arrayConnections.push(connection.svgid);
-            }
-          }
-        }
-        // outputs
-        for (const outputs of value.outputs.values()) {
-          if (outputs.connections.length > 0) {
-            const connections = outputs.connections;
             for (const connection of Object.values(connections)) {
               arrayConnections.push(connection.svgid);
             }
