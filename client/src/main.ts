@@ -22,7 +22,7 @@ var computeModule = `
       `;
 flow.addNode(
   'BlockTsch',
-  { 1: 'GPIO' },
+  { 1: { name: 'GPIO', max: 2 } },
   {
     1: { name: 'GPIO', max: 2 },
     2: { name: 'I2C', max: 2 },
@@ -43,10 +43,10 @@ var pheripherial = `
 flow.addNode(
   'BlockTsch',
   {
-    1: 'GPIO',
-    2: 'I2C',
-    3: 'SPI',
-    4: 'UART',
+    1: { name: 'GPIO', max: 2 },
+    2: { name: 'I2C', max: 2 },
+    3: { name: 'SPI', max: 2 },
+    4: { name: 'UART', max: 2 },
   }, // 1:[type, max_connections]
   {},
   100,
@@ -62,7 +62,7 @@ const matModule5V = `
       `;
 flow.addNode(
   'MatTsch',
-  { 1: 'I2C' },
+  { 1: { name: 'I2C', max: 2 } },
   { 1: { name: 'GPIO', max: 2 } }, // 1:[type, max_connections]
   500,
   100,
