@@ -1,4 +1,4 @@
-import { DrawFlow, jsonOutputsData, jsonInputsData } from './Flow';
+import { DrawFlow, nodeIOData } from './Flow';
 
 export default {
   draw(container: HTMLElement): SVGSVGElement {
@@ -68,7 +68,7 @@ export default {
       x,
       y,
       0.5,
-      'openclose',
+      'balanced',
     );
     path.setAttributeNS(null, 'd', lineCurve);
   },
@@ -257,14 +257,9 @@ export default {
           '  ' +
           y
         );
-      case 'other':
-        if (start_pos_x >= end_pos_x) {
-          hx1 = line_x + Math.abs(x - line_x) * (curvature * -1);
-          hx2 = x - Math.abs(x - line_x) * (curvature * -1);
-        } else {
-          hx1 = line_x + Math.abs(x - line_x) * curvature;
-          hx2 = x - Math.abs(x - line_x) * curvature;
-        }
+      case 'right':
+        hx1 = line_x + Math.abs(x - line_x) * curvature;
+        hx2 = x - Math.abs(x - line_x) * curvature;
         return (
           ' M ' +
           line_x +
@@ -283,9 +278,15 @@ export default {
           '  ' +
           y
         );
+      case 'balanced':
       default:
-        hx1 = line_x + Math.abs(x - line_x) * curvature;
-        hx2 = x - Math.abs(x - line_x) * curvature;
+        if (start_pos_x >= end_pos_x) {
+          hx1 = line_x + Math.abs(x - line_x) * (curvature * -1);
+          hx2 = x - Math.abs(x - line_x) * (curvature * -1);
+        } else {
+          hx1 = line_x + Math.abs(x - line_x) * curvature;
+          hx2 = x - Math.abs(x - line_x) * curvature;
+        }
         return (
           ' M ' +
           line_x +
@@ -316,59 +317,71 @@ export default {
     zoom: number,
   ): boolean {
     // Check if last element is an input circle connection
-    if (eleLast.classList[0] !== 'input') {
-      eleConnection.remove();
-      return false;
-    }
+    // if (eleLast.classList[0] !== 'input') {
+    //   eleConnection.remove();
+    //   return false;
+    // }
 
     const input = this.parentContainsTsch(eleLast);
     const output = this.parentContainsTsch(eleFirst);
 
-    if (!input) return false;
-    if (!output) return false;
+    console.log('Input', eleLast, input);
+    console.log('Output', eleFirst, output);
+
+    if (!input) throw 'Input tsch element not found';
+    if (!output) throw 'Output tsch element not found';
 
     const input_id = input.id;
     const input_class = eleLast.classList[1];
     const output_id = output.id;
     const output_class = eleFirst.classList[1];
 
-    // Check if it's not the same tsch element
-    if (output_id === input_id) {
-      eleConnection.remove();
-      return false;
-    }
+    console.log('Input Id, class', input_id, input_class);
+    console.log('Output Id, class', output_id, output_class);
 
-    // Check if connection alredy exists
-    if (
-      eleContainer.querySelectorAll(
-        '.connection.node_in_' +
-          input_id +
-          '.node_out_' +
-          output_id +
-          '.' +
-          output_class +
-          '.' +
-          input_class,
-      ).length !== 0
-    ) {
-      console.log('Drag End | Connection already exist');
-      return false;
-    }
-
-    // Conection doestn't exist save connection
     try {
+      // Check if it's not the same tsch element
+      if (output_id === input_id) {
+        throw 'Cannot connect to same tsch element';
+      }
+
+      // Check if connection alredy exists
+      if (
+        eleContainer.querySelectorAll(
+          '.connection.node_in_' +
+            input_id +
+            '.node_out_' +
+            output_id +
+            '.' +
+            output_class +
+            '.' +
+            input_class,
+        ).length !== 0
+      ) {
+        throw 'Connection alredy exists';
+      }
+
+      // Conection doestn't exist save connection
       const inputNodeNumber = this.nodeNumber(input);
       const outputNodeNumber = this.nodeNumber(output);
+
+      console.log('Input number', inputNodeNumber);
+      console.log('Output number', outputNodeNumber);
+
+      console.log('Drawflow', connectionMap.drawflow.Home.data);
 
       if (inputNodeNumber == null) throw 'input node id not found';
       if (outputNodeNumber === null) throw 'output node id not found';
 
-      const outputClass: jsonOutputsData = connectionMap.drawflow.Home.data
+      const outputClass: nodeIOData = connectionMap.drawflow.Home.data
         .get(outputNodeNumber)!
-        .outputs.get(output_class)!;
-      const inputClass: jsonInputsData = connectionMap.drawflow.Home.data
+        .ios.get(output_class)!;
+      const inputClass: nodeIOData = connectionMap.drawflow.Home.data
         .get(inputNodeNumber)!
-        .inputs.get(input_class)!;
+        .ios.get(input_class)!;
+
+      console.log('Output class', outputClass);
+      console.log('Input class', inputClass);
 
       // Get Types
       const output_type = outputClass.type;
@@ -396,12 +409,12 @@ export default {
       outputClass.connections.push({
         svgid: connectionID,
         node: inputNodeNumber,
-        output: input_class,
+        io: input_class,
       });
       inputClass.connections.push({
         svgid: connectionID,
         node: outputNodeNumber,
-        input: output_class,
+        io: output_class,
       });
 
       console.log('Connected!');
