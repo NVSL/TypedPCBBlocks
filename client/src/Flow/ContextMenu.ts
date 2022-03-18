@@ -37,7 +37,7 @@ export default {
     const tschElements = <HTMLElement>document.querySelector('#tschs')!;
     const zIndexesArray: Array<{
       ele: HTMLElement;
-      tschId: string;
+      tschKey: string;
       zIndex: number;
     }> = new Array();
 
@@ -49,7 +49,7 @@ export default {
     // Get element to move
     let eleToMove: string | null = null;
     if (flowState.tschSelected) {
-      eleToMove = flowState.tschSelected.getAttribute('tsch-id');
+      eleToMove = flowState.tschSelected.getAttribute('tsch-key');
     } else {
       return;
     }
@@ -63,12 +63,12 @@ export default {
       const childEle = <HTMLElement>child;
       if (Utils.utilIsMatElement(childEle)) {
         const matStyle = window.getComputedStyle(childEle);
-        const tschId = childEle.getAttribute('tsch-id');
-        if (tschId) {
+        const tschKey = childEle.getAttribute('tsch-key');
+        if (tschKey) {
           const zIndex = matStyle.getPropertyValue('z-index');
           zIndexesArray.push({
             ele: childEle,
-            tschId: tschId,
+            tschKey: tschKey,
             zIndex: parseFloat(zIndex),
           });
         }
@@ -85,13 +85,13 @@ export default {
       case MenuOptions.LayerTop:
         let minusOne: boolean = false;
         const lastEle = { ...zIndexesArray[zIndexesArray.length - 1] };
-        if (eleToMove != lastEle.tschId) {
+        if (eleToMove != lastEle.tschKey) {
           for (const ele of zIndexesArray) {
             // If eleToMove swap with last, the rest -1
             if (minusOne) {
               ele.zIndex -= 1;
             }
-            if (ele.tschId == eleToMove) {
+            if (ele.tschKey == eleToMove) {
               ele.zIndex = lastEle.zIndex;
               minusOne = true;
             }
@@ -100,7 +100,7 @@ export default {
         break;
       case MenuOptions.LayerUp:
         for (const [index, value] of zIndexesArray.entries()) {
-          if (value.tschId == eleToMove) {
+          if (value.tschKey == eleToMove) {
             // Swap with next element
             const nextEle = zIndexesArray[index + 1];
             if (nextEle) {
@@ -113,7 +113,7 @@ export default {
         break;
       case MenuOptions.LayerDown:
         for (const [index, value] of zIndexesArray.entries()) {
-          if (value.tschId == eleToMove) {
+          if (value.tschKey == eleToMove) {
             // Swap with previous element
             const prevEle = zIndexesArray[index - 1];
             if (prevEle) {
@@ -127,10 +127,10 @@ export default {
       case MenuOptions.LayerBottom:
         let plusOne: boolean = true;
         const firstEle = { ...zIndexesArray[0] };
-        if (eleToMove != firstEle.tschId) {
+        if (eleToMove != firstEle.tschKey) {
           for (const ele of zIndexesArray) {
             // If eleToMove swap with first, the rest +1
-            if (ele.tschId == eleToMove) {
+            if (ele.tschKey == eleToMove) {
               ele.zIndex = firstEle.zIndex;
               plusOne = false;
             }
@@ -182,10 +182,10 @@ export default {
         if (!flowState.htmlContainer) return;
         if (!flowState.connectionSelected) return;
         // Get connection id
-        const connectionNum = Utils.getConnectionNumber(
+        const connectionKey = Utils.getConnectionKey(
           flowState.connectionSelected,
         );
-        if (!connectionNum) {
+        if (!connectionKey) {
           console.error(
             'Connection number not found in element',
             flowState.connectionSelected,
@@ -194,7 +194,7 @@ export default {
         }
         // Delete connection
         Delete.removeNodeConnections(
-          [connectionNum],
+          [connectionKey],
           flowState.htmlContainer,
           flowState.drawflow,
         );

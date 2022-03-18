@@ -6,12 +6,12 @@ const flow = new Flow(container);
 
 // Button AddMat
 document.querySelector('#addMatTsch')!.addEventListener('click', () => {
-  flow.addMatTsch();
+  // flow.addMatTsch();
 });
 
 // Button AddTsch
 document.querySelector('#addBlockTsch')!.addEventListener('click', () => {
-  flow.addBlockTsch();
+  // flow.addBlockTsch();
 });
 
 // Add Node

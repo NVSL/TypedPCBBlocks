@@ -15,11 +15,11 @@ export default {
     this.removeNodeIdConnections(nodeElement, container, drawflow);
 
     // Delete Node Block from Storage Object
-    const nodeNumber = Utils.getNodeNumber(nodeElement);
-    if (nodeNumber !== null) drawflow.drawflow.Home.data.delete(nodeNumber);
+    const nodeKey = Utils.getTschKey(nodeElement);
+    if (nodeKey !== null) drawflow.drawflow.Home.data.delete(nodeKey);
     else
       console.error(
-        `Node number ${nodeNumber} not found in node element`,
+        `Node number ${nodeKey} not found in node element`,
         nodeElement,
       );
     console.log(drawflow.drawflow.Home.data);
@@ -39,22 +39,22 @@ export default {
   ) {
     if (!nodeElement) return;
 
-    const svgIDs: Array<number> = this.getNodeConnectionsSVGID(
+    const connectionKeys: Array<string> = this.getNodeConnectionsKeys(
       nodeElement,
       drawflow,
     );
-    this.removeNodeConnections(svgIDs, container, drawflow);
+    this.removeNodeConnections(connectionKeys, container, drawflow);
   },
 
   removeNodeConnections(
-    connectinIDs: Array<number>,
+    connectinKeys: Array<string>,
     container: HTMLElement,
     drawflow: DrawFlow,
   ) {
     // Remove connections in UI
-    for (const svgID of connectinIDs) {
-      console.log(svgID);
-      const svgEle = container.querySelector(`#connection-${svgID}`);
+    for (const connectionKey of connectinKeys) {
+      console.log(connectionKey);
+      const svgEle = container.querySelector(`#connection-${connectionKey}`);
       if (svgEle) svgEle.remove();
     }
     // Remove connections in Map
@@ -65,7 +65,7 @@ export default {
         if (ios.connections.length > 0) {
           const connections = ios.connections;
           connections.forEach((value, index) => {
-            if (connectinIDs.includes(value.connectionID)) {
+            if (connectinKeys.includes(value.connectionID)) {
               connections.splice(index, 1);
             }
           });
@@ -74,13 +74,13 @@ export default {
     }
   },
 
-  getNodeConnectionsSVGID(
+  getNodeConnectionsKeys(
     nodeElement: HTMLElement,
     drawflow: DrawFlow,
-  ): Array<number> {
-    const arrayConnections: Array<number> = new Array();
+  ): Array<string> {
+    const arrayConnections: Array<string> = new Array();
     const nodes = drawflow.drawflow.Home.data;
-    const nodeNumber = Utils.getNodeNumber(nodeElement);
+    const nodeNumber = Utils.getTschKey(nodeElement);
     for (const [key, value] of nodes.entries()) {
       if (key == nodeNumber) {
         // input/outpus

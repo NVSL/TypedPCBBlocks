@@ -1,4 +1,4 @@
-import { DrawFlow, nodeIOData } from './Flow';
+import { DrawFlow, IOData } from './Flow';
 import Utils from './Utils';
 
 export default {
@@ -76,13 +76,14 @@ export default {
   updateAllNodes(container: HTMLElement, zoom: number) {
     container.childNodes.forEach((child) => {
       const ele = <HTMLElement>child;
-      if (ele.getAttribute('tsch-id')) {
+      if (Utils.getTschKey(ele)) {
         this.updateNode(container, zoom, ele.id);
       }
     });
   },
   // Updates SVG Lines (Connections) for all Node Blocks
   updateNode(container: HTMLElement, zoom: number, id: string) {
+    console.log('Update Node id:', id);
     // Set Zooms
     let precanvasWitdhZoom =
       container.clientWidth / (container.clientWidth * zoom);
@@ -123,6 +124,12 @@ export default {
           );
           break;
       }
+
+      console.log('INPUT/OUTPUT', inputOutput);
+      console.log('id_search', id_search);
+      console.log('elemtsearchId', elemtsearchId);
+      console.log('elemtsearch', elemtsearch);
+      console.log('elemtsearchIO', elemtsearchIO);
 
       const x =
         elemtsearch.offsetWidth / 2 +
@@ -313,30 +320,33 @@ export default {
     eleLast: HTMLElement,
     eleConnection: SVGSVGElement,
     eleContainer: HTMLElement,
-    connectionNumber: number,
+    connectionKey: string,
     connectionMap: DrawFlow,
     zoom: number,
   ): boolean {
-    // Check if last element is an input circle connection
-    // if (eleLast.classList[0] !== 'input') {
-    //   eleConnection.remove();
-    //   return false;
-    // }
-
-    const input = Utils.getParentTschElement(eleLast);
-    const output = Utils.getParentTschElement(eleFirst);
-
-    if (!input) throw 'Input tsch element not found';
-    if (!output) throw 'Output tsch element not found';
-
-    const input_id = input.id;
-    const input_class = eleLast.classList[1];
-    const output_id = output.id;
-    const output_class = eleFirst.classList[1];
-
     try {
+      const inputTschElement = Utils.getParentTschElement(eleLast);
+      const outputTschElement = Utils.getParentTschElement(eleFirst);
+
+      if (!inputTschElement) throw 'Input tsch element not found';
+      if (!outputTschElement) throw 'Output tsch element not found';
+
+      console.log('EleLat', eleLast);
+      console.log('eleFirst', eleFirst);
+      const input_ioKey = Utils.getIOKey(eleLast);
+      const output_ioKey = Utils.getIOKey(eleFirst);
+
+      console.log('input_ioKey', input_ioKey);
+      console.log('output_ioKey', output_ioKey);
+
+      if (!input_ioKey) throw 'Input IO Key not found';
+      if (!output_ioKey) throw 'Output IO Key not found';
+
+      const input_ioID = `io-${input_ioKey}`;
+      const output_ioID = `io-${output_ioKey}`;
+
       // Check if it's not the same tsch element
-      if (output_id === input_id) {
+      if (outputTschElement.id === inputTschElement.id) {
         throw 'Cannot connect to same tsch element';
       }
 
@@ -344,39 +354,45 @@ export default {
       if (
         eleContainer.querySelectorAll(
           '.connection.node_in_' +
-            input_id +
+            outputTschElement.id +
             '.node_out_' +
-            output_id +
+            outputTschElement.id +
             '.' +
-            output_class +
+            input_ioID +
             '.' +
-            input_class,
+            output_ioID,
         ).length !== 0
       ) {
         throw 'Connection alredy exists';
       }
 
       // Conection doestn't exist save connection
-      const inputNodeNumber = Utils.getNodeNumber(input);
-      const outputNodeNumber = Utils.getNodeNumber(output);
+      const input_tschKey = Utils.getTschKey(inputTschElement);
+      const output_tschKey = Utils.getTschKey(outputTschElement);
 
-      if (inputNodeNumber == null) throw 'input node id not found';
-      if (outputNodeNumber === null) throw 'output node id not found';
+      if (input_tschKey == null) throw 'Input tsch key not found';
+      if (output_tschKey === null) throw 'Output tsch key not found';
 
-      const outputClass: nodeIOData = connectionMap.drawflow.Home.data
-        .get(outputNodeNumber)!
-        .ios.get(output_class)!;
-      const inputClass: nodeIOData = connectionMap.drawflow.Home.data
-        .get(inputNodeNumber)!
-        .ios.get(input_class)!;
+      const input_tschID = `tsch-${input_tschKey}`;
+      const output_tschID = `tsch-${output_tschKey}`;
+
+      const inputIOData: IOData = connectionMap.drawflow.Home.data
+        .get(input_tschKey)!
+        .ios.get(input_ioKey)!;
+      const outputIOData: IOData = connectionMap.drawflow.Home.data
+        .get(output_tschKey)!
+        .ios.get(output_ioKey)!;
+
+      console.log('inputClass', inputIOData);
+      console.log('outputClass', outputIOData);
 
       // Get Types
-      const output_type = outputClass.type;
-      const input_type = inputClass.type;
+      const input_type = inputIOData.type;
+      const output_type = outputIOData.type;
 
       // Get Current Connections number
-      const output_current_conections = outputClass.connections.length;
-      const output_max_connections = outputClass.max_connections;
+      const output_current_conections = outputIOData.connections.length;
+      const output_max_connections = outputIOData.max_connections;
 
       // Check Types
       if (output_type !== input_type) throw 'Type mismatch';
@@ -386,22 +402,28 @@ export default {
         throw 'Max connections reached';
 
       // Make connection
-      eleConnection.id = 'connection-' + connectionNumber;
-      eleConnection.setAttribute('connection-id', connectionNumber.toString());
-      eleConnection.classList.add('node_in_' + input_id);
-      eleConnection.classList.add('node_out_' + output_id);
-      eleConnection.classList.add(output_class);
-      eleConnection.classList.add(input_class);
+      eleConnection.id = 'connection-' + connectionKey;
+      eleConnection.setAttribute('connection-key', connectionKey);
+      eleConnection.classList.add('node_in_' + inputTschElement.id);
+      eleConnection.classList.add('node_out_' + outputTschElement.id);
+      eleConnection.classList.add(output_ioID);
+      eleConnection.classList.add(input_ioID);
 
-      outputClass.connections.push({
-        connectionID: connectionNumber,
-        tschID: inputNodeNumber,
-        ioID: input_class,
+      outputIOData.connections.push({
+        connectionID: 'connection-' + connectionKey,
+        connectionKey: connectionKey,
+        tschID: input_tschID,
+        tschKey: input_tschKey,
+        ioID: input_ioID,
+        ioKey: input_ioKey,
       });
-      inputClass.connections.push({
-        connectionID: connectionNumber,
-        tschID: outputNodeNumber,
-        ioID: output_class,
+      inputIOData.connections.push({
+        connectionID: connectionKey,
+        connectionKey: connectionKey,
+        tschID: output_tschID,
+        tschKey: output_tschKey,
+        ioID: output_ioID,
+        ioKey: output_ioKey,
       });
 
       console.log('Connected!');

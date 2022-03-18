@@ -55,26 +55,29 @@ interface FlowState {
   drawflow: DrawFlow;
 }
 
-// Connections Mapping Data
-type NodeID = number;
+// ### Graph Data Interfaces
 
 interface ConnectionData {
-  connectionID: number;
-  tschID: number;
+  connectionID: string;
+  connectionKey: string;
+  tschID: string;
+  tschKey: string;
   ioID: string;
+  ioKey: string;
 }
 
-// IFACE: jsonIOs
-interface nodeIOData {
+interface IOData {
+  ioID: string;
+  ioKey: string;
   connections: Array<ConnectionData>;
   type: string;
   max_connections: number;
 }
-type nodeIOs = Map<string, nodeIOData>;
+type nodeIOs = Map<string, IOData>;
 
-// IFACE: Data
 interface Data {
-  id: number;
+  id: string;
+  key: string;
   class: string;
   html: string;
   ios: nodeIOs;
@@ -86,7 +89,7 @@ interface Data {
 interface DrawFlow {
   drawflow: {
     Home: {
-      data: Map<NodeID, Data>;
+      data: Map<string, Data>;
     };
   };
 }
@@ -98,12 +101,12 @@ class Flow {
   private _tschSelected: HTMLElement | null = null;
   private _uiEleMouseDown: UIElement = UIElement.None;
   private _uiEleSelected: UIElement = UIElement.None;
-  private _tschId: number = 0;
-  private _matId: number = 0;
+  private _tschKey: number = 0;
+  private _matKey: number = 0;
   private _dragMap: Map<HTMLElement, Array<HTMLElement>> = new Map();
 
   // SVG
-  private _connectionID: number = 1;
+  private _connectionKey: number = 1;
   private _connectionEle: SVGSVGElement | null = null;
   private _connectionSelected: HTMLElement | null = null;
 
@@ -556,12 +559,12 @@ class Flow {
           ele_last,
           this._connectionEle,
           this._htmlContainer,
-          this._connectionID,
+          this._connectionKey.toString(),
           this.drawflow,
           this.zoom,
         );
         if (conected) {
-          this._connectionID++;
+          this._connectionKey++;
         }
         break;
     }
@@ -657,33 +660,33 @@ class Flow {
 
   // ### User Methods
   // TODO: Add container ID
-  public addMatTsch() {
-    if (!this._htmlContainer) {
-      console.error('HTML Container Element not found');
-      return;
-    }
+  //   public addMatTsch() {
+  //     if (!this._htmlContainer) {
+  //       console.error('HTML Container Element not found');
+  //       return;
+  //     }
 
-    this._htmlContainer.insertAdjacentHTML(
-      'beforeend',
-      `<div id="tsch-${this._tschId}" class="tsch matTsch" tsch-id="${this._tschId}" mat-id="${this._matId}" style="z-index: ${this._tschId}">
-          MAT${this._matId}
-        </div>`,
-    );
-    this._tschId++;
-    this._matId++;
-  }
+  //     this._htmlContainer.insertAdjacentHTML(
+  //       'beforeend',
+  //       `<div id="tsch-${this._tschKey}" class="tsch matTsch" tsch-id="${this._tschKey}" mat-id="${this._matKey}" style="z-index: ${this._tschKey}">
+  //           MAT${this._matKey}
+  //         </div>`,
+  //     );
+  //     this._tschKey++;
+  //     this._matKey++;
+  //   }
 
-  public addBlockTsch() {
-    if (!this._htmlContainer) {
-      console.error('HTML Container Element not found');
-      return;
-    }
-    this._htmlContainer.insertAdjacentHTML(
-      'beforeend',
-      `<div id="tsch-${this._tschId}" class="tsch blockTsch" tsch-id="${this._tschId}" style="z-index: ${this._tschId}">TSCH</div>`,
-    );
-    this._tschId++;
-  }
+  //   public addBlockTsch() {
+  //     if (!this._htmlContainer) {
+  //       console.error('HTML Container Element not found');
+  //       return;
+  //     }
+  //     this._htmlContainer.insertAdjacentHTML(
+  //       'beforeend',
+  //       `<div id="tsch-${this._tschKey}" class="tsch blockTsch" tsch-id="${this._tschKey}" style="z-index: ${this._tschKey}">TSCH</div>`,
+  //     );
+  //     this._tschKey++;
+  //   }
 
   public addNode(
     type: 'BlockTsch' | 'MatTsch',
@@ -694,8 +697,9 @@ class Flow {
     classoverride: string,
     html: string,
   ) {
-    const nodeId = this._tschId;
-    this._tschId++;
+    const tschKey = this._tschKey;
+    const tschID = `tsch-${tschKey}`;
+    this._tschKey++;
 
     if (!this._htmlContainer) {
       console.error('HTML container not found');
@@ -709,9 +713,9 @@ class Flow {
         this._htmlContainer.insertAdjacentHTML(
           'beforeend',
           `<div
-            id="tsch-${nodeId}"
+            id="${tschID}"
             class="tsch blockTsch ${classoverride}"
-            tsch-id="${nodeId}"
+            tsch-key="${tschKey}"
             style="z-index: 45; top: ${ele_pos_x}px; left: ${ele_pos_y}px"
            ></div>`, // Insert as lastChild
         );
@@ -722,14 +726,14 @@ class Flow {
         this._htmlContainer.insertAdjacentHTML(
           'beforeend',
           `<div
-            id="tsch-${nodeId}"
+            id="${tschID}"
             class="tsch matTsch ${classoverride}"
-            tsch-id="${nodeId}" mat-id="${this._matId}"
-            style="z-index: ${nodeId}; top: ${ele_pos_x}px; left: ${ele_pos_y}px"
+            tsch-key="${tschKey}" mat-key="${this._matKey}"
+            style="z-index: ${tschKey}; top: ${ele_pos_x}px; left: ${ele_pos_y}px"
            ></div>`, // Insert as lastChild
         );
         node = <HTMLElement>this._htmlContainer.lastChild;
-        this._matId++;
+        this._matKey++;
         break;
     }
 
@@ -748,9 +752,11 @@ class Flow {
     for (const value of Object.values(num_in)) {
       inputs.insertAdjacentHTML(
         'beforeend',
-        `<div class="input io_${IOKey}"><div class="type">${value.name}</div></div>`, // Insert as lastChild
+        `<div class="input io-${IOKey}" io-key="${IOKey}"><div class="type">${value.name}</div></div>`, // Insert as lastChild
       );
-      nodesIOs.set('io_' + IOKey, {
+      nodesIOs.set(IOKey.toString(), {
+        ioID: `io-${IOKey}`,
+        ioKey: IOKey.toString(),
         connections: [],
         type: value.name,
         max_connections: value.max,
@@ -775,9 +781,11 @@ class Flow {
     for (const value of Object.values(num_out)) {
       outputs.insertAdjacentHTML(
         'beforeend',
-        `<div class="output io_${IOKey}"><div class="type">${value.name}</div></div>`, // Insert as lastChild
+        `<div class="output io-${IOKey}" io-key="${IOKey}"><div class="type">${value.name}</div></div>`, // Insert as lastChild
       );
-      nodesIOs.set('io_' + IOKey, {
+      nodesIOs.set(IOKey.toString(), {
+        ioID: `io-${IOKey}`,
+        ioKey: IOKey.toString(),
         connections: [],
         type: value.name,
         max_connections: value.max,
@@ -787,18 +795,19 @@ class Flow {
 
     // Add Node Data to Connection Data
     const nodeData: Data = {
-      id: nodeId,
+      id: tschID,
+      key: tschKey.toString(),
       class: classoverride,
       html: html,
       ios: nodesIOs,
       pos_x: ele_pos_x,
       pos_y: ele_pos_y,
     };
-    this.drawflow.drawflow.Home.data.set(nodeId, nodeData);
+    this.drawflow.drawflow.Home.data.set(tschKey.toString(), nodeData);
     // this.dispatch('nodeCreated', newNodeId);
 
-    return nodeId;
+    return tschKey;
   }
 }
 
-export { Flow, DrawFlow, nodeIOData, FlowState, MenuOptions };
+export { Flow, DrawFlow, IOData, FlowState, MenuOptions };
