@@ -1,4 +1,5 @@
 import { DrawFlow } from './Flow';
+import Utils from './Utils';
 
 // TODO: Change NodeNumber and ConnectionNumber to string
 
@@ -14,7 +15,7 @@ export default {
     this.removeNodeIdConnections(nodeElement, container, drawflow);
 
     // Delete Node Block from Storage Object
-    const nodeNumber = this.nodeNumber(nodeElement);
+    const nodeNumber = Utils.getNodeNumber(nodeElement);
     if (nodeNumber !== null) drawflow.drawflow.Home.data.delete(nodeNumber);
     else
       console.error(
@@ -46,12 +47,12 @@ export default {
   },
 
   removeNodeConnections(
-    svgIDs: Array<number>,
+    connectinIDs: Array<number>,
     container: HTMLElement,
     drawflow: DrawFlow,
   ) {
     // Remove connections in UI
-    for (const svgID of svgIDs) {
+    for (const svgID of connectinIDs) {
       console.log(svgID);
       const svgEle = container.querySelector(`#connection-${svgID}`);
       if (svgEle) svgEle.remove();
@@ -60,11 +61,11 @@ export default {
     const nodes = drawflow.drawflow.Home.data;
     for (const node of nodes.values()) {
       // ios
-      for (const inputs of node.ios.values()) {
-        if (inputs.connections.length > 0) {
-          const connections = inputs.connections;
+      for (const ios of node.ios.values()) {
+        if (ios.connections.length > 0) {
+          const connections = ios.connections;
           connections.forEach((value, index) => {
-            if (svgIDs.includes(value.svgid)) {
+            if (connectinIDs.includes(value.connectionID)) {
               connections.splice(index, 1);
             }
           });
@@ -79,31 +80,20 @@ export default {
   ): Array<number> {
     const arrayConnections: Array<number> = new Array();
     const nodes = drawflow.drawflow.Home.data;
-    const nodeNumber = this.nodeNumber(nodeElement);
+    const nodeNumber = Utils.getNodeNumber(nodeElement);
     for (const [key, value] of nodes.entries()) {
       if (key == nodeNumber) {
         // input/outpus
-        for (const inputs of value.ios.values()) {
-          if (inputs.connections.length > 0) {
-            const connections = inputs.connections;
+        for (const ios of value.ios.values()) {
+          if (ios.connections.length > 0) {
+            const connections = ios.connections;
             for (const connection of Object.values(connections)) {
-              arrayConnections.push(connection.svgid);
+              arrayConnections.push(connection.connectionID);
             }
           }
         }
       }
     }
     return arrayConnections;
-  },
-  // TODO: Move to utils
-  nodeNumber(nodeElement: HTMLElement): number | null {
-    const num = nodeElement.getAttribute('tsch-id');
-    if (num !== null) return parseInt(num);
-    return null;
-  },
-  connectionNumber(connectionElement: HTMLElement): number | null {
-    const num = connectionElement.getAttribute('connection-id');
-    if (num !== null) return parseInt(num);
-    return null;
   },
 };

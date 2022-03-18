@@ -58,39 +58,11 @@ interface FlowState {
 // Connections Mapping Data
 type NodeID = number;
 
-interface ConnectionOutput {
-  svgid: number;
-  node: number;
-  output: string;
-}
-
-interface ConnectionInput {
-  svgid: number;
-  node: number;
-  input: string;
-}
-
 interface ConnectionData {
-  svgid: number;
-  node: number;
-  io: string;
+  connectionID: number;
+  tschID: number;
+  ioID: string;
 }
-
-// IFACE: jsonInputs
-interface jsonInputsData {
-  connections: Array<ConnectionInput>;
-  type: string;
-  max_connections: number;
-}
-type jsonInputs = Map<string, jsonInputsData>;
-
-// IFACE: jsonOutputs
-interface jsonOutputsData {
-  connections: Array<ConnectionOutput>;
-  type: string;
-  max_connections: number;
-}
-type jsonOutputs = Map<string, jsonOutputsData>;
 
 // IFACE: jsonIOs
 interface nodeIOData {
@@ -275,9 +247,10 @@ class Flow {
       this._uiEleSelected = this._uiEleMouseDown;
 
       console.log('UI Ele Selected: ', this._uiEleSelected);
+      console.log('Drawflow', this.drawflow.drawflow.Home.data);
 
       // Remove context menus
-      ContextMenu.contextMenusRemove();
+      ContextMenu.Remove();
     });
   }
 
@@ -409,13 +382,13 @@ class Flow {
 
       switch (this._contextMenuSelected) {
         case ContextMenus.MatTsch:
-          ContextMenu.contextMenuShow('#contextMenuMat', e);
+          ContextMenu.Show('#contextMenuMat', e);
           break;
         case ContextMenus.BlockTsch:
-          ContextMenu.contextMenuShow('#contextMenuBlock', e);
+          ContextMenu.Show('#contextMenuBlock', e);
           break;
         case ContextMenus.Connection:
-          ContextMenu.contextMenuShow('#contextMenuConnection', e);
+          ContextMenu.Show('#contextMenuConnection', e);
           break;
         default:
           return;
@@ -423,19 +396,13 @@ class Flow {
     });
 
     // Context Menu Mat Listener
-    this.contextMenuAddListener(
-      '#contextMenuMat',
-      ContextMenu.contextMenuProcessMat,
-    );
+    this.contextMenuAddListener('#contextMenuMat', ContextMenu.ProcessMat);
     // Context Menu Block Listener
-    this.contextMenuAddListener(
-      '#contextMenuBlock',
-      ContextMenu.contextMenuProcessBlock,
-    );
+    this.contextMenuAddListener('#contextMenuBlock', ContextMenu.ProcessBlock);
     // Context Menu Connection Listener
     this.contextMenuAddListener(
       '#contextMenuConnection',
-      ContextMenu.contextMenuProcessConnection,
+      ContextMenu.ProcessConnection,
     );
   }
 
@@ -834,4 +801,4 @@ class Flow {
   }
 }
 
-export { Flow, DrawFlow, nodeIOData, jsonInputsData, FlowState, MenuOptions };
+export { Flow, DrawFlow, nodeIOData, FlowState, MenuOptions };

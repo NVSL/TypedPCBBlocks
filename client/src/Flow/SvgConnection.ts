@@ -1,4 +1,5 @@
 import { DrawFlow, nodeIOData } from './Flow';
+import Utils from './Utils';
 
 export default {
   draw(container: HTMLElement): SVGSVGElement {
@@ -312,7 +313,7 @@ export default {
     eleLast: HTMLElement,
     eleConnection: SVGSVGElement,
     eleContainer: HTMLElement,
-    connectionID: number,
+    connectionNumber: number,
     connectionMap: DrawFlow,
     zoom: number,
   ): boolean {
@@ -322,11 +323,8 @@ export default {
     //   return false;
     // }
 
-    const input = this.parentContainsTsch(eleLast);
-    const output = this.parentContainsTsch(eleFirst);
-
-    console.log('Input', eleLast, input);
-    console.log('Output', eleFirst, output);
+    const input = Utils.getParentTschElement(eleLast);
+    const output = Utils.getParentTschElement(eleFirst);
 
     if (!input) throw 'Input tsch element not found';
     if (!output) throw 'Output tsch element not found';
@@ -335,9 +333,6 @@ export default {
     const input_class = eleLast.classList[1];
     const output_id = output.id;
     const output_class = eleFirst.classList[1];
-
-    console.log('Input Id, class', input_id, input_class);
-    console.log('Output Id, class', output_id, output_class);
 
     try {
       // Check if it's not the same tsch element
@@ -362,13 +357,8 @@ export default {
       }
 
       // Conection doestn't exist save connection
-      const inputNodeNumber = this.nodeNumber(input);
-      const outputNodeNumber = this.nodeNumber(output);
-
-      console.log('Input number', inputNodeNumber);
-      console.log('Output number', outputNodeNumber);
-
-      console.log('Drawflow', connectionMap.drawflow.Home.data);
+      const inputNodeNumber = Utils.getNodeNumber(input);
+      const outputNodeNumber = Utils.getNodeNumber(output);
 
       if (inputNodeNumber == null) throw 'input node id not found';
       if (outputNodeNumber === null) throw 'output node id not found';
@@ -379,9 +369,6 @@ export default {
       const inputClass: nodeIOData = connectionMap.drawflow.Home.data
         .get(inputNodeNumber)!
         .ios.get(input_class)!;
-
-      console.log('Output class', outputClass);
-      console.log('Input class', inputClass);
 
       // Get Types
       const output_type = outputClass.type;
@@ -399,25 +386,26 @@ export default {
         throw 'Max connections reached';
 
       // Make connection
-      eleConnection.id = 'connection-' + connectionID;
-      eleConnection.setAttribute('connection-id', connectionID.toString());
+      eleConnection.id = 'connection-' + connectionNumber;
+      eleConnection.setAttribute('connection-id', connectionNumber.toString());
       eleConnection.classList.add('node_in_' + input_id);
       eleConnection.classList.add('node_out_' + output_id);
       eleConnection.classList.add(output_class);
       eleConnection.classList.add(input_class);
 
       outputClass.connections.push({
-        svgid: connectionID,
-        node: inputNodeNumber,
-        io: input_class,
+        connectionID: connectionNumber,
+        tschID: inputNodeNumber,
+        ioID: input_class,
       });
       inputClass.connections.push({
-        svgid: connectionID,
-        node: outputNodeNumber,
-        io: output_class,
+        connectionID: connectionNumber,
+        tschID: outputNodeNumber,
+        ioID: output_class,
       });
 
       console.log('Connected!');
+      console.log('Drawflow', connectionMap.drawflow.Home.data);
 
       // Update all Nodes to fit connection in circle center
       this.updateAllNodes(eleContainer, zoom);
@@ -427,24 +415,6 @@ export default {
       eleConnection.remove();
       return false;
     }
-  },
-  parentContainsTsch(ele: HTMLElement): HTMLElement | null {
-    let parent = ele;
-    while (parent) {
-      if (parent.classList.contains('tsch')) {
-        return parent;
-      }
-      parent = parent.parentElement!;
-    }
-    return null;
-  },
-  nodeNumber(ele: HTMLElement): number | null {
-    const tschEle = this.parentContainsTsch(ele);
-    if (tschEle) {
-      const id = tschEle.getAttribute('tsch-id');
-      return parseInt(id!);
-    }
-    return null;
   },
   disablePointerEvents() {
     const svgElements = <NodeListOf<SVGSVGElement>>(

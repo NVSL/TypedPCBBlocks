@@ -3,7 +3,7 @@ import Delete from './Delete';
 import Utils from './Utils';
 
 export default {
-  contextMenuShow(tag: string, e: MouseEvent) {
+  Show(tag: string, e: MouseEvent) {
     const contextMenu = <HTMLElement>document.querySelector(tag);
 
     if (!contextMenu) return;
@@ -22,7 +22,7 @@ export default {
     contextMenu.classList.add('shown');
   },
 
-  contextMenusRemove() {
+  Remove() {
     let contextMenu;
     contextMenu = <HTMLElement>document.querySelector('#contextMenuMat');
     if (contextMenu) contextMenu.classList.remove('shown');
@@ -33,7 +33,7 @@ export default {
   },
 
   // Contextmenu process Mat options
-  contextMenuProcessMat: (option: MenuOptions, flowState: FlowState) => {
+  ProcessMat: (option: MenuOptions, flowState: FlowState) => {
     const tschElements = <HTMLElement>document.querySelector('#tschs')!;
     const zIndexesArray: Array<{
       ele: HTMLElement;
@@ -158,7 +158,7 @@ export default {
     }
   },
 
-  contextMenuProcessBlock: (option: MenuOptions, flowState: FlowState) => {
+  ProcessBlock: (option: MenuOptions, flowState: FlowState) => {
     console.log('Block Context Click', option);
     switch (option) {
       case MenuOptions.Delete:
@@ -174,7 +174,7 @@ export default {
     }
   },
 
-  contextMenuProcessConnection: (option: MenuOptions, flowState: FlowState) => {
+  ProcessConnection: (option: MenuOptions, flowState: FlowState) => {
     console.log('Connection Context Click', option);
     switch (option) {
       case MenuOptions.Delete:
@@ -182,7 +182,7 @@ export default {
         if (!flowState.htmlContainer) return;
         if (!flowState.connectionSelected) return;
         // Get connection id
-        const connectionNum = Delete.connectionNumber(
+        const connectionNum = Utils.getConnectionNumber(
           flowState.connectionSelected,
         );
         if (!connectionNum) {
