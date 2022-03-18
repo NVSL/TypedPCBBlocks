@@ -1,5 +1,5 @@
 export default {
-  utilIsMatElement(target: HTMLElement): boolean {
+  isMatElement(target: HTMLElement): boolean {
     return target.getAttribute('mat-key') ? true : false;
   },
   getTschKey(nodeElement: HTMLElement): string | null {

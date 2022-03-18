@@ -44,7 +44,7 @@ export default {
     if (!flowState.tschSelected) return;
 
     // Layers options is only available for Mats
-    if (!Utils.utilIsMatElement(flowState.tschSelected)) return;
+    if (!Utils.isMatElement(flowState.tschSelected)) return;
 
     // Get element to move
     let eleToMove: string | null = null;
@@ -61,7 +61,7 @@ export default {
     // Fill zIndex Array with current tsch elements (Only Mat Elements)
     tschElements.childNodes.forEach((child) => {
       const childEle = <HTMLElement>child;
-      if (Utils.utilIsMatElement(childEle)) {
+      if (Utils.isMatElement(childEle)) {
         const matStyle = window.getComputedStyle(childEle);
         const tschKey = childEle.getAttribute('tsch-key');
         if (tschKey) {
@@ -147,7 +147,7 @@ export default {
         Delete.removeNodeId(
           flowState.tschSelected,
           flowState.htmlContainer,
-          flowState.drawflow,
+          flowState.graphData,
         );
         break;
     }
@@ -168,7 +168,7 @@ export default {
         Delete.removeNodeId(
           flowState.tschSelected,
           flowState.htmlContainer,
-          flowState.drawflow,
+          flowState.graphData,
         );
         break;
     }
@@ -181,22 +181,11 @@ export default {
         console.log('Delete click', flowState.connectionSelected);
         if (!flowState.htmlContainer) return;
         if (!flowState.connectionSelected) return;
-        // Get connection id
-        const connectionKey = Utils.getConnectionKey(
-          flowState.connectionSelected,
-        );
-        if (!connectionKey) {
-          console.error(
-            'Connection number not found in element',
-            flowState.connectionSelected,
-          );
-          return;
-        }
         // Delete connection
         Delete.removeNodeConnections(
-          [connectionKey],
+          [flowState.connectionSelected.id],
           flowState.htmlContainer,
-          flowState.drawflow,
+          flowState.graphData,
         );
         break;
     }

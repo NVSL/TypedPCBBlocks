@@ -1,4 +1,4 @@
-import { DrawFlow } from './Flow';
+import { GraphData } from './Flow';
 import Utils from './Utils';
 
 // TODO: Change NodeNumber and ConnectionNumber to string
@@ -7,22 +7,22 @@ export default {
   removeNodeId(
     nodeElement: HTMLElement | null,
     container: HTMLElement,
-    drawflow: DrawFlow,
+    graphData: GraphData,
   ) {
     if (!nodeElement) return;
 
     // Delete Node Connections
-    this.removeNodeIdConnections(nodeElement, container, drawflow);
+    this.removeNodeIdConnections(nodeElement, container, graphData);
 
     // Delete Node Block from Storage Object
     const nodeKey = Utils.getTschKey(nodeElement);
-    if (nodeKey !== null) drawflow.drawflow.Home.data.delete(nodeKey);
+    if (nodeKey !== null) graphData.data.delete(nodeKey);
     else
       console.error(
         `Node number ${nodeKey} not found in node element`,
         nodeElement,
       );
-    console.log(drawflow.drawflow.Home.data);
+    console.log(graphData.data);
 
     // Delete Node
     nodeElement.remove();
@@ -35,37 +35,38 @@ export default {
   removeNodeIdConnections(
     nodeElement: HTMLElement | null,
     container: HTMLElement,
-    drawflow: DrawFlow,
+    graphData: GraphData,
   ) {
     if (!nodeElement) return;
 
-    const connectionKeys: Array<string> = this.getNodeConnectionsKeys(
+    const connectionIDs: Array<string> = this.getNodeConnectionsIDs(
       nodeElement,
-      drawflow,
+      graphData,
     );
-    this.removeNodeConnections(connectionKeys, container, drawflow);
+    console.log('Connections IDs', connectionIDs);
+    this.removeNodeConnections(connectionIDs, container, graphData);
   },
 
   removeNodeConnections(
-    connectinKeys: Array<string>,
+    connectionIDs: Array<string>,
     container: HTMLElement,
-    drawflow: DrawFlow,
+    graphData: GraphData,
   ) {
     // Remove connections in UI
-    for (const connectionKey of connectinKeys) {
-      console.log(connectionKey);
-      const svgEle = container.querySelector(`#connection-${connectionKey}`);
+    for (const connectionID of connectionIDs) {
+      console.log('Removing connection ', connectionID);
+      const svgEle = container.querySelector(`#${connectionID}`);
       if (svgEle) svgEle.remove();
     }
     // Remove connections in Map
-    const nodes = drawflow.drawflow.Home.data;
+    const nodes = graphData.data;
     for (const node of nodes.values()) {
       // ios
       for (const ios of node.ios.values()) {
         if (ios.connections.length > 0) {
           const connections = ios.connections;
           connections.forEach((value, index) => {
-            if (connectinKeys.includes(value.connectionID)) {
+            if (connectionIDs.includes(value.connectionID)) {
               connections.splice(index, 1);
             }
           });
@@ -74,12 +75,12 @@ export default {
     }
   },
 
-  getNodeConnectionsKeys(
+  getNodeConnectionsIDs(
     nodeElement: HTMLElement,
-    drawflow: DrawFlow,
+    graphData: GraphData,
   ): Array<string> {
     const arrayConnections: Array<string> = new Array();
-    const nodes = drawflow.drawflow.Home.data;
+    const nodes = graphData.data;
     const nodeNumber = Utils.getTschKey(nodeElement);
     for (const [key, value] of nodes.entries()) {
       if (key == nodeNumber) {

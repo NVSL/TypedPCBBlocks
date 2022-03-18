@@ -1,4 +1,4 @@
-import { DrawFlow, IOData } from './Flow';
+import { GraphData, IOData } from './Flow';
 import Utils from './Utils';
 
 export default {
@@ -83,7 +83,6 @@ export default {
   },
   // Updates SVG Lines (Connections) for all Node Blocks
   updateNode(container: HTMLElement, zoom: number, id: string) {
-    console.log('Update Node id:', id);
     // Set Zooms
     let precanvasWitdhZoom =
       container.clientWidth / (container.clientWidth * zoom);
@@ -97,59 +96,63 @@ export default {
       value: Element,
       inputOutput: 'INPUT' | 'OUTPUT',
     ) => {
-      const elemtsearchId_io = container.querySelector(`#${id}`);
-      let id_search;
-      let elemtsearchIO;
-      let elemtsearchId;
-      let elemtsearch;
+      const fromTschElement = container.querySelector(`#${id}`);
+      let fromTschIOElement;
+      let toTscheElement;
+      let toTschIOElement;
+
       switch (inputOutput) {
         case 'INPUT':
-          id_search = value.classList[2].replace('node_out_', '');
-          elemtsearchId = container.querySelector(`#${id_search}`)!;
-          elemtsearch = <HTMLElement>(
-            elemtsearchId.querySelectorAll('.' + value.classList[3])[0]
+          toTscheElement = container.querySelector(
+            `#${value.getAttribute('from-node')}`,
+          )!;
+          toTschIOElement = <HTMLElement>(
+            toTscheElement.querySelectorAll(
+              `[io-id="${value.getAttribute('from-io')}"]`,
+            )[0]
           );
-          elemtsearchIO = <HTMLElement>(
-            elemtsearchId_io!.querySelectorAll('.' + value.classList[4])[0]
+          fromTschIOElement = <HTMLElement>(
+            fromTschElement!.querySelectorAll(
+              `[io-id="${value.getAttribute('to-io')}"]`,
+            )[0]
           );
           break;
         case 'OUTPUT':
-          id_search = value.classList[1].replace('node_in_', '');
-          elemtsearchId = container.querySelector(`#${id_search}`)!;
-          elemtsearch = <HTMLElement>(
-            elemtsearchId.querySelectorAll('.' + value.classList[4])[0]
+          toTscheElement = container.querySelector(
+            `#${value.getAttribute('to-node')}`,
+          )!;
+          toTschIOElement = <HTMLElement>(
+            toTscheElement.querySelectorAll(
+              `[io-id="${value.getAttribute('to-io')}"]`,
+            )[0]
           );
-          elemtsearchIO = <HTMLElement>(
-            elemtsearchId_io!.querySelectorAll('.' + value.classList[3])[0]
+          fromTschIOElement = <HTMLElement>(
+            fromTschElement!.querySelectorAll(
+              `[io-id="${value.getAttribute('from-io')}"]`,
+            )[0]
           );
           break;
       }
 
-      console.log('INPUT/OUTPUT', inputOutput);
-      console.log('id_search', id_search);
-      console.log('elemtsearchId', elemtsearchId);
-      console.log('elemtsearch', elemtsearch);
-      console.log('elemtsearchIO', elemtsearchIO);
-
       const x =
-        elemtsearch.offsetWidth / 2 +
-        (elemtsearch.getBoundingClientRect().x -
+        toTschIOElement.offsetWidth / 2 +
+        (toTschIOElement.getBoundingClientRect().x -
           container.getBoundingClientRect().x) *
           precanvasWitdhZoom;
       const y =
-        elemtsearch.offsetHeight / 2 +
-        (elemtsearch.getBoundingClientRect().y -
+        toTschIOElement.offsetHeight / 2 +
+        (toTschIOElement.getBoundingClientRect().y -
           container.getBoundingClientRect().y) *
           precanvasHeightZoom;
 
       const line_x =
-        elemtsearchIO.offsetWidth / 2 +
-        (elemtsearchIO.getBoundingClientRect().x -
+        fromTschIOElement.offsetWidth / 2 +
+        (fromTschIOElement.getBoundingClientRect().x -
           container.getBoundingClientRect().x) *
           precanvasWitdhZoom;
       const line_y =
-        elemtsearchIO.offsetHeight / 2 +
-        (elemtsearchIO.getBoundingClientRect().y -
+        fromTschIOElement.offsetHeight / 2 +
+        (fromTschIOElement.getBoundingClientRect().y -
           container.getBoundingClientRect().y) *
           precanvasHeightZoom;
 
@@ -182,7 +185,7 @@ export default {
 
     // Update Selected Element Outputs
     const elemsOut: NodeListOf<Element> = container.querySelectorAll(
-      `.node_out_${id}`,
+      `[from-node="${id}"]`,
     );
     for (const value of Object.values(elemsOut)) {
       renderSVGLines(id, value, 'OUTPUT');
@@ -190,7 +193,7 @@ export default {
 
     // Update Selected Element Inputs
     const elemsIn: NodeListOf<Element> = container.querySelectorAll(
-      `.node_in_${id}`,
+      `[to-node="${id}"]`,
     );
     for (const value of Object.values(elemsIn)) {
       renderSVGLines(id, value, 'INPUT');
@@ -321,7 +324,7 @@ export default {
     eleConnection: SVGSVGElement,
     eleContainer: HTMLElement,
     connectionKey: string,
-    connectionMap: DrawFlow,
+    graphData: GraphData,
     zoom: number,
   ): boolean {
     try {
@@ -331,13 +334,8 @@ export default {
       if (!inputTschElement) throw 'Input tsch element not found';
       if (!outputTschElement) throw 'Output tsch element not found';
 
-      console.log('EleLat', eleLast);
-      console.log('eleFirst', eleFirst);
       const input_ioKey = Utils.getIOKey(eleLast);
       const output_ioKey = Utils.getIOKey(eleFirst);
-
-      console.log('input_ioKey', input_ioKey);
-      console.log('output_ioKey', output_ioKey);
 
       if (!input_ioKey) throw 'Input IO Key not found';
       if (!output_ioKey) throw 'Output IO Key not found';
@@ -376,15 +374,12 @@ export default {
       const input_tschID = `tsch-${input_tschKey}`;
       const output_tschID = `tsch-${output_tschKey}`;
 
-      const inputIOData: IOData = connectionMap.drawflow.Home.data
+      const inputIOData: IOData = graphData.data
         .get(input_tschKey)!
         .ios.get(input_ioKey)!;
-      const outputIOData: IOData = connectionMap.drawflow.Home.data
+      const outputIOData: IOData = graphData.data
         .get(output_tschKey)!
         .ios.get(output_ioKey)!;
-
-      console.log('inputClass', inputIOData);
-      console.log('outputClass', outputIOData);
 
       // Get Types
       const input_type = inputIOData.type;
@@ -402,15 +397,16 @@ export default {
         throw 'Max connections reached';
 
       // Make connection
-      eleConnection.id = 'connection-' + connectionKey;
+      const connectionID = 'connection-' + connectionKey;
+      eleConnection.id = connectionID;
       eleConnection.setAttribute('connection-key', connectionKey);
-      eleConnection.classList.add('node_in_' + inputTschElement.id);
-      eleConnection.classList.add('node_out_' + outputTschElement.id);
-      eleConnection.classList.add(output_ioID);
-      eleConnection.classList.add(input_ioID);
+      eleConnection.setAttribute('from-node', outputTschElement.id);
+      eleConnection.setAttribute('to-node', inputTschElement.id);
+      eleConnection.setAttribute('from-io', output_ioID);
+      eleConnection.setAttribute('to-io', input_ioID);
 
       outputIOData.connections.push({
-        connectionID: 'connection-' + connectionKey,
+        connectionID: connectionID,
         connectionKey: connectionKey,
         tschID: input_tschID,
         tschKey: input_tschKey,
@@ -418,7 +414,7 @@ export default {
         ioKey: input_ioKey,
       });
       inputIOData.connections.push({
-        connectionID: connectionKey,
+        connectionID: connectionID,
         connectionKey: connectionKey,
         tschID: output_tschID,
         tschKey: output_tschKey,
@@ -427,7 +423,7 @@ export default {
       });
 
       console.log('Connected!');
-      console.log('Drawflow', connectionMap.drawflow.Home.data);
+      console.log('GraphData', graphData.data);
 
       // Update all Nodes to fit connection in circle center
       this.updateAllNodes(eleContainer, zoom);

@@ -52,7 +52,7 @@ interface FlowState {
   tschSelected: HTMLElement | null;
   connectionSelected: HTMLElement | null;
   htmlContainer: HTMLElement | null;
-  drawflow: DrawFlow;
+  graphData: GraphData;
 }
 
 // ### Graph Data Interfaces
@@ -73,25 +73,21 @@ interface IOData {
   type: string;
   max_connections: number;
 }
-type nodeIOs = Map<string, IOData>;
+type IOs = Map<string, IOData>;
 
-interface Data {
-  id: string;
-  key: string;
+interface NodeData {
+  tschID: string;
+  tschKey: string;
   class: string;
   html: string;
-  ios: nodeIOs;
+  ios: IOs;
   pos_x: number;
   pos_y: number;
 }
 
-// IFACE: DrawFlow (Main)
-interface DrawFlow {
-  drawflow: {
-    Home: {
-      data: Map<string, Data>;
-    };
-  };
+// IFACE: GraphData (Main)
+interface GraphData {
+  data: Map<string, NodeData>;
 }
 
 class Flow {
@@ -114,7 +110,7 @@ class Flow {
   private _contextMenuSelected: ContextMenus | null = null;
 
   // Connections Mapping Data
-  public drawflow: DrawFlow = { drawflow: { Home: { data: new Map() } } }; // Nodes Object
+  public graphData: GraphData = { data: new Map() }; // Nodes Object
 
   // Configurable options
   public module: string = 'Home';
@@ -151,7 +147,6 @@ class Flow {
     );
 
     window.addEventListener('DOMContentLoaded', () => {
-      console.log('listener');
       // Start Listeners
       this.listenerGeneralClick();
       this.listenerMatTsch();
@@ -250,7 +245,7 @@ class Flow {
       this._uiEleSelected = this._uiEleMouseDown;
 
       console.log('UI Ele Selected: ', this._uiEleSelected);
-      console.log('Drawflow', this.drawflow.drawflow.Home.data);
+      console.log('GraphData', this.graphData.data);
 
       // Remove context menus
       ContextMenu.Remove();
@@ -306,7 +301,7 @@ class Flow {
 
         // feedback the possibility of a drop
         dropzoneElement.classList.add('can-drop');
-        if (Utils.utilIsMatElement(draggableElement) == false) {
+        if (Utils.isMatElement(draggableElement) == false) {
           draggableElement.classList.add('can-drop');
           // draggableElement.textContent = 'Dragged in';
         }
@@ -317,7 +312,7 @@ class Flow {
 
         // remove the drop feedback style
         dropzoneElement.classList.remove('can-drop');
-        if (Utils.utilIsMatElement(draggableElement) == false) {
+        if (Utils.isMatElement(draggableElement) == false) {
           draggableElement.classList.remove('can-drop');
           // draggableElement.textContent = 'Dragged out';
         }
@@ -421,7 +416,7 @@ class Flow {
         tschSelected: this._tschSelected,
         connectionSelected: this._connectionSelected,
         htmlContainer: this._htmlContainer,
-        drawflow: this.drawflow,
+        graphData: this.graphData,
       };
       callback(menuOption, flowState);
       contextMenu.classList.remove('shown');
@@ -496,7 +491,7 @@ class Flow {
 
             if (!this._tschSelected) return;
 
-            if (Utils.utilIsMatElement(this._tschSelected)) {
+            if (Utils.isMatElement(this._tschSelected)) {
               // Is tschMat
               SvgConnection.updateAllNodes(this._htmlContainer, this.zoom);
             } else {
@@ -560,7 +555,7 @@ class Flow {
           this._connectionEle,
           this._htmlContainer,
           this._connectionKey.toString(),
-          this.drawflow,
+          this.graphData,
           this.zoom,
         );
         if (conected) {
@@ -606,7 +601,7 @@ class Flow {
       // Set new positon
       this.positionelementSet(childTarget, pos.x, pos.y);
 
-      if (Utils.utilIsMatElement(childTarget)) {
+      if (Utils.isMatElement(childTarget)) {
         // If Mat, recursively modify positions
         this.positionelementSetChildsOffset(childTarget, dx, dy);
       }
@@ -739,7 +734,7 @@ class Flow {
 
     // SET IOs
     let IOKey: number = 0;
-    const nodesIOs: nodeIOs = new Map();
+    const IOs: IOs = new Map();
 
     // ADD INPUTS
     node.insertAdjacentHTML(
@@ -752,9 +747,9 @@ class Flow {
     for (const value of Object.values(num_in)) {
       inputs.insertAdjacentHTML(
         'beforeend',
-        `<div class="input io-${IOKey}" io-key="${IOKey}"><div class="type">${value.name}</div></div>`, // Insert as lastChild
+        `<div class="input io-${IOKey}" io-id="io-${IOKey}" io-key="${IOKey}"><div class="type">${value.name}</div></div>`, // Insert as lastChild
       );
-      nodesIOs.set(IOKey.toString(), {
+      IOs.set(IOKey.toString(), {
         ioID: `io-${IOKey}`,
         ioKey: IOKey.toString(),
         connections: [],
@@ -781,9 +776,9 @@ class Flow {
     for (const value of Object.values(num_out)) {
       outputs.insertAdjacentHTML(
         'beforeend',
-        `<div class="output io-${IOKey}" io-key="${IOKey}"><div class="type">${value.name}</div></div>`, // Insert as lastChild
+        `<div class="output io-${IOKey}" io-id="io-${IOKey}" io-key="${IOKey}"><div class="type">${value.name}</div></div>`, // Insert as lastChild
       );
-      nodesIOs.set(IOKey.toString(), {
+      IOs.set(IOKey.toString(), {
         ioID: `io-${IOKey}`,
         ioKey: IOKey.toString(),
         connections: [],
@@ -794,20 +789,20 @@ class Flow {
     }
 
     // Add Node Data to Connection Data
-    const nodeData: Data = {
-      id: tschID,
-      key: tschKey.toString(),
+    const nodeData: NodeData = {
+      tschID: tschID,
+      tschKey: tschKey.toString(),
       class: classoverride,
       html: html,
-      ios: nodesIOs,
+      ios: IOs,
       pos_x: ele_pos_x,
       pos_y: ele_pos_y,
     };
-    this.drawflow.drawflow.Home.data.set(tschKey.toString(), nodeData);
+    this.graphData.data.set(tschKey.toString(), nodeData);
     // this.dispatch('nodeCreated', newNodeId);
 
     return tschKey;
   }
 }
 
-export { Flow, DrawFlow, IOData, FlowState, MenuOptions };
+export { Flow, GraphData, IOData, FlowState, MenuOptions };
