@@ -1,16 +1,18 @@
 export default {
   utilIsMatElement(target: HTMLElement): boolean {
-    return target.getAttribute('mat-id') ? true : false;
+    return target.getAttribute('mat-key') ? true : false;
   },
-  getNodeNumber(nodeElement: HTMLElement): number | null {
-    const num = nodeElement.getAttribute('tsch-id');
-    if (num !== null) return parseInt(num);
-    return null;
+  getTschKey(nodeElement: HTMLElement): string | null {
+    return nodeElement.getAttribute('tsch-key');
   },
-  getConnectionNumber(connectionElement: HTMLElement): number | null {
-    const num = connectionElement.getAttribute('connection-id');
-    if (num !== null) return parseInt(num);
-    return null;
+  getMatKey(nodeElement: HTMLElement): string | null {
+    return nodeElement.getAttribute('mat-key');
+  },
+  getIOKey(nodeElement: HTMLElement): string | null {
+    return nodeElement.getAttribute('io-key');
+  },
+  getConnectionKey(connectionElement: HTMLElement): string | null {
+    return connectionElement.getAttribute('connection-key');
   },
   getParentTschElement(ele: HTMLElement): HTMLElement | null {
     let parent = ele;
