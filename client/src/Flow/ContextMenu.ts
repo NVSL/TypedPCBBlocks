@@ -1,6 +1,7 @@
 import { FlowState, MenuOptions } from './Flow';
 import Delete from './Delete';
 import Utils from './Utils';
+import SvgConnection from './SvgConnection';
 
 export default {
   Show(tag: string, e: MouseEvent) {
@@ -29,6 +30,8 @@ export default {
     contextMenu = <HTMLElement>document.querySelector('#contextMenuBlock');
     if (contextMenu) contextMenu.classList.remove('shown');
     contextMenu = <HTMLElement>document.querySelector('#contextMenuConnection');
+    if (contextMenu) contextMenu.classList.remove('shown');
+    contextMenu = <HTMLElement>document.querySelector('#contextMenuIOs');
     if (contextMenu) contextMenu.classList.remove('shown');
   },
 
@@ -190,4 +193,74 @@ export default {
         break;
     }
   },
+
+  ProcessIOs: (option: MenuOptions, flowState: FlowState) => {
+    console.log('Connection Context Click', option);
+
+    const tschKey = Utils.getTschKey(flowState.tschSelected!);
+
+    if (!tschKey) {
+      console.error('While processing context menu Tsch Key not found');
+      return;
+    }
+
+    if (!flowState.iosSelecteded) {
+      console.error('IOs element selection not found');
+      return;
+    }
+
+    let ioType: 'input' | 'output' | null;
+    if (flowState.iosSelecteded.classList.contains('input')) {
+      ioType = 'input';
+    } else if (flowState.iosSelecteded.classList.contains('output')) {
+      ioType = 'output';
+    } else {
+      ioType = null;
+    }
+
+    if (!ioType) {
+      console.error('IO type could not be defined');
+      return;
+    }
+
+    switch (option) {
+      case MenuOptions.Left:
+        if (ioType == 'input') return;
+        const inputs = document.querySelector(
+          `[tsch-key="${tschKey}"] .inputs`,
+        );
+        if (!inputs) {
+          console.error('Inputs block not found');
+          return;
+        }
+        flowState.iosSelecteded.classList.remove('output');
+        flowState.iosSelecteded.classList.add('input');
+        inputs.appendChild(flowState.iosSelecteded);
+        break;
+      case MenuOptions.Right:
+        console.log('Menu right', ioType);
+        if (ioType == 'output') return;
+        const outputs = document.querySelector(
+          `[tsch-key="${tschKey}"] .outputs`,
+        );
+        if (!outputs) {
+          console.error('Outputs block not found');
+          return;
+        }
+        flowState.iosSelecteded.classList.remove('input');
+        flowState.iosSelecteded.classList.add('output');
+        outputs.appendChild(flowState.iosSelecteded);
+        break;
+    }
+  },
 };
+
+// private moveIOLeftRight() {
+//   const ele = document.querySelector(`[tsch-key="0"] [io-key="0"]`);
+//   const outputs = document.querySelector(`[tsch-key="0"] .outputs`);
+//   console.log(ele);
+//   console.log(outputs);
+//   ele?.classList.remove('input');
+//   ele?.classList.add('output');
+//   outputs?.appendChild(ele!);
+// }

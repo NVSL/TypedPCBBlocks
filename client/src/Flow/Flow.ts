@@ -18,6 +18,10 @@ import './Flow.css';
  - Add a context menu for input and outputs to move them left/right
  - See how to deal with connections overlaping blocks, maybe add weights to connections? 
  - Start integration with Tsch Lib
+
+Left aside 
+  - The Mats need a way to specify or add mutiple output voltages 
+  - The Connections need a way to add weights or someting so they don't overlap the nodes
 */
 
 // Context Menus
@@ -25,6 +29,7 @@ enum ContextMenus {
   MatTsch = 'MatTsch',
   BlockTsch = 'BlockTsch',
   Connection = 'Connection',
+  IOs = 'IOs',
 }
 
 // Context Menu Options Slections
@@ -33,6 +38,8 @@ enum MenuOptions {
   LayerUp = 'LayerUp',
   LayerDown = 'LayerDown',
   LayerBottom = 'LayerBottom',
+  Left = 'Left',
+  Right = 'Right',
   Delete = 'Delete',
 }
 
@@ -49,9 +56,10 @@ enum UIElement {
 
 // Flow variables for context menu processing
 interface FlowState {
+  htmlContainer: HTMLElement | null;
   tschSelected: HTMLElement | null;
   connectionSelected: HTMLElement | null;
-  htmlContainer: HTMLElement | null;
+  iosSelecteded: HTMLElement | null;
   graphData: GraphData;
 }
 
@@ -95,6 +103,7 @@ class Flow {
   private _htmlContainer: HTMLElement | null = null;
   private _eleSelected: HTMLElement | null = null;
   private _tschSelected: HTMLElement | null = null;
+  private _iosSelected: HTMLElement | null = null;
   private _uiEleMouseDown: UIElement = UIElement.None;
   private _uiEleSelected: UIElement = UIElement.None;
   private _tschKey: number = 0;
@@ -165,6 +174,8 @@ class Flow {
       this._eleSelected = target;
       let parent = target;
 
+      //this.moveIOLeftRight();
+
       // Check if it's context menu element click
       let contextMenu: boolean = false;
       parent = target;
@@ -192,14 +203,40 @@ class Flow {
         this._connectionSelected = null;
       }
 
+      // Remove previous IOs status if any
+      if (this._iosSelected) {
+        this._iosSelected = null;
+      }
+
       // Get selected tsch if any
       parent = target;
       while (parent) {
         if (parent.classList.contains('tsch')) {
           this._tschSelected = parent;
+          break;
         }
+        parent = parent.parentElement!;
+      }
+
+      // Get selected connection if any
+      parent = target;
+      while (parent) {
         if (parent.classList.contains('connection')) {
           this._connectionSelected = parent;
+          break;
+        }
+        parent = parent.parentElement!;
+      }
+
+      // Get selected IOs if any
+      parent = target;
+      while (parent) {
+        if (
+          parent.classList.contains('output') ||
+          parent.classList.contains('input')
+        ) {
+          this._iosSelected = parent;
+          break;
         }
         parent = parent.parentElement!;
       }
@@ -365,13 +402,23 @@ class Flow {
         if (parent.classList.contains('tsch')) {
           if (parent.classList.contains('matTsch')) {
             this._contextMenuSelected = ContextMenus.MatTsch;
+            break loop;
           }
           if (parent.classList.contains('blockTsch')) {
             this._contextMenuSelected = ContextMenus.BlockTsch;
+            break loop;
           }
         }
         if (parent.classList.contains('connection')) {
           this._contextMenuSelected = ContextMenus.Connection;
+          break loop;
+        }
+        if (
+          parent.classList.contains('input') ||
+          parent.classList.contains('output')
+        ) {
+          this._contextMenuSelected = ContextMenus.IOs;
+          break loop;
         }
         parent = parent.parentElement!;
       }
@@ -388,6 +435,10 @@ class Flow {
         case ContextMenus.Connection:
           ContextMenu.Show('#contextMenuConnection', e);
           break;
+        case ContextMenus.IOs:
+          ContextMenu.Show('#contextMenuIOs', e);
+          console.log(this._iosSelected);
+          break;
         default:
           return;
       }
@@ -402,6 +453,8 @@ class Flow {
       '#contextMenuConnection',
       ContextMenu.ProcessConnection,
     );
+    // Context Menu Connection Listener
+    this.contextMenuAddListener('#contextMenuIOs', ContextMenu.ProcessIOs);
   }
 
   private contextMenuAddListener(tag: string, callback: Function) {
@@ -413,13 +466,16 @@ class Flow {
       );
       if (!menuOption) return;
       const flowState: FlowState = {
+        htmlContainer: this._htmlContainer,
         tschSelected: this._tschSelected,
         connectionSelected: this._connectionSelected,
-        htmlContainer: this._htmlContainer,
+        iosSelecteded: this._iosSelected,
         graphData: this.graphData,
       };
       callback(menuOption, flowState);
       contextMenu.classList.remove('shown');
+      if (this._htmlContainer)
+        SvgConnection.updateAllNodes(this._htmlContainer, this.zoom);
     });
   }
 
