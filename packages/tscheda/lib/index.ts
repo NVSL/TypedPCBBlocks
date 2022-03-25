@@ -1,5 +1,5 @@
 import { Queue, MultiMap } from './utils';
-import { Tsch, voltage, TypedSchematic } from './tsch';
+import { Tsch, voltage, TypedSchematic, Configuration } from './tsch';
 import { test } from './testVoltages';
 import TschedaDebug from './logger';
 import { TschedaError, ErrorCode, result } from './error';
@@ -136,6 +136,14 @@ class Tscheda {
     const Tsch = this.getTsch(tschUuid);
     if (Tsch) {
       return Tsch.typedSchematic;
+    }
+    return null;
+  }
+
+  public config(tschUuid: uuid): Configuration | null {
+    const Tsch = this.getTsch(tschUuid);
+    if (Tsch) {
+      return Tsch.configuration;
     }
     return null;
   }

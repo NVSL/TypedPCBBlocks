@@ -17,6 +17,8 @@ interface TypedPower {
   type: typedYType;
   name: string | null;
   altname: string;
+  position: 'Left' | 'Right';
+  config: number;
   required: boolean;
   typedNets: string[];
   vars: {
@@ -28,6 +30,8 @@ interface TypedProtocol {
   type: typedYType;
   name: string | null;
   altname: string;
+  position: 'Left' | 'Right';
+  config: number;
   required: boolean;
   typedNets: string[];
   vars: {
@@ -36,8 +40,17 @@ interface TypedProtocol {
   };
 }
 
+interface NetAndPosition {
+  net: string;
+  position: 'Left' | 'Right';
+}
+
 interface TypedSchematic {
   [protocolKey: string]: TypedProtocol | TypedPower;
+}
+
+interface Configuration {
+  [typedNet: string]: Array<string>;
 }
 
 class Tsch {
@@ -46,6 +59,7 @@ class Tsch {
   eagleFileName: string;
   outputsPower: boolean;
   typedSchematic: TypedSchematic | null;
+  configuration: Configuration;
   inDesign: boolean;
   sourceVoltage: voltage | null;
   instance: number | null;
@@ -54,6 +68,7 @@ class Tsch {
     this.eagleFileName = '';
     this.outputsPower = false;
     this.typedSchematic = null;
+    this.configuration = {};
     // Modified when added to design
     this.inDesign = false;
     this.sourceVoltage = null; // voltage[voutIndex] from Mat vout: voltage[]
@@ -82,6 +97,7 @@ class Tsch {
     }
     // console.log('>> NETS: ', this.getNetNames());
     // console.log('>> TEXTS: ', this.getTexts());
+    // this.getNetNames();
     this.parse(this.getNetNames(), this.getTexts());
     this.checks();
     // console.log('>> TYPED SCHEMATIC: ', this.typedSchematic);
@@ -90,6 +106,15 @@ class Tsch {
   public getTsch(): TypedSchematic | null {
     if (this.typedSchematic) {
       return this.typedSchematic;
+    } else {
+      console.warn('Typed Schematic is null, load a typed schematic first');
+      return null;
+    }
+  }
+
+  public getConfig(): Configuration | null {
+    if (this.configuration) {
+      return this.configuration;
     } else {
       console.warn('Typed Schematic is null, load a typed schematic first');
       return null;
@@ -171,32 +196,68 @@ class Tsch {
   }
 
   // Gets schematic net names
-  private getNetNames(): string[] {
-    let netNames: string[] = [];
+  private getNetNames(): NetAndPosition[] {
+    let netsAndPositions: NetAndPosition[] = [];
     let netsObj: any[] = [];
     const sheets = this.eagle.schematic.sheets.sheet;
     if (Array.isArray(sheets)) {
       for (const sheetVal of sheets) {
         const sheet = sheetVal as any;
         const nets = sheet.nets.net;
-        if (nets) netsObj.push(nets);
+        // Save nets obj
+        if (nets) {
+          netsObj.push(nets);
+        }
       }
     } else {
       const nets = sheets.nets.net;
+      // Save nets obj
       if (nets) netsObj.push(nets);
     }
+
+    // Process nets object
 
     for (const nets of netsObj) {
       if (Array.isArray(nets)) {
         for (const netVal of nets) {
           const net = netVal as any;
-          netNames.push(net._name);
+          let rotation: string | undefined;
+          if (net.segment && net.segment.label)
+            rotation = net.segment.label._rot;
+          const netAndPosition = this.setNameAndPosition(rotation, net._name);
+          netsAndPositions.push(netAndPosition);
         }
       } else {
-        netNames.push(nets._name);
+        const net = nets;
+        let rotation: string | undefined;
+        if (net.segment && net.segment.label) rotation = net.segment.label._rot;
+        const netAndPosition = this.setNameAndPosition(rotation, net._name);
+        netsAndPositions.push(netAndPosition);
       }
     }
-    return netNames;
+    return netsAndPositions;
+  }
+
+  private setNameAndPosition(
+    rotation: string | undefined,
+    netName: string,
+  ): NetAndPosition {
+    let position: 'Left' | 'Right' = 'Right';
+    switch (rotation) {
+      case 'R90':
+      case 'R180':
+        position = 'Left';
+        break;
+      case 'R270':
+      default:
+        position = 'Right';
+        break;
+    }
+    const netAndPosition = {
+      net: netName,
+      position: position,
+    };
+    return netAndPosition;
   }
 
   // Gets schematic text annotations
@@ -303,21 +364,37 @@ class Tsch {
     }
   }
 
+  private appendConfiguration(
+    typedProperty: TypedProtocol | TypedPower,
+    typedNet: string,
+    config: number,
+  ) {
+    // Typed Schematic key
+    const nameAndAltame = typedProperty.name + '-' + typedProperty.altname;
+    if (!(typedNet in this.configuration)) {
+      this.configuration[typedNet] = new Array();
+    }
+    this.configuration[typedNet].push(nameAndAltame);
+  }
+
   // Creates Typed Schematc dictionary from typed nets
-  private parse(netNames: string[], schTexts: string[]) {
-    if (netNames == undefined) {
+  private parse(NetsAndPositions: NetAndPosition[], schTexts: string[]) {
+    if (NetsAndPositions == undefined) {
       throw new TschedaError(ErrorCode.ParseError, `No net names`);
     }
     // ## Parse Net Names
-    for (let typedNet of netNames) {
+    for (let typed of NetsAndPositions) {
       // Parse Typed Power Nets
-      if (typedNet.includes('@')) {
-        const required = typedNet.includes('!') ? false : true;
-        const powerData = typedNet.replace('@', '').replace('!', '').split('_');
+      if (typed.net.includes('@')) {
+        const required = typed.net.includes('!') ? false : true;
+        const powerData = typed.net
+          .replace('@', '')
+          .replace('!', '')
+          .split('_');
         if (powerData.length < 2) {
           throw new TschedaError(
             ErrorCode.ParseError,
-            `Wrong format, VIN or VOUT is missing underscore and voltage (e.g. VOUT_3.3V) ${typedNet}`,
+            `Wrong format, VIN or VOUT is missing underscore and voltage (e.g. VOUT_3.3V) ${typed.net}`,
           );
         } else {
           const voltageName = powerData[0];
@@ -328,6 +405,8 @@ class Tsch {
             type: 'power',
             name: null,
             altname: '0',
+            position: typed.position,
+            config: 0,
             required: required,
             typedNets: [],
             vars: {
@@ -368,7 +447,7 @@ class Tsch {
           }
 
           // Append typed net
-          power.typedNets.push(typedNet);
+          power.typedNets.push(typed.net);
 
           // Parse voltage data
           if (voltageData.includes('-')) {
@@ -382,7 +461,7 @@ class Tsch {
               if (voltage.min > voltage.max) {
                 throw new TschedaError(
                   ErrorCode.ParseError,
-                  `Wrong voltage range, voltage min > voltage max, in typed net: ${typedNet}`,
+                  `Wrong voltage range, voltage min > voltage max, in typed net: ${typed.net}`,
                 );
               }
               power.vars.voltage.type = 'range';
@@ -401,7 +480,7 @@ class Tsch {
               } catch (e) {
                 throw new TschedaError(
                   ErrorCode.ParseError,
-                  `In typed net ${typedNet}, could not parse ${v}`,
+                  `In typed net ${typed.net}, could not parse ${v}`,
                 );
               }
             }
@@ -416,7 +495,7 @@ class Tsch {
             } else {
               throw new TschedaError(
                 ErrorCode.ParseError,
-                `In typed net ${typedNet}, could not parse ${voltageData}`,
+                `In typed net ${typed.net}, could not parse ${voltageData}`,
               );
             }
           }
@@ -424,17 +503,20 @@ class Tsch {
           if (power.name != null) {
             // Append typed net to typed Schematic dictionary
             this.appendTypedProtocol(power);
+            // Append configurations
+            this.appendConfiguration(power, typed.net, 0);
           } else {
             throw new TschedaError(
               ErrorCode.ParseError,
-              `Wrong format in typed net: ${typedNet}`,
+              `Wrong format in typed net: ${typed.net}`,
             );
           }
         }
       }
       // Parse Typed Protcol Nets
-      if (typedNet.includes('#')) {
-        for (let protocolData of typedNet.split('||')) {
+      if (typed.net.includes('#')) {
+        let configNum: number = 0;
+        for (let protocolData of typed.net.split('||')) {
           // Check if typed net is required
           const required = protocolData.includes('!') ? false : true;
           // Remove #
@@ -446,6 +528,8 @@ class Tsch {
             type: 'protocol',
             name: null,
             altname: '0',
+            position: typed.position,
+            config: configNum,
             required: required,
             typedNets: [],
             vars: {},
@@ -467,18 +551,21 @@ class Tsch {
           }
 
           // Append typed net
-          protocol.typedNets.push(typedNet);
+          protocol.typedNets.push(typed.net);
 
           // Checks
           if (protocol.name != '') {
             // Append typed net to typed Schematic dictionary
             this.appendTypedProtocol(protocol);
+            // Append configurations
+            this.appendConfiguration(protocol, typed.net, configNum);
           } else {
             throw new TschedaError(
               ErrorCode.ParseError,
-              `Wrong format in typed net: ${typedNet}`,
+              `Wrong format in typed net: ${typed.net}`,
             );
           }
+          configNum++;
         }
       }
     }
@@ -545,4 +632,4 @@ class Tsch {
   }
 }
 
-export { TypedSchematic, Tsch, voltage, range };
+export { TypedSchematic, Configuration, Tsch, voltage, range };
