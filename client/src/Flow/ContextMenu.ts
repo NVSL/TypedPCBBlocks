@@ -1,7 +1,6 @@
 import { FlowState, MenuOptions } from './Flow';
 import Delete from './Delete';
 import Utils from './Utils';
-import SvgConnection from './SvgConnection';
 
 export default {
   Show(tag: string, e: MouseEvent) {
@@ -234,7 +233,10 @@ export default {
           return;
         }
         flowState.iosSelecteded.classList.remove('output');
-        flowState.iosSelecteded.classList.add('input');
+        const classNameLeftTmp = flowState.iosSelecteded.className;
+        flowState.iosSelecteded.className = '';
+        flowState.iosSelecteded.classList.add('input'); // Add at classList[0]
+        flowState.iosSelecteded.className += ' ' + classNameLeftTmp; // Restore prev classList
         inputs.appendChild(flowState.iosSelecteded);
         break;
       case MenuOptions.Right:
@@ -247,8 +249,15 @@ export default {
           console.error('Outputs block not found');
           return;
         }
+        const classListTmp1 = flowState.iosSelecteded.classList;
+        const className1 = flowState.iosSelecteded.className;
+        console.log('Class List', classListTmp1);
+        console.log('Class Name', className1);
         flowState.iosSelecteded.classList.remove('input');
-        flowState.iosSelecteded.classList.add('output');
+        const classNameRightTmp = flowState.iosSelecteded.className;
+        flowState.iosSelecteded.className = '';
+        flowState.iosSelecteded.classList.add('output'); // Add at classList[0]
+        flowState.iosSelecteded.className += ' ' + classNameRightTmp; // Restore prev classList
         outputs.appendChild(flowState.iosSelecteded);
         break;
     }
