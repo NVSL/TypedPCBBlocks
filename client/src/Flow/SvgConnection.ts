@@ -328,6 +328,24 @@ export default {
     zoom: number,
   ): boolean {
     try {
+      // Check if mouse up element or parent contains input or output class.
+      if (
+        !(
+          eleLast.classList.contains('input') ||
+          eleLast.classList.contains('output')
+        )
+      ) {
+        eleLast = <HTMLElement>eleLast.parentElement;
+        if (
+          !(
+            eleLast.classList.contains('input') ||
+            eleLast.classList.contains('output')
+          )
+        ) {
+          throw 'Mouse end target is not input or output';
+        }
+      }
+
       const inputTschElement = Utils.getParentTschElement(eleLast);
       const outputTschElement = Utils.getParentTschElement(eleFirst);
 

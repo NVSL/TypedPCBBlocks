@@ -582,25 +582,6 @@ class Flow {
           document.elementFromPoint(event.clientX, event.clientY)
         );
 
-        // Check if element or it's parent contains input or output class.
-        if (
-          !(
-            ele_last.classList.contains('input') ||
-            ele_last.classList.contains('output')
-          )
-        ) {
-          ele_last = <HTMLElement>ele_last.parentElement;
-          if (
-            !(
-              ele_last.classList.contains('input') ||
-              ele_last.classList.contains('output')
-            )
-          ) {
-            console.warn('Mouse end target element could not be defined');
-            return;
-          }
-        }
-
         if (!this._eleSelected) return;
         if (!ele_last) return;
         if (!this._connectionEle) return;
