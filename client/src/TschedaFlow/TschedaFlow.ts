@@ -19,21 +19,36 @@ class TschedaFlow {
       );
       const typedSchematic = this.tscheda.typedSch(atmega328);
 
+      if (!typedSchematic) return;
+
+      let leftMapCnt = 0;
+      const leftMap: { [key: number]: { name: string; max: number } } = {};
+      let rightMapCnt = 0;
+      const rightMap: { [key: number]: { name: string; max: number } } = {};
       // Add Node
-      var computeModule = `
+      loop: for (const typedSch of Object.values(typedSchematic)) {
+        if (typedSch.config != 0 || typedSch.type != 'protocol') continue loop;
+        switch (typedSch.position) {
+          case 'Left':
+            leftMap[leftMapCnt] = { name: typedSch.name!, max: 1 };
+            leftMapCnt++;
+            break;
+          case 'Right':
+            rightMap[rightMapCnt] = { name: typedSch.name!, max: 1 };
+            rightMapCnt++;
+            break;
+        }
+      }
+
+      const computeModule = `
             <div>
               <div class="title-box"><i class="fas fa-code"></i> Compute Module</div>
             </div>
             `;
       this.flow.addNode(
         'BlockTsch',
-        { 1: { name: 'GPIO', max: 2 } },
-        {
-          1: { name: 'GPIO', max: 2 },
-          2: { name: 'I2C', max: 2 },
-          3: { name: 'SPI', max: 2 },
-          4: { name: 'UART', max: 2 },
-        }, // 1:[type, max_connections]
+        leftMap,
+        rightMap, // 1:[type, max_connections]
         100,
         100,
         'computeModule',
