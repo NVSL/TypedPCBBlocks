@@ -105,11 +105,13 @@ body {
   color: black;
   margin-top: -4px;
   margin-left: 23px;
+  white-space: nowrap;
 }
 .tschs .tsch .input .type {
   color: black;
   margin-top: -4px;
-  margin-left: -55px;
+  margin-left: -100px;
+  white-space: nowrap;
 }
 
 .tschs .tsch .content {
