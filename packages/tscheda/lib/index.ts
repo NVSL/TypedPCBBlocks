@@ -140,6 +140,14 @@ class Tscheda {
     return null;
   }
 
+  public extraInfo(tschUuid: uuid): Map<string, string> | null {
+    const Tsch = this.getTsch(tschUuid);
+    if (Tsch) {
+      return Tsch.extraInfo;
+    }
+    return null;
+  }
+
   public config(tschUuid: uuid): Configuration | null {
     const Tsch = this.getTsch(tschUuid);
     if (Tsch) {

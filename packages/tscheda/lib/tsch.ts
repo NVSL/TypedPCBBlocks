@@ -63,12 +63,14 @@ class Tsch {
   inDesign: boolean;
   sourceVoltage: voltage | null;
   instance: number | null;
+  extraInfo: Map<string, string>;
   constructor() {
     this.eagleVersion = null;
     this.eagleFileName = '';
     this.outputsPower = false;
     this.typedSchematic = null;
     this.configuration = {};
+    this.extraInfo = new Map();
     // Modified when added to design
     this.inDesign = false;
     this.sourceVoltage = null; // voltage[voutIndex] from Mat vout: voltage[]
@@ -588,22 +590,31 @@ class Tsch {
           );
         }
 
-        // console.log(json);
         for (const [key, newVars] of Object.entries(json)) {
           if (!key.includes('-')) {
+            let found = false;
             // Apply to all protocols of the same protocol name
             for (const [tschKey] of Object.entries(this.typedSchematic)) {
               if (tschKey.split('-')[0] == key) {
                 // Append new vars values:
                 Object.assign(this.typedSchematic[tschKey].vars, newVars);
                 // console.log('APPENDED:', this.typedSchematic[tschKey].vars);
+                found = true;
               }
+            }
+
+            if (found == false) {
+              // It's extra informatin
+              this.extraInfo.set(key, newVars);
             }
           } else {
             if (key in this.typedSchematic) {
               // Append new vars values:
               Object.assign(this.typedSchematic[key].vars, newVars);
               // console.log('APPENDED:', this.typedSchematic[key].vars);
+            } else {
+              // It's extra information
+              this.extraInfo.set(key, newVars);
             }
           }
         }
