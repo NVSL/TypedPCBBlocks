@@ -1,5 +1,13 @@
 import { TschedaFlow } from './TschedaFlow/TschedaFlow';
 
+/*
+ - Start integration with Tsch Lib
+
+Left aside 
+  - The Mats need a way to specify or add mutiple output voltages 
+  - The Connections need a way to add weights or someting so they don't overlap the nodes
+*/
+
 const container = <HTMLElement>document.querySelector('#tschs');
 
 const tschedaFlow = new TschedaFlow(
@@ -7,7 +15,10 @@ const tschedaFlow = new TschedaFlow(
   'http://localhost:3000/data/typedConstraints/',
 );
 
-tschedaFlow.addTypedSchematic('atmega328.sch');
+tschedaFlow.addTypedSchematic('atmega328.sch', 100, 100);
+tschedaFlow.addTypedSchematic('led_smd.sch', 100, 600);
+tschedaFlow.addTypedSchematic('temperature_sensor.sch', 200, 600);
+tschedaFlow.addTypedSchematic('flash.sch', 300, 600);
 
 // import { Flow } from './Flow/Flow';
 // // ### UI Interface
