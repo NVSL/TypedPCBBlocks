@@ -1101,6 +1101,9 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <sheets>
 <sheet>
 <plain>
+<text x="20.32" y="-5.08" size="1.778" layer="97">#{
+BlockType:Pheripherial,
+}</text>
 </plain>
 <instances>
 <instance part="D1" gate="G$1" x="0" y="0" smashed="yes" rot="R90">
@@ -1146,6 +1149,10 @@ You are welcome to use this library for commercial purposes. For attribution, we
 </schematic>
 </drawing>
 <compatibility>
+<note version="6.3" minversion="6.2.2" severity="warning">
+Since Version 6.2.2 text objects can contain more than one line,
+which will not be processed correctly with this version.
+</note>
 <note version="8.2" severity="warning">
 Since Version 8.2, EAGLE supports online libraries. The ids
 of those online libraries will not be understood (or retained)
