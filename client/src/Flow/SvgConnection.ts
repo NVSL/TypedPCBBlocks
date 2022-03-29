@@ -403,16 +403,8 @@ export default {
       const input_type = inputIOData.type;
       const output_type = outputIOData.type;
 
-      // Get Current Connections number
-      const output_current_conections = outputIOData.connections.length;
-      const output_max_connections = outputIOData.max_connections;
-
       // Check Types
       if (output_type !== input_type) throw 'Type mismatch';
-
-      // Check Max Connections allowed
-      if (output_current_conections >= output_max_connections)
-        throw 'Max connections reached';
 
       // Make connection
       const connectionID = 'connection-' + connectionKey;

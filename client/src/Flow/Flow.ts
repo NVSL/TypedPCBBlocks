@@ -9,21 +9,6 @@ import './SvgConnection.css';
 import './ContextMenu.css';
 import './Flow.css';
 
-/*
-2. Start Merging
- - After that implement Path Delete and Node Delete
- - Add different context menu for mat and block tschs
- - Refactor (missing changing contextMenu.contextMenu func to ContextMenu.func)
- - Refactor (missing to check if dataflow changes are correct after inputs/outputs to ios)
- - Add a context menu for input and outputs to move them left/right
- - See how to deal with connections overlaping blocks, maybe add weights to connections? 
- - Start integration with Tsch Lib
-
-Left aside 
-  - The Mats need a way to specify or add mutiple output voltages 
-  - The Connections need a way to add weights or someting so they don't overlap the nodes
-*/
-
 // Context Menus
 enum ContextMenus {
   MatTsch = 'MatTsch',
@@ -79,7 +64,7 @@ interface IOData {
   ioKey: string;
   connections: Array<ConnectionData>;
   type: string;
-  max_connections: number;
+  altname: string;
 }
 type IOs = Map<string, IOData>;
 
@@ -722,8 +707,8 @@ class Flow {
 
   public addNode(
     type: 'BlockTsch' | 'MatTsch',
-    num_in: { [key: number]: { name: string; max: number } },
-    num_out: { [key: number]: { name: string; max: number } },
+    num_in: { [key: number]: { name: string; altname: string } },
+    num_out: { [key: number]: { name: string; altname: string } },
     ele_pos_x: number,
     ele_pos_y: number,
     classoverride: string,
@@ -784,14 +769,14 @@ class Flow {
     for (const value of Object.values(num_in)) {
       inputs.insertAdjacentHTML(
         'beforeend',
-        `<div class="input io-${IOKey}" io-id="io-${IOKey}" io-key="${IOKey}"><div class="type">${value.name}</div></div>`, // Insert as lastChild
+        `<div class="input io-${IOKey}" io-id="io-${IOKey}" io-key="${IOKey}"><div class="type">${value.name}-${value.altname}</div></div>`, // Insert as lastChild
       );
       IOs.set(IOKey.toString(), {
         ioID: `io-${IOKey}`,
         ioKey: IOKey.toString(),
         connections: [],
         type: value.name,
-        max_connections: value.max,
+        altname: value.altname,
       });
       IOKey++;
     }
@@ -813,14 +798,14 @@ class Flow {
     for (const value of Object.values(num_out)) {
       outputs.insertAdjacentHTML(
         'beforeend',
-        `<div class="output io-${IOKey}" io-id="io-${IOKey}" io-key="${IOKey}"><div class="type">${value.name}</div></div>`, // Insert as lastChild
+        `<div class="output io-${IOKey}" io-id="io-${IOKey}" io-key="${IOKey}"><div class="type">${value.name}-${value.altname}</div></div>`, // Insert as lastChild
       );
       IOs.set(IOKey.toString(), {
         ioID: `io-${IOKey}`,
         ioKey: IOKey.toString(),
         connections: [],
         type: value.name,
-        max_connections: value.max,
+        altname: value.altname,
       });
       IOKey++;
     }
