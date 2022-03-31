@@ -21,6 +21,7 @@ class TschedaFlow {
   }
   public async addTypedSchematic(eagelFileName: string, x: number, y: number) {
     try {
+      // TODO: Define tsch-uuid here
       const atmega328 = await this.tscheda.use(
         await Utils.eagelFile(eagelFileName),
       );
@@ -53,10 +54,14 @@ class TschedaFlow {
           }
         }
       }
-      if (this.tscheda.isMat(atmega328)) {
+      if (this.tscheda.tschOutputsPower(atmega328)) {
         // TODO: Diferientate between mat and rootmat
         blockType = BlockType.mat;
+        // TODO: Define mat-uuid here
       }
+
+      console.log(this.tscheda.getTsch(atmega328));
+      console.log(this.tscheda.tschOutputsPower(atmega328));
 
       // Populate IOs
       let leftMapCnt = 0;
@@ -121,6 +126,18 @@ class TschedaFlow {
             'pheripherial',
             pheripherial,
           );
+          break;
+        case BlockType.rootmat:
+        case BlockType.mat:
+          const matModule = `
+              <div>
+                <div class="title-box">
+                  <div>MAT</div>
+                  <div>${eagelFileName}</div>
+                </div>
+              </div>
+              `;
+          this.flow.addNode('MatTsch', leftMap, rightMap, x, y, '', matModule);
           break;
       }
     } catch (e) {
