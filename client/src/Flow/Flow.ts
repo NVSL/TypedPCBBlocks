@@ -91,14 +91,23 @@ class Flow {
   private _iosSelected: HTMLElement | null = null;
   private _uiEleMouseDown: UIElement = UIElement.None;
   private _uiEleSelected: UIElement = UIElement.None;
-  private _tschKey: number = 0;
-  private _matKey: number = 0;
+  private _tschNum: number = 0;
+  private _matNum: number = 0;
+  private _zIndexNum: number = 0;
   private _dragMap: Map<HTMLElement, Array<HTMLElement>> = new Map();
 
   // SVG
   private _connectionKey: number = 1;
   private _connectionEle: SVGSVGElement | null = null;
   private _connectionSelected: HTMLElement | null = null;
+
+  // Listeners
+  private _events: Map<
+    string,
+    {
+      listeners: Array<any>;
+    }
+  > = new Map();
 
   // Context Menues
   private _contextMenuSelected: ContextMenus | null = null;
@@ -336,7 +345,6 @@ class Flow {
         dropzoneElement.classList.remove('can-drop');
         if (Utils.isMatElement(draggableElement) == false) {
           draggableElement.classList.remove('can-drop');
-          // draggableElement.textContent = 'Dragged out';
         }
         this.dragarrayRemove(dropzoneElement, draggableElement);
       },
@@ -345,6 +353,7 @@ class Flow {
         const dropzoneElement = <HTMLElement>event.target;
         // draggableElement.textContent = 'Dropped in ' + event.target.id;
         this.dragarraySet(dropzoneElement, draggableElement);
+        this.dispatch('tschDrop', draggableElement);
       },
       ondropdeactivate: (event) => {
         // remove active dropzone feedback
@@ -707,6 +716,8 @@ class Flow {
 
   public addNode(
     type: 'BlockTsch' | 'MatTsch',
+    tschUuid: string | null,
+    matUuid: string | null,
     num_in: { [key: number]: { name: string; altname: string } },
     num_out: { [key: number]: { name: string; altname: string } },
     ele_pos_x: number,
@@ -714,9 +725,19 @@ class Flow {
     classoverride: string,
     html: string,
   ) {
-    const tschKey = this._tschKey;
-    const tschID = `tsch-${tschKey}`;
-    this._tschKey++;
+    // Define tsch key type
+    let tschKey;
+    let tschID;
+    if (tschUuid != null) {
+      // Key is a Uuid
+      tschKey = tschUuid;
+      tschID = `tsch-${tschUuid}`;
+    } else {
+      // Key is a counter
+      tschKey = this._tschNum;
+      tschID = `tsch-${tschKey}`;
+    }
+    this._tschNum++;
 
     if (!this._htmlContainer) {
       console.error('HTML container not found');
@@ -739,18 +760,29 @@ class Flow {
         node = <HTMLElement>this._htmlContainer.lastChild;
         break;
       case 'MatTsch':
+        // Define mat key type
+        let matKey;
+        if (matUuid != null) {
+          // Key is a Uuid
+          matKey = matUuid;
+        } else {
+          // Key is a counter
+          matKey = this._matNum;
+        }
+        this._matNum++;
+
         // BLOCK TSCH
         this._htmlContainer.insertAdjacentHTML(
           'beforeend',
           `<div
             id="${tschID}"
             class="tsch matTsch ${classoverride}"
-            tsch-key="${tschKey}" mat-key="${this._matKey}"
-            style="z-index: ${tschKey}; top: ${ele_pos_x}px; left: ${ele_pos_y}px"
+            tsch-key="${tschKey}" mat-key="${matKey}"
+            style="z-index: ${this._zIndexNum}; top: ${ele_pos_x}px; left: ${ele_pos_y}px"
            ></div>`, // Insert as lastChild
         );
         node = <HTMLElement>this._htmlContainer.lastChild;
-        this._matKey++;
+        this._zIndexNum++;
         break;
     }
 

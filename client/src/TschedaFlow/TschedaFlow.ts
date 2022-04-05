@@ -2,10 +2,15 @@ import { Flow } from '../Flow/Flow';
 import { Tscheda, TschedaDebug } from 'tscheda';
 import Utils from './Utils';
 
+/*
+TODO
+- Set tsch-uuid and mat-uuid for each block and add them to html attributes
+*/
+
 enum BlockType {
   computemodule = 'computemodule',
   pheripherial = 'pheripherial',
-  rootmat = 'rootmat',
+  matroot = 'matroot',
   mat = 'mat',
 }
 
@@ -18,20 +23,30 @@ class TschedaFlow {
     // init tscheda
     this.tscheda = new Tscheda(typedConstrainsPath);
     TschedaDebug.enable(true, 1);
+    // init listeners
+    this.listeners();
   }
+
+  public listeners() {
+    this.flow.on('tschDrop', (data: any) => {
+      console.log('Drop event', data);
+    });
+  }
+
   public async addTypedSchematic(eagelFileName: string, x: number, y: number) {
     try {
       // TODO: Define tsch-uuid here
-      const atmega328 = await this.tscheda.use(
-        await Utils.eagelFile(eagelFileName),
-      );
+      let tschUuid = null;
+      let matUuid = null;
 
-      const typedSchematic = this.tscheda.typedSch(atmega328);
+      tschUuid = await this.tscheda.use(await Utils.eagelFile(eagelFileName));
+
+      const typedSchematic = this.tscheda.typedSch(tschUuid);
       if (!typedSchematic) return;
 
       // Get extra information to get block's type
       // TODO: Move this to tsch under a new variable
-      const extraInfo = this.tscheda.extraInfo(atmega328);
+      const extraInfo = this.tscheda.extraInfo(tschUuid);
       let blockType: BlockType = BlockType.computemodule;
       if (extraInfo) {
         let block = extraInfo.get('BlockType');
@@ -45,8 +60,8 @@ class TschedaFlow {
             case BlockType.pheripherial:
               blockType = BlockType.pheripherial;
               break;
-            case BlockType.rootmat:
-              blockType = BlockType.rootmat;
+            case BlockType.matroot:
+              blockType = BlockType.matroot;
               break;
             case BlockType.mat:
               blockType = BlockType.mat;
@@ -54,14 +69,17 @@ class TschedaFlow {
           }
         }
       }
-      if (this.tscheda.tschOutputsPower(atmega328)) {
-        // TODO: Diferientate between mat and rootmat
-        blockType = BlockType.mat;
-        // TODO: Define mat-uuid here
+      if (this.tscheda.tschOutputsPower(tschUuid)) {
+        matUuid = this.tscheda.newMat(tschUuid);
+
+        if (this.tscheda.isMatRoot(matUuid)) {
+          blockType = BlockType.matroot;
+        } else {
+          blockType = BlockType.mat;
+        }
       }
 
-      console.log(this.tscheda.getTsch(atmega328));
-      console.log(this.tscheda.tschOutputsPower(atmega328));
+      console.log('BlockType', blockType);
 
       // Populate IOs
       let leftMapCnt = 0;
@@ -100,6 +118,8 @@ class TschedaFlow {
               `;
           this.flow.addNode(
             'BlockTsch',
+            tschUuid,
+            matUuid,
             leftMap,
             rightMap,
             x,
@@ -119,6 +139,8 @@ class TschedaFlow {
               `;
           this.flow.addNode(
             'BlockTsch',
+            tschUuid,
+            matUuid,
             leftMap,
             rightMap,
             x,
@@ -127,7 +149,7 @@ class TschedaFlow {
             pheripherial,
           );
           break;
-        case BlockType.rootmat:
+        case BlockType.matroot:
         case BlockType.mat:
           const matModule = `
               <div>
@@ -137,7 +159,17 @@ class TschedaFlow {
                 </div>
               </div>
               `;
-          this.flow.addNode('MatTsch', leftMap, rightMap, x, y, '', matModule);
+          this.flow.addNode(
+            'MatTsch',
+            tschUuid,
+            matUuid,
+            leftMap,
+            rightMap,
+            x,
+            y,
+            '',
+            matModule,
+          );
           break;
       }
     } catch (e) {
