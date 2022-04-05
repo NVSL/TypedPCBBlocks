@@ -306,6 +306,24 @@ class Tscheda {
     return false;
   }
 
+  public isMatRoot(matOrMatUuid: any): boolean {
+    // is uuid
+    if (typeof matOrMatUuid === 'string') {
+      const mat = this.getMat(matOrMatUuid);
+      if (mat) {
+        return true;
+      }
+    }
+
+    // is mat
+    if ((<powerMatNode>matOrMatUuid).powerTsch) {
+      // is mat root
+      if ((<powerMatNode>matOrMatUuid).vin == null) return true;
+    }
+
+    return false;
+  }
+
   public tschOutputsPower(tschOrTschUuid: any) {
     // is uuid
     if (typeof tschOrTschUuid === 'string') {
