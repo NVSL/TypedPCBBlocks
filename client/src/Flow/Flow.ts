@@ -857,6 +857,62 @@ class Flow {
 
     return tschKey;
   }
+
+  /* Events */
+  public on(event: string, callback: Function) {
+    // Check if the callback is not a function
+    if (typeof callback !== 'function') {
+      console.error(
+        `The listener callback must be a function, the given type is ${typeof callback}`,
+      );
+      return;
+    }
+
+    // Check if the event is not a string
+    if (typeof event !== 'string') {
+      console.error(
+        `The event name must be a string, the given type is ${typeof event}`,
+      );
+      return;
+    }
+
+    // Check if this event not exists
+    let callbackArray = this._events.get(event);
+    if (callbackArray === undefined) {
+      callbackArray = {
+        listeners: new Array(),
+      };
+      this._events.set(event, callbackArray);
+    }
+
+    callbackArray.listeners.push(callback);
+  }
+
+  public removeListener(event: string, callback: Function) {
+    // Check if this event not exists
+    const callbackArray = this._events.get(event);
+    if (callbackArray === undefined) {
+      console.error(`This event: ${event} does not exist`);
+      return;
+    }
+
+    callbackArray.listeners = callbackArray.listeners.filter((listener) => {
+      return listener.toString() !== callback.toString();
+    });
+  }
+
+  public dispatch(event: string, details: any) {
+    // Check if this event not exists
+    const callbackArray = this._events.get(event);
+    if (callbackArray === undefined) {
+      console.error(`This event: ${event} does not exist`);
+      return;
+    }
+
+    callbackArray.listeners.forEach((listener) => {
+      listener(details);
+    });
+  }
 }
 
 export { Flow, GraphData, IOData, FlowState, MenuOptions };
