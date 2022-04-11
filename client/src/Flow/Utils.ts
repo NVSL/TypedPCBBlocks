@@ -8,6 +8,13 @@ export default {
   getMatKey(nodeElement: HTMLElement): string | null {
     return nodeElement.getAttribute('mat-key');
   },
+  getMatDrop(nodeElement: HTMLElement): string | null {
+    return nodeElement.getAttribute('dropped-in-mat-key');
+  },
+  setMatDrop(nodeElement: HTMLElement, matKey: string | null) {
+    if (matKey == null) return;
+    nodeElement.setAttribute('dropped-in-mat-key', matKey);
+  },
   getIOKey(nodeElement: HTMLElement): string | null {
     return nodeElement.getAttribute('io-key');
   },
