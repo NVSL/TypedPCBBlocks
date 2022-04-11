@@ -406,7 +406,26 @@ export default {
       // Check Types
       if (output_type !== input_type) throw 'Type mismatch';
 
-      // Make connection
+      // Check if IO connection already exists for inputs
+      for (const connection of inputIOData.connections) {
+        if (
+          connection.ioID == outputIOData.ioID &&
+          connection.tschID == output_tschID
+        ) {
+          throw 'IO aready exists';
+        }
+      }
+
+      // Check if IO connection already exists for inputs
+      for (const connection of outputIOData.connections) {
+        if (
+          connection.ioID == inputIOData.ioID &&
+          connection.tschID == input_tschID
+        ) {
+          throw 'IO aready exists';
+        }
+      }
+
       const connectionID = 'connection-' + connectionKey;
       eleConnection.id = connectionID;
       eleConnection.setAttribute('connection-key', connectionKey);
@@ -434,6 +453,8 @@ export default {
 
       console.log('Connected!');
       console.log('GraphData', graphData.data);
+
+      // Dispatch Connection event
 
       // Update all Nodes to fit connection in circle center
       this.updateAllNodes(eleContainer, zoom);
