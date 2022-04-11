@@ -347,13 +347,23 @@ class Flow {
           draggableElement.classList.remove('can-drop');
         }
         this.dragarrayRemove(dropzoneElement, draggableElement);
+        // Remove drag-in tag and dispatch undropp event
+        Utils.setMatDrop(draggableElement, '');
+        this.dispatch('flowUndrop', draggableElement);
       },
       ondrop: (event) => {
         const draggableElement = <HTMLElement>event.relatedTarget;
         const dropzoneElement = <HTMLElement>event.target;
         // draggableElement.textContent = 'Dropped in ' + event.target.id;
         this.dragarraySet(dropzoneElement, draggableElement);
-        this.dispatch('tschDrop', draggableElement);
+        // Get drop element info;
+        const dropzoneElementMatKey = Utils.getMatKey(dropzoneElement);
+        const draggableElementDropIn = Utils.getMatDrop(draggableElement);
+        if (dropzoneElementMatKey != draggableElementDropIn) {
+          // New drop
+          Utils.setMatDrop(draggableElement, dropzoneElementMatKey);
+          this.dispatch('flowDrop', draggableElement);
+        }
       },
       ondropdeactivate: (event) => {
         // remove active dropzone feedback
@@ -591,6 +601,7 @@ class Flow {
         );
         if (conected) {
           this._connectionKey++;
+          this.dispatch('flowConnect', {});
         }
         break;
     }
@@ -684,36 +695,6 @@ class Flow {
     }
   }
 
-  // ### User Methods
-  // TODO: Add container ID
-  //   public addMatTsch() {
-  //     if (!this._htmlContainer) {
-  //       console.error('HTML Container Element not found');
-  //       return;
-  //     }
-
-  //     this._htmlContainer.insertAdjacentHTML(
-  //       'beforeend',
-  //       `<div id="tsch-${this._tschKey}" class="tsch matTsch" tsch-id="${this._tschKey}" mat-id="${this._matKey}" style="z-index: ${this._tschKey}">
-  //           MAT${this._matKey}
-  //         </div>`,
-  //     );
-  //     this._tschKey++;
-  //     this._matKey++;
-  //   }
-
-  //   public addBlockTsch() {
-  //     if (!this._htmlContainer) {
-  //       console.error('HTML Container Element not found');
-  //       return;
-  //     }
-  //     this._htmlContainer.insertAdjacentHTML(
-  //       'beforeend',
-  //       `<div id="tsch-${this._tschKey}" class="tsch blockTsch" tsch-id="${this._tschKey}" style="z-index: ${this._tschKey}">TSCH</div>`,
-  //     );
-  //     this._tschKey++;
-  //   }
-
   public addNode(
     type: 'BlockTsch' | 'MatTsch',
     tschUuid: string | null,
@@ -754,6 +735,7 @@ class Flow {
             id="${tschID}"
             class="tsch blockTsch ${classoverride}"
             tsch-key="${tschKey}"
+            dropped-in-mat-key=""
             style="z-index: 45; top: ${ele_pos_x}px; left: ${ele_pos_y}px"
            ></div>`, // Insert as lastChild
         );
@@ -778,6 +760,7 @@ class Flow {
             id="${tschID}"
             class="tsch matTsch ${classoverride}"
             tsch-key="${tschKey}" mat-key="${matKey}"
+            dropped-in-mat-key=""
             style="z-index: ${this._zIndexNum}; top: ${ele_pos_x}px; left: ${ele_pos_y}px"
            ></div>`, // Insert as lastChild
         );

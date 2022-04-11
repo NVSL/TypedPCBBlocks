@@ -3,8 +3,11 @@ import { Tscheda, TschedaDebug } from 'tscheda';
 import Utils from './Utils';
 
 /*
-TODO
+TODOs:
 - Set tsch-uuid and mat-uuid for each block and add them to html attributes
+- Add event listeners to integrate connections.
+PERSONAL TODOs:
+- Fill taxes**, sell stuff, check jobs
 */
 
 enum BlockType {
@@ -28,8 +31,14 @@ class TschedaFlow {
   }
 
   public listeners() {
-    this.flow.on('tschDrop', (data: any) => {
+    this.flow.on('flowDrop', (data: any) => {
       console.log('Drop event', data);
+    });
+    this.flow.on('flowUndrop', (data: any) => {
+      console.log('Un Drop event', data);
+    });
+    this.flow.on('flowConnect', (data: any) => {
+      console.log('Connect event', data);
     });
   }
 
