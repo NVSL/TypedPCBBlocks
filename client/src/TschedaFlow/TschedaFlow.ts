@@ -1,4 +1,4 @@
-import { Flow } from '../Flow/Flow';
+import { Flow, DropEventInfo } from '../Flow/Flow';
 import { Tscheda, TschedaDebug } from 'tscheda';
 import Utils from './Utils';
 
@@ -31,8 +31,12 @@ class TschedaFlow {
   }
 
   public listeners() {
-    this.flow.on('flowDrop', (data: any) => {
+    this.flow.on('flowDrop', (data: DropEventInfo) => {
       console.log('Drop event', data);
+      // Add mat to mat
+      // this.tscheda.addMat('root', Mat5V12V);
+      // Add tsch to mat
+      // this.tscheda.addTsch(Mat5V, atmega328);
     });
     this.flow.on('flowUndrop', (data: any) => {
       console.log('Un Drop event', data);

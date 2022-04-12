@@ -39,6 +39,14 @@ enum UIElement {
   Editor = 'Editor',
 }
 
+// Event information
+interface DropEventInfo {
+  dropTschKey: string | null;
+  dropMatKey: string | null;
+  dragTschKey: string | null;
+  dragMatKey: string | null;
+}
+
 // Flow variables for context menu processing
 interface FlowState {
   htmlContainer: HTMLElement | null;
@@ -360,9 +368,17 @@ class Flow {
         const dropzoneElementMatKey = Utils.getMatKey(dropzoneElement);
         const draggableElementDropIn = Utils.getMatDrop(draggableElement);
         if (dropzoneElementMatKey != draggableElementDropIn) {
+          // Get info
+          const dropEventInfo: DropEventInfo = {
+            dropTschKey: Utils.getTschKey(dropzoneElement),
+            dropMatKey: Utils.getMatKey(dropzoneElement),
+            dragTschKey: Utils.getTschKey(draggableElement),
+            dragMatKey: Utils.getMatKey(draggableElement),
+          };
+
           // New drop
           Utils.setMatDrop(draggableElement, dropzoneElementMatKey);
-          this.dispatch('flowDrop', draggableElement);
+          this.dispatch('flowDrop', dropEventInfo);
         }
       },
       ondropdeactivate: (event) => {
@@ -898,4 +914,4 @@ class Flow {
   }
 }
 
-export { Flow, GraphData, IOData, FlowState, MenuOptions };
+export { Flow, GraphData, IOData, FlowState, MenuOptions, DropEventInfo };
