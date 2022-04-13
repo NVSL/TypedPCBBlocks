@@ -39,6 +39,16 @@ enum UIElement {
   Editor = 'Editor',
 }
 
+// Start Position
+interface BlockPosition {
+  tschSelected: HTMLElement;
+  target: HTMLElement;
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+}
+
 // Event information
 interface DropEventInfo {
   dropTschKey: string | null;
@@ -103,6 +113,9 @@ class Flow {
   private _matNum: number = 0;
   private _zIndexNum: number = 0;
   private _dragMap: Map<HTMLElement, Array<HTMLElement>> = new Map();
+
+  // Start|End Block Positions for reverting
+  private _startEnd: BlockPosition | null = null;
 
   // SVG
   private _connectionKey: number = 1;
@@ -540,6 +553,18 @@ class Flow {
   // ### Mouse Operations
 
   private mouseStart = (event: InteractEvent, eventType: 'drag' | 'resize') => {
+    // Save start position
+    const targetPos = this.positionelementGet(<HTMLElement>event.target);
+    this._startEnd = {
+      tschSelected: this._tschSelected!,
+      target: <HTMLElement>event.target,
+      startX: targetPos.x,
+      startY: targetPos.y,
+      endX: 0,
+      endY: 0,
+    };
+
+    // Start operations
     switch (this._uiEleMouseDown) {
       case UIElement.NodeInput:
       case UIElement.NodeOutput:
@@ -606,6 +631,13 @@ class Flow {
   };
 
   private mouseEnd = (event: InteractEvent, eventType: 'drag' | 'resize') => {
+    // Save end position
+    if (this._startEnd) {
+      const targetPos = this.positionelementGet(<HTMLElement>event.target);
+      this._startEnd.endX = targetPos.x;
+      this._startEnd.endY = targetPos.y;
+    }
+
     switch (this._uiEleMouseDown) {
       case UIElement.NodeInput:
       case UIElement.NodeOutput:
@@ -639,6 +671,47 @@ class Flow {
   };
 
   // ### Elements Positioning
+
+  // Reverse position to original position
+  public revertPosition() {
+    setTimeout(() => {
+      if (this._startEnd == null) return;
+      if (this._htmlContainer == null) return;
+
+      // Get Start + End Offset
+      const xTotalOffset = this._startEnd.startX - this._startEnd.endX;
+      const yTotalOffset = this._startEnd.startY - this._startEnd.endY;
+
+      // Revert position
+
+      this.positionelementSetOffset(
+        this._startEnd.target,
+        xTotalOffset,
+        yTotalOffset,
+      );
+
+      this.positionelementSetChildsOffset(
+        this._startEnd.target,
+        xTotalOffset,
+        yTotalOffset,
+      );
+
+      if (!this._startEnd.tschSelected) return;
+
+      if (Utils.isMatElement(this._startEnd.tschSelected)) {
+        // Is tschMat
+        SvgConnection.updateAllNodes(this._htmlContainer, this.zoom);
+      } else {
+        // Is tschBlock
+        // Update Connections
+        SvgConnection.updateNode(
+          this._htmlContainer,
+          this.zoom,
+          this._startEnd.tschSelected.id,
+        );
+      }
+    }, 10);
+  }
 
   // Move target element by an offset
   private positionelementSetOffset(

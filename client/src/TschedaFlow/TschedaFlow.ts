@@ -33,6 +33,7 @@ class TschedaFlow {
         data.dropMatKey == null
       ) {
         console.error('Drop Event Info is inconsistent: ', data);
+        this.flow.revertPosition();
         return;
       }
 
@@ -43,11 +44,13 @@ class TschedaFlow {
           'Tsch Key could not be processed. Tsch key data:',
           data.dragTschKey,
         );
+        this.flow.revertPosition();
         return;
       }
 
       if (dragBlockType == BlockType.matroot) {
         console.error('A mat root was already assigned');
+        this.flow.revertPosition();
         return;
       }
 
@@ -56,6 +59,7 @@ class TschedaFlow {
         // Add 'root' to mat
         if (data.dragMatKey == null) {
           console.log('Inconsistency error, drag mat key is null ', data);
+          this.flow.revertPosition();
           return;
         }
 
@@ -65,6 +69,7 @@ class TschedaFlow {
         } catch (e) {
           const error = e as TschedaError;
           console.error(error.message);
+          this.flow.revertPosition();
         }
       } else {
         try {
@@ -73,6 +78,7 @@ class TschedaFlow {
         } catch (e) {
           const error = e as TschedaError;
           console.error(error.message);
+          this.flow.revertPosition();
         }
       }
     });
