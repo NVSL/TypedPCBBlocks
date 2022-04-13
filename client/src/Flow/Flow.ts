@@ -355,13 +355,25 @@ class Flow {
           draggableElement.classList.remove('can-drop');
         }
         this.dragarrayRemove(dropzoneElement, draggableElement);
+
         // Remove drag-in tag and dispatch undropp event
-        Utils.setMatDrop(draggableElement, '');
-        this.dispatch('flowUndrop', draggableElement);
+        const draggableElementDropOut = Utils.getMatDrop(draggableElement);
+        if (draggableElementDropOut != '') {
+          Utils.setMatDrop(draggableElement, '');
+
+          const dropEventInfo: DropEventInfo = {
+            dropTschKey: Utils.getTschKey(dropzoneElement),
+            dropMatKey: Utils.getMatKey(dropzoneElement),
+            dragTschKey: Utils.getTschKey(draggableElement),
+            dragMatKey: Utils.getMatKey(draggableElement),
+          };
+          this.dispatch('flowUndrop', dropEventInfo);
+        }
       },
       ondrop: (event) => {
         const draggableElement = <HTMLElement>event.relatedTarget;
         const dropzoneElement = <HTMLElement>event.target;
+
         // draggableElement.textContent = 'Dropped in ' + event.target.id;
         this.dragarraySet(dropzoneElement, draggableElement);
         // Get drop element info;
@@ -383,8 +395,8 @@ class Flow {
       },
       ondropdeactivate: (event) => {
         // remove active dropzone feedback
-        const draggableElement = event.relatedTarget;
-        const dropzoneElement = event.target;
+        const draggableElement = <HTMLElement>event.relatedTarget;
+        const dropzoneElement = <HTMLElement>event.target;
 
         dropzoneElement.classList.remove('can-drop');
         draggableElement.classList.remove('can-drop');
