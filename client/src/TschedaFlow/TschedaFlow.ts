@@ -1,5 +1,5 @@
 import { Flow, DropEventInfo } from '../Flow/Flow';
-import { Tscheda, TschedaDebug } from 'tscheda';
+import { Tscheda, TschedaDebug, TschedaError, BlockType } from 'tscheda';
 import Utils from './Utils';
 
 /*
@@ -9,13 +9,6 @@ TODOs:
 PERSONAL TODOs:
 - Fill taxes**, sell stuff, check jobs
 */
-
-enum BlockType {
-  computemodule = 'computemodule',
-  pheripherial = 'pheripherial',
-  matroot = 'matroot',
-  mat = 'mat',
-}
 
 class TschedaFlow {
   private tscheda: Tscheda;
@@ -33,12 +26,57 @@ class TschedaFlow {
   public listeners() {
     this.flow.on('flowDrop', (data: DropEventInfo) => {
       console.log('Drop event', data);
-      // Add mat to mat
-      // this.tscheda.addMat('root', Mat5V12V);
-      // Add tsch to mat
-      // this.tscheda.addTsch(Mat5V, atmega328);
+
+      if (
+        data.dragTschKey == null ||
+        data.dropTschKey == null ||
+        data.dropMatKey == null
+      ) {
+        console.error('Drop Event Info is inconsistent: ', data);
+        return;
+      }
+
+      const dragBlockType = this.tscheda.getBlockType(data.dragTschKey);
+
+      if (dragBlockType == null) {
+        console.error(
+          'Tsch Key could not be processed. Tsch key data:',
+          data.dragTschKey,
+        );
+        return;
+      }
+
+      if (dragBlockType == BlockType.matroot) {
+        console.error('A mat root was already assigned');
+        return;
+      }
+
+      // TODO: Difine a way to show errors
+      if (dragBlockType == BlockType.mat) {
+        // Add 'root' to mat
+        if (data.dragMatKey == null) {
+          console.log('Inconsistency error, drag mat key is null ', data);
+          return;
+        }
+
+        try {
+          // Add mat to mat
+          this.tscheda.addMat(data.dropMatKey, data.dragMatKey);
+        } catch (e) {
+          const error = e as TschedaError;
+          console.error(error.message);
+        }
+      } else {
+        try {
+          // Add tsch to mat
+          this.tscheda.addTsch(data.dropMatKey, data.dragTschKey);
+        } catch (e) {
+          const error = e as TschedaError;
+          console.error(error.message);
+        }
+      }
     });
-    this.flow.on('flowUndrop', (data: any) => {
+    this.flow.on('flowUndrop', (data: DropEventInfo) => {
       console.log('Un Drop event', data);
     });
     this.flow.on('flowConnect', (data: any) => {
@@ -57,42 +95,12 @@ class TschedaFlow {
       const typedSchematic = this.tscheda.typedSch(tschUuid);
       if (!typedSchematic) return;
 
-      // Get extra information to get block's type
-      // TODO: Move this to tsch under a new variable
-      const extraInfo = this.tscheda.extraInfo(tschUuid);
-      let blockType: BlockType = BlockType.computemodule;
-      if (extraInfo) {
-        let block = extraInfo.get('BlockType');
-        if (block) {
-          block = block.toLocaleLowerCase();
-          switch (block) {
-            case BlockType.computemodule:
-            default:
-              blockType = BlockType.computemodule;
-              break;
-            case BlockType.pheripherial:
-              blockType = BlockType.pheripherial;
-              break;
-            case BlockType.matroot:
-              blockType = BlockType.matroot;
-              break;
-            case BlockType.mat:
-              blockType = BlockType.mat;
-              break;
-          }
-        }
-      }
+      let blockType = this.tscheda.getBlockType(tschUuid);
+      console.log('BlockType', blockType);
+
       if (this.tscheda.tschOutputsPower(tschUuid)) {
         matUuid = this.tscheda.newMat(tschUuid);
-
-        if (this.tscheda.isMatRoot(matUuid)) {
-          blockType = BlockType.matroot;
-        } else {
-          blockType = BlockType.mat;
-        }
       }
-
-      console.log('BlockType', blockType);
 
       // Populate IOs
       let leftMapCnt = 0;
@@ -163,7 +171,42 @@ class TschedaFlow {
           );
           break;
         case BlockType.matroot:
+          if (matUuid == null) {
+            console.error('Inconsistency error, mat is null');
+            return;
+          }
+
+          const matRootModule = `
+              <div>
+                <div class="title-box">
+                  <div>MAT ROOT</div>
+                  <div>${eagelFileName}</div>
+                </div>
+              </div>
+              `;
+          this.flow.addNode(
+            'MatTsch',
+            tschUuid,
+            matUuid,
+            leftMap,
+            rightMap,
+            x,
+            y,
+            '',
+            matRootModule,
+          );
+
+          // Initialize mat Tree
+          // TODO: If defined again show error
+          this.tscheda.addMat('root', matUuid);
+
+          break;
         case BlockType.mat:
+          if (matUuid == null) {
+            console.error('Inconsistency error, mat is null');
+            return;
+          }
+
           const matModule = `
               <div>
                 <div class="title-box">

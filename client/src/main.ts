@@ -20,6 +20,7 @@ tschedaFlow.addTypedSchematic('led_smd.sch', 100, 600);
 tschedaFlow.addTypedSchematic('temperature_sensor.sch', 200, 600);
 tschedaFlow.addTypedSchematic('flash.sch', 300, 600);
 tschedaFlow.addTypedSchematic('power5V12V.sch', 400, 600);
+tschedaFlow.addTypedSchematic('power5V.sch', 600, 600);
 
 // import { Flow } from './Flow/Flow';
 // // ### UI Interface
