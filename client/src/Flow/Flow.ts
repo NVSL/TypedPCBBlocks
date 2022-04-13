@@ -49,12 +49,20 @@ interface BlockPosition {
   endY: number;
 }
 
-// Event information
+// Drop Event information
 interface DropEventInfo {
   dropTschKey: string | null;
   dropMatKey: string | null;
   dragTschKey: string | null;
   dragMatKey: string | null;
+}
+
+// Connect Event information
+interface ConnectEventInfo {
+  fromTschKey: string | null;
+  fromMatKey: string | null;
+  toTschKey: string | null;
+  toMatKey: string | null;
 }
 
 // Flow variables for context menu processing
@@ -661,7 +669,21 @@ class Flow {
         );
         if (conected) {
           this._connectionKey++;
-          this.dispatch('flowConnect', {});
+
+          const fromEle = Utils.getParentTschElement(this._eleSelected);
+          const toEle = Utils.getParentTschElement(ele_last);
+
+          if (fromEle == null || toEle == null) return;
+
+          // Get info
+          const connectEventInfo: ConnectEventInfo = {
+            fromTschKey: Utils.getTschKey(fromEle),
+            fromMatKey: Utils.getMatKey(fromEle),
+            toTschKey: Utils.getTschKey(toEle),
+            toMatKey: Utils.getMatKey(toEle),
+          };
+
+          this.dispatch('flowConnect', connectEventInfo);
         }
         break;
     }
@@ -999,4 +1021,12 @@ class Flow {
   }
 }
 
-export { Flow, GraphData, IOData, FlowState, MenuOptions, DropEventInfo };
+export {
+  Flow,
+  GraphData,
+  IOData,
+  FlowState,
+  MenuOptions,
+  DropEventInfo,
+  ConnectEventInfo,
+};

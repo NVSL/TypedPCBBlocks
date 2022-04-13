@@ -1,4 +1,4 @@
-import { Flow, DropEventInfo } from '../Flow/Flow';
+import { Flow, DropEventInfo, ConnectEventInfo } from '../Flow/Flow';
 import { Tscheda, TschedaDebug, TschedaError, BlockType } from 'tscheda';
 import Utils from './Utils';
 
@@ -6,6 +6,7 @@ import Utils from './Utils';
 TODOs:
 - Set tsch-uuid and mat-uuid for each block and add them to html attributes
 - Add event listeners to integrate connections.
+- Next: Add connection dispatch, add Buttons (printConnectionMap, drc, generateJson)
 PERSONAL TODOs:
 - Fill taxes**, sell stuff, check jobs
 */
@@ -85,7 +86,7 @@ class TschedaFlow {
     this.flow.on('flowUndrop', (data: DropEventInfo) => {
       console.log('Un Drop event', data);
     });
-    this.flow.on('flowConnect', (data: any) => {
+    this.flow.on('flowConnect', (data: ConnectEventInfo) => {
       console.log('Connect event', data);
     });
   }
