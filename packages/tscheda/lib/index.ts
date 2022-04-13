@@ -32,6 +32,13 @@ interface eagle {
   filename: string;
 }
 
+enum BlockType {
+  computemodule = 'computemodule',
+  pheripherial = 'pheripherial',
+  matroot = 'matroot',
+  mat = 'mat',
+}
+
 // TODO: Move powerMat and powerMat node to another file
 class powerMatNode {
   uuid: string;
@@ -162,6 +169,53 @@ class Tscheda {
       return Tsch.getVars(key);
     }
     return null;
+  }
+
+  public matsTreeEmpty(): boolean {
+    if (this.matsTree == null) {
+      return true;
+    }
+    return false;
+  }
+
+  public getBlockType(tschUuid: string): BlockType | null {
+    if (this.isTsch(tschUuid) == false) return null;
+
+    const extraInfo = this.extraInfo(tschUuid);
+    let blockType: BlockType = BlockType.computemodule;
+    if (extraInfo) {
+      let block = extraInfo.get('BlockType');
+      if (block) {
+        block = block.toLocaleLowerCase();
+        switch (block) {
+          case BlockType.computemodule:
+          default:
+            blockType = BlockType.computemodule;
+            break;
+          case BlockType.pheripherial:
+            blockType = BlockType.pheripherial;
+            break;
+          case BlockType.matroot:
+            blockType = BlockType.matroot;
+            break;
+          case BlockType.mat:
+            blockType = BlockType.mat;
+            break;
+        }
+      }
+    }
+    if (this.tschOutputsPower(tschUuid)) {
+      const Tsch = this.getTsch(tschUuid);
+      if (Tsch == null) return null;
+
+      if (Tsch.getVin() == null) {
+        blockType = BlockType.matroot;
+      } else {
+        blockType = BlockType.mat;
+      }
+    }
+
+    return blockType;
   }
 
   // Asociates a tsch to a power mat
@@ -345,11 +399,11 @@ class Tscheda {
     return false;
   }
 
-  public addMat(parentUuid: string | 'root', childMatUuid: string): void {
-    if (parentUuid == '' || childMatUuid == '') {
+  public addMat(parentMatUuid: string | 'root', childMatUuid: string): void {
+    if (parentMatUuid == '' || childMatUuid == '') {
       throw new TschedaError(
         ErrorCode.AddMatError,
-        `Parent Uuid ${parentUuid} or Child Uuid ${childMatUuid} are empty`,
+        `Parent Uuid ${parentMatUuid} or Child Uuid ${childMatUuid} are empty`,
       );
     }
     const childMat = this.getMat(childMatUuid);
@@ -365,7 +419,7 @@ class Tscheda {
         `Child Mat ${childMatUuid} already in design, create a new mat`,
       );
     }
-    if (parentUuid == 'root') {
+    if (parentMatUuid == 'root') {
       if (this.matsTree == null) {
         // Rule: Only mats with VOUT and no VIN can be added to root
         if (childMat.vin != null) {
@@ -388,11 +442,11 @@ class Tscheda {
       }
     } else {
       // Search for paernt
-      const parentMat = this.getMat(parentUuid);
+      const parentMat = this.getMat(parentMatUuid);
       if (!parentMat) {
         throw new TschedaError(
           ErrorCode.AddMatError,
-          `Parent Mat Uuid ${parentUuid} not found`,
+          `Parent Mat Uuid ${parentMatUuid} not found`,
         );
       }
 
@@ -409,7 +463,7 @@ class Tscheda {
       if (vResult == null) {
         throw new TschedaError(
           ErrorCode.AddMatError,
-          `Parent Mat ${parentUuid} and ${childMatUuid} Mat voltages doesn't fit`,
+          `Parent Mat ${parentMatUuid} and ${childMatUuid} Mat voltages doesn't fit`,
         );
       }
 
@@ -422,7 +476,7 @@ class Tscheda {
         mat.powerTsch.inDesign = true;
         // Add connection
         const key: typedProtocol = {
-          uuid: parentUuid,
+          uuid: parentMatUuid,
           protocol: vResult.voutProtocol,
         };
         const data: typedProtocol = {
@@ -890,4 +944,4 @@ class Tscheda {
   }
 }
 
-export { Tscheda, Tsch, powerMatNode, TschedaDebug };
+export { Tscheda, Tsch, powerMatNode, BlockType, TschedaError, TschedaDebug };
