@@ -57,13 +57,32 @@ interface DropEventInfo {
   dragMatKey: string | null;
 }
 
+// Protocol info
+interface Protocol {
+  key: string; // name + altname
+  name: string; // GPIO, SPI, I2C
+  altname: string; // 1,2,WP,RESET
+}
+
 // Connect Event information
+interface ConnectInfo {
+  eleConnection: SVGSVGElement;
+  connectionID: string;
+  connectionKey: string;
+  fromProtocol: Protocol;
+  fromData: ConnectionData;
+  toProtocol: Protocol;
+  toData: ConnectionData;
+}
 interface ConnectEventInfo {
   fromTschKey: string | null;
   fromMatKey: string | null;
   toTschKey: string | null;
   toMatKey: string | null;
+  connectInfo: ConnectInfo;
 }
+
+// Connect Info
 
 // Flow variables for context menu processing
 interface FlowState {
@@ -89,8 +108,7 @@ interface IOData {
   ioID: string;
   ioKey: string;
   connections: Array<ConnectionData>;
-  type: string;
-  altname: string;
+  protocol: Protocol;
 }
 type IOs = Map<string, IOData>;
 
@@ -658,7 +676,7 @@ class Flow {
         if (!ele_last) return;
         if (!this._connectionEle) return;
         if (!this._htmlContainer) return;
-        const conected = SvgConnection.connect(
+        const connectInfo = SvgConnection.canConnect(
           this._eleSelected,
           ele_last,
           this._connectionEle,
@@ -667,7 +685,7 @@ class Flow {
           this.graphData,
           this.zoom,
         );
-        if (conected) {
+        if (connectInfo != null) {
           this._connectionKey++;
 
           const fromEle = Utils.getParentTschElement(this._eleSelected);
@@ -675,12 +693,13 @@ class Flow {
 
           if (fromEle == null || toEle == null) return;
 
-          // Get info
+          // Struct info
           const connectEventInfo: ConnectEventInfo = {
             fromTschKey: Utils.getTschKey(fromEle),
             fromMatKey: Utils.getMatKey(fromEle),
             toTschKey: Utils.getTschKey(toEle),
             toMatKey: Utils.getMatKey(toEle),
+            connectInfo: connectInfo,
           };
 
           this.dispatch('flowConnect', connectEventInfo);
@@ -691,6 +710,17 @@ class Flow {
     // Enable svg pointer events again
     SvgConnection.enablePointerEvents();
   };
+
+  public connect(connectInfo: ConnectInfo) {
+    if (this._htmlContainer == null) return;
+    console.log(this.graphData);
+    SvgConnection.connect(connectInfo, this.graphData);
+    SvgConnection.updateAllNodes(this._htmlContainer, this.zoom);
+  }
+
+  public disconnect(connectInfo: ConnectInfo) {
+    SvgConnection.disconnect(connectInfo);
+  }
 
   // ### Elements Positioning
 
@@ -913,8 +943,11 @@ class Flow {
         ioID: `io-${IOKey}`,
         ioKey: IOKey.toString(),
         connections: [],
-        type: value.name,
-        altname: value.altname,
+        protocol: {
+          key: value.name + '-' + value.altname,
+          name: value.name,
+          altname: value.altname,
+        },
       });
       IOKey++;
     }
@@ -942,8 +975,11 @@ class Flow {
         ioID: `io-${IOKey}`,
         ioKey: IOKey.toString(),
         connections: [],
-        type: value.name,
-        altname: value.altname,
+        protocol: {
+          key: value.name + '-' + value.altname,
+          name: value.name,
+          altname: value.altname,
+        },
       });
       IOKey++;
     }
@@ -1029,4 +1065,5 @@ export {
   MenuOptions,
   DropEventInfo,
   ConnectEventInfo,
+  ConnectInfo,
 };
