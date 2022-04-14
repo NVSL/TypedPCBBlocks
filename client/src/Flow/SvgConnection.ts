@@ -1,4 +1,4 @@
-import { GraphData, IOData } from './Flow';
+import { GraphData, IOData, ConnectInfo } from './Flow';
 import Utils from './Utils';
 
 export default {
@@ -318,7 +318,7 @@ export default {
         );
     }
   },
-  connect(
+  canConnect(
     eleFirst: HTMLElement,
     eleLast: HTMLElement,
     eleConnection: SVGSVGElement,
@@ -326,7 +326,7 @@ export default {
     connectionKey: string,
     graphData: GraphData,
     zoom: number,
-  ): boolean {
+  ): ConnectInfo | null {
     try {
       // Check if mouse up element or parent contains input or output class.
       if (
@@ -400,11 +400,12 @@ export default {
         .ios.get(output_ioKey)!;
 
       // Get Types
-      const input_type = inputIOData.type;
-      const output_type = outputIOData.type;
+      const inputProtocolName = inputIOData.protocol.name;
+      const outpuProtocolName = outputIOData.protocol.name;
 
       // Check Types
-      if (output_type !== input_type) throw 'Type mismatch';
+      if (inputProtocolName !== outpuProtocolName)
+        throw 'Protocol Type mismatch';
 
       // Check if IO connection already exists for inputs
       for (const connection of inputIOData.connections) {
@@ -426,44 +427,92 @@ export default {
         }
       }
 
+      console.log('Can Connect');
+
+      // Save connection info
       const connectionID = 'connection-' + connectionKey;
-      eleConnection.id = connectionID;
-      eleConnection.setAttribute('connection-key', connectionKey);
-      eleConnection.setAttribute('from-node', outputTschElement.id);
-      eleConnection.setAttribute('to-node', inputTschElement.id);
-      eleConnection.setAttribute('from-io', output_ioID);
-      eleConnection.setAttribute('to-io', input_ioID);
-
-      outputIOData.connections.push({
+      const connectInfo: ConnectInfo = {
+        eleConnection: eleConnection,
         connectionID: connectionID,
         connectionKey: connectionKey,
-        tschID: input_tschID,
-        tschKey: input_tschKey,
-        ioID: input_ioID,
-        ioKey: input_ioKey,
-      });
-      inputIOData.connections.push({
-        connectionID: connectionID,
-        connectionKey: connectionKey,
-        tschID: output_tschID,
-        tschKey: output_tschKey,
-        ioID: output_ioID,
-        ioKey: output_ioKey,
-      });
-
-      console.log('Connected!');
-      console.log('GraphData', graphData.data);
-
-      // Dispatch Connection event
-
-      // Update all Nodes to fit connection in circle center
-      this.updateAllNodes(eleContainer, zoom);
-      return true;
+        fromProtocol: outputIOData.protocol,
+        fromData: {
+          connectionID: connectionID,
+          connectionKey: connectionKey,
+          tschID: input_tschID,
+          tschKey: input_tschKey,
+          ioID: input_ioID,
+          ioKey: input_ioKey,
+        },
+        toProtocol: inputIOData.protocol,
+        toData: {
+          connectionID: connectionID,
+          connectionKey: connectionKey,
+          tschID: output_tschID,
+          tschKey: output_tschKey,
+          ioID: output_ioID,
+          ioKey: output_ioKey,
+        },
+      };
+      return connectInfo;
     } catch (e) {
       console.warn(e);
       eleConnection.remove();
-      return false;
+      return null;
     }
+  },
+  connect(connectInfo: ConnectInfo, graphData: GraphData) {
+    console.log('Connected', connectInfo);
+
+    // Save connection data in SVG Element
+
+    connectInfo.eleConnection.id = connectInfo.connectionID;
+    connectInfo.eleConnection.setAttribute(
+      'connection-key',
+      connectInfo.connectionKey,
+    );
+    connectInfo.eleConnection.setAttribute(
+      'from-node',
+      connectInfo.fromData.tschID,
+    );
+    connectInfo.eleConnection.setAttribute(
+      'to-node',
+      connectInfo.toData.tschID,
+    );
+    connectInfo.eleConnection.setAttribute(
+      'from-io',
+      connectInfo.fromData.ioID,
+    );
+    connectInfo.eleConnection.setAttribute('to-io', connectInfo.toData.ioID);
+
+    // Save connection data in graphData
+
+    const outputIOData: IOData = graphData.data
+      .get(connectInfo.fromData.tschKey)!
+      .ios.get(connectInfo.fromData.ioKey)!;
+    const inputIOData: IOData = graphData.data
+      .get(connectInfo.toData.tschKey)!
+      .ios.get(connectInfo.toData.ioKey)!;
+
+    outputIOData.connections.push({
+      connectionID: connectInfo.fromData.connectionID,
+      connectionKey: connectInfo.fromData.connectionKey,
+      tschID: connectInfo.fromData.tschID,
+      tschKey: connectInfo.fromData.tschKey,
+      ioID: connectInfo.fromData.ioID,
+      ioKey: connectInfo.fromData.ioKey,
+    });
+    inputIOData.connections.push({
+      connectionID: connectInfo.toData.connectionID,
+      connectionKey: connectInfo.toData.connectionKey,
+      tschID: connectInfo.toData.tschID,
+      tschKey: connectInfo.toData.tschKey,
+      ioID: connectInfo.toData.ioID,
+      ioKey: connectInfo.toData.ioKey,
+    });
+  },
+  disconnect(connectInfo: ConnectInfo) {
+    connectInfo.eleConnection.remove();
   },
   disablePointerEvents() {
     const svgElements = <NodeListOf<SVGSVGElement>>(

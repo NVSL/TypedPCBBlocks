@@ -59,7 +59,7 @@ class TschedaFlow {
       if (dragBlockType == BlockType.mat) {
         // Add 'root' to mat
         if (data.dragMatKey == null) {
-          console.log('Inconsistency error, drag mat key is null ', data);
+          console.error('Inconsistency error, drag mat key is null ', data);
           this.flow.revertPosition();
           return;
         }
@@ -86,8 +86,31 @@ class TschedaFlow {
     this.flow.on('flowUndrop', (data: DropEventInfo) => {
       console.log('Un Drop event', data);
     });
-    this.flow.on('flowConnect', (data: ConnectEventInfo) => {
+    this.flow.on('flowConnect', async (data: ConnectEventInfo) => {
       console.log('Connect event', data);
+      if (data.fromTschKey == null || data.toTschKey == null) {
+        console.error(
+          'Inconsistency error, from tsch ket or to tsch key is null ',
+          data,
+        );
+        return;
+      }
+      try {
+        // Add tsch to mat
+        console.log('Try connection', data);
+        await this.tscheda.connect(
+          {
+            uuid: data.fromTschKey,
+            protocol: data.connectInfo.fromProtocol.key,
+          },
+          [{ uuid: data.toTschKey, protocol: data.connectInfo.toProtocol.key }],
+        );
+        this.flow.connect(data.connectInfo);
+      } catch (e) {
+        const error = e as TschedaError;
+        console.error(error.message);
+        this.flow.disconnect(data.connectInfo);
+      }
     });
   }
 
