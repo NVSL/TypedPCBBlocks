@@ -689,6 +689,10 @@ class Tscheda {
 
   // Generate connections list in JSON format
   public generateJson(): string {
+    // Run drc
+    this.drc();
+
+    // Generate connections
     const output = this.generateNetConnections();
     if (output.length == 0) {
       throw new TschedaError(

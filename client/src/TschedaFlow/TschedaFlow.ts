@@ -97,7 +97,6 @@ class TschedaFlow {
       }
       try {
         // Add tsch to mat
-        console.log('Try connection', data);
         await this.tscheda.connect(
           {
             uuid: data.fromTschKey,
@@ -112,6 +111,20 @@ class TschedaFlow {
         this.flow.disconnect(data.connectInfo);
       }
     });
+  }
+
+  public generateJSONSchematic(): string {
+    const jsonData = this.tscheda.generateJson();
+    console.log('JSON OUTPUT', jsonData);
+    return jsonData;
+  }
+
+  public printConnectionMap() {
+    this.tscheda.printConnectionMap();
+  }
+
+  public checkDRC() {
+    this.tscheda.drc();
   }
 
   public async addTypedSchematic(eagelFileName: string, x: number, y: number) {
