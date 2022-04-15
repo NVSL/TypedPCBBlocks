@@ -13,6 +13,8 @@ body {
   height: 100vh;
   overflow: hidden;
   font-family: 'Segoe UI', Arial, sans-serif;
+  margin: 0px;
+  padding: 0px;
 }
 
 #app {
