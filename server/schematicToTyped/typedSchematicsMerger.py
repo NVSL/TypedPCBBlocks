@@ -12,6 +12,9 @@ Options:
   -p         Typed Schematics path
 """
 
+# RUN Example
+# server$
+# python3 ./schematicToTyped/typedSchematicsMerger.py ./output/tscheda_led.json -p ../data/typedSchematics/
 
 import json
 import os
@@ -23,7 +26,8 @@ from Swoop import Swoop
 _debugMode = False
 _arguments = ""
 _uniquePrefix = "__u"
-_mergedSchematicName = "Combined.sch"
+_mergedSchematicOutput = "./mergeOutput/"
+_mergedSchematicName = "merged.sch"
 _schematicsPath = "/"
 _templatesPath = 'templates/'
 _reservedNets = ["GND"]
@@ -189,7 +193,7 @@ def main(arguments):
     if arguments['-p'] is True:
          _schematicsPath = arguments['TSCHS_PATH']
 
-    print(_schematicsPath)
+    print("Typed Schematics PATH:", _schematicsPath)
 
     # Get unique schematics and give them a unique number
     unique_schematics = {}
@@ -310,7 +314,7 @@ def main(arguments):
             emptySchematic.add_library(library)
 
     # Save new schematic
-    emptySchematic.write(pyPath + _mergedSchematicName)
+    emptySchematic.write(pyPath + _mergedSchematicOutput + _mergedSchematicName)
     debug_print(">> Schematic write succesfully!")
 
 
