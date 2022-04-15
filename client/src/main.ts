@@ -1,4 +1,22 @@
+import axios from 'axios';
 import { TschedaFlow } from './TschedaFlow/TschedaFlow';
+
+// Set server and axios
+let SERVER_URL;
+let WEBSITE_URL;
+if (process.env.NODE_ENV === 'production') {
+  // Set Production variables
+  WEBSITE_URL = 'https://appliancizer.com/';
+  SERVER_URL = 'https://appliancizer.com/api/';
+} else {
+  // Set Develpmnet variables
+  WEBSITE_URL = 'http://localhost:3000/';
+  SERVER_URL = 'http://localhost:4000/api/';
+}
+// Server URL
+const server = axios.create({
+  baseURL: SERVER_URL,
+});
 
 /*
  - Start integration with Tsch Lib
@@ -8,19 +26,44 @@ Left aside
   - The Connections need a way to add weights or someting so they don't overlap the nodes
 */
 
+// INIT TSCHEDA
 const container = <HTMLElement>document.querySelector('#tschs');
-
 const tschedaFlow = new TschedaFlow(
   container,
   'http://localhost:3000/data/typedConstraints/',
 );
 
+// ADD TYPED SCHEMATICS TO UI
 tschedaFlow.addTypedSchematic('atmega328.sch', 100, 100);
 tschedaFlow.addTypedSchematic('led_smd.sch', 100, 600);
 tschedaFlow.addTypedSchematic('temperature_sensor.sch', 200, 600);
 tschedaFlow.addTypedSchematic('flash.sch', 300, 600);
 tschedaFlow.addTypedSchematic('power5V12V.sch', 400, 600);
 tschedaFlow.addTypedSchematic('power5V.sch', 600, 600);
+
+// Generate Schematic
+document
+  .querySelector('#buttonGenerateSchematic')!
+  .addEventListener('click', async () => {
+    // tschedaFlow.generateJSONSchematic();
+    const data = {
+      lal: 'fun',
+    };
+    let genRes = await server.post('generatePCB', {
+      schData: data,
+    });
+    console.log(genRes);
+  });
+
+// Print map
+document.querySelector('#buttonPrintMap')!.addEventListener('click', () => {
+  tschedaFlow.printConnectionMap();
+});
+
+// Check DRC
+document.querySelector('#buttonCheckDrc')!.addEventListener('click', () => {
+  tschedaFlow.checkDRC();
+});
 
 // import { Flow } from './Flow/Flow';
 // // ### UI Interface
