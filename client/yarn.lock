@@ -46,6 +46,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/file-saver@npm:^2.0.5":
+  version: 2.0.5
+  resolution: "@types/file-saver@npm:2.0.5"
+  checksum: a31d6ee2abf99598647139f8f35b37b6e1bacf6c7ddf05c66651b9b0e6e53381aa0e8ed13f37faa6e496e0eb1da87c97e6c70fd589d5b83b0c95c57cb64ce92a
+  languageName: node
+  linkType: hard
+
 "@types/relaxed-json@npm:^1.0.1":
   version: 1.0.1
   resolution: "@types/relaxed-json@npm:1.0.1"
@@ -204,9 +211,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "client@workspace:."
   dependencies:
+    "@types/file-saver": ^2.0.5
     "@types/relaxed-json": ^1.0.1
     axios: ^0.26.1
     fast-xml-parser: ^4.0.1
+    file-saver: ^2.0.5
     interactjs: ^1.10.11
     relaxed-json: ^1.0.3
     typescript: ^4.3.2
@@ -513,6 +522,13 @@ __metadata:
   bin:
     fxparser: src/cli/cli.js
   checksum: 826048e434596ffffdea5afe75991e82650d16f0dd8b7f08de6fef7e965e429c1ea2150485ef456dc31555c7ddaa2f82ac8e49d23c313032c46642d728028c35
+  languageName: node
+  linkType: hard
+
+"file-saver@npm:^2.0.5":
+  version: 2.0.5
+  resolution: "file-saver@npm:2.0.5"
+  checksum: c62d96e5cebc58b4bdf3ae8a60d5cf9607ad82f75f798c33a4ee63435ac2203002584d5256a2a780eda7feb5e19dc3b6351c2212e58b3f529e63d265a7cc79f7
   languageName: node
   linkType: hard
 
