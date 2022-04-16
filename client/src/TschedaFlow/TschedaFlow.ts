@@ -113,7 +113,7 @@ class TschedaFlow {
     });
   }
 
-  public generateJSONSchematic(): string {
+  public generateJSONSchematic(): JSON {
     const jsonData = this.tscheda.generateJson();
     console.log('JSON OUTPUT', jsonData);
     return jsonData;

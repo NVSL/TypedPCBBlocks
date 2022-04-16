@@ -1,4 +1,5 @@
 import axios from 'axios';
+import FileSaver from 'file-saver';
 import { TschedaFlow } from './TschedaFlow/TschedaFlow';
 
 // Set server and axios
@@ -45,14 +46,117 @@ tschedaFlow.addTypedSchematic('power5V.sch', 600, 600);
 document
   .querySelector('#buttonGenerateSchematic')!
   .addEventListener('click', async () => {
-    // tschedaFlow.generateJSONSchematic();
-    const data = {
-      lal: 'fun',
-    };
-    let genRes = await server.post('generatePCB', {
+    const data = tschedaFlow.generateJSONSchematic();
+    // const data = [
+    //   {
+    //     type: 'VOUT',
+    //     wire: null,
+    //     connect: [
+    //       {
+    //         schematic: 'power5V12V.sch',
+    //         instance: 1,
+    //         net: '@VOUT_5V-12V',
+    //       },
+    //       {
+    //         schematic: 'power5V.sch',
+    //         instance: 1,
+    //         net: '@VIN_5V-15V',
+    //       },
+    //     ],
+    //   },
+    //   {
+    //     type: 'VOUT',
+    //     wire: null,
+    //     connect: [
+    //       {
+    //         schematic: 'power5V.sch',
+    //         instance: 1,
+    //         net: '@VOUT_5V',
+    //       },
+    //       {
+    //         schematic: 'flash.sch',
+    //         instance: 1,
+    //         net: '@VIN_5V',
+    //       },
+    //     ],
+    //   },
+    //   {
+    //     type: 'SPI',
+    //     wire: 'MOSI',
+    //     connect: [
+    //       {
+    //         schematic: 'atmega328.sch',
+    //         instance: 1,
+    //         net: '#SPI-0.MOSI!||#GPIO-11!',
+    //       },
+    //       {
+    //         schematic: 'flash.sch',
+    //         instance: 1,
+    //         net: '#SPI.MOSI',
+    //       },
+    //     ],
+    //   },
+    //   {
+    //     type: 'SPI',
+    //     wire: 'MISO',
+    //     connect: [
+    //       {
+    //         schematic: 'atmega328.sch',
+    //         instance: 1,
+    //         net: '#SPI-0.MISO!||#GPIO-12!',
+    //       },
+    //       {
+    //         schematic: 'flash.sch',
+    //         instance: 1,
+    //         net: '#SPI.MISO',
+    //       },
+    //     ],
+    //   },
+    //   {
+    //     type: 'SPI',
+    //     wire: 'SCK',
+    //     connect: [
+    //       {
+    //         schematic: 'atmega328.sch',
+    //         instance: 1,
+    //         net: '#SPI-0.SCK!||#GPIO-13!',
+    //       },
+    //       {
+    //         schematic: 'flash.sch',
+    //         instance: 1,
+    //         net: '#SPI.SCK',
+    //       },
+    //     ],
+    //   },
+    //   {
+    //     type: 'GPIO',
+    //     wire: null,
+    //     connect: [
+    //       {
+    //         schematic: 'atmega328.sch',
+    //         instance: 1,
+    //         net: '#GPIO-4!',
+    //       },
+    //       {
+    //         schematic: 'flash.sch',
+    //         instance: 1,
+    //         net: '#GPIO-CS',
+    //       },
+    //     ],
+    //   },
+    // ];
+    const serverResult = await server.post('generatePCB', {
       schData: data,
     });
-    console.log(genRes);
+    console.log(serverResult);
+    if (serverResult.data.schematic != null) {
+      var file = new File([serverResult.data.schematic], 'merged.sch', {
+        type: 'text/plain;charset=utf-8',
+      });
+      FileSaver.saveAs(file);
+    } else {
+      console.error('TODO, output file error');
+    }
   });
 
 // Print map
