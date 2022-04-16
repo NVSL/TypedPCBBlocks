@@ -855,10 +855,10 @@ design rules under a new name.</description>
 <signal name="#GPIO-5!">
 <contactref element="U3" pad="9"/>
 </signal>
-<signal name="#AIN-0!||#GPIO-6!">
+<signal name="#GPIO-6!||#AIN-0!">
 <contactref element="U3" pad="10"/>
 </signal>
-<signal name="#AIN-1!||#GPIO-7!">
+<signal name="#GPIO-7!||#AIN-1!">
 <contactref element="U3" pad="11"/>
 </signal>
 <signal name="#GPIO-8!">

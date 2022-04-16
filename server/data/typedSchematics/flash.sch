@@ -515,6 +515,7 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <plain>
 <text x="30.48" y="7.62" size="2.54" layer="97">FLASH</text>
 <text x="83.82" y="25.4" size="1.778" layer="97">#{
+BlockType:Pheripherial,
 SPI:{arch:slave}
 }</text>
 </plain>

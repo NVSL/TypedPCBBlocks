@@ -300,6 +300,7 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <sheet>
 <plain>
 <text x="22.86" y="-2.54" size="1.778" layer="97">#{
+BlockType:Pheripherial,
 I2C:{arch:slave,address:'0x18'},
 }</text>
 </plain>

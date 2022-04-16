@@ -2174,6 +2174,7 @@ SparkFun BigTime Watch Kit&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;
 <sheet>
 <plain>
 <text x="175.26" y="101.6" size="1.778" layer="97">#{
+BlockType:ComputeModule,
 SPI:{arch:master},
 I2C:{arch:master},
 }</text>
@@ -2300,9 +2301,8 @@ I2C:{arch:master},
 <pinref part="C3" gate="G$1" pin="2"/>
 <pinref part="S2" gate="G$1" pin="2"/>
 <junction x="68.58" y="124.46"/>
-<wire x1="68.58" y1="124.46" x2="68.58" y2="137.16" width="0.1524" layer="91"/>
-<wire x1="68.58" y1="137.16" x2="81.28" y2="137.16" width="0.1524" layer="91"/>
-<label x="81.28" y="137.16" size="1.27" layer="95" xref="yes"/>
+<wire x1="68.58" y1="124.46" x2="68.58" y2="139.7" width="0.1524" layer="91"/>
+<label x="68.58" y="139.7" size="1.27" layer="95" rot="R180" xref="yes"/>
 <pinref part="JP4" gate="G$1" pin="5"/>
 <wire x1="172.72" y1="63.5" x2="172.72" y2="58.42" width="0.1524" layer="91"/>
 <wire x1="172.72" y1="58.42" x2="53.34" y2="58.42" width="0.1524" layer="91"/>
@@ -2477,14 +2477,14 @@ I2C:{arch:master},
 <label x="132.08" y="88.9" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#AIN-0!||#GPIO-6!" class="0">
+<net name="#GPIO-6!||#AIN-0!" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="PD6(AIN0)"/>
 <wire x1="124.46" y1="86.36" x2="132.08" y2="86.36" width="0.1524" layer="91"/>
 <label x="132.08" y="86.36" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="#AIN-1!||#GPIO-7!" class="0">
+<net name="#GPIO-7!||#AIN-1!" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="PD7(AIN1)"/>
 <wire x1="124.46" y1="83.82" x2="132.08" y2="83.82" width="0.1524" layer="91"/>
@@ -2516,8 +2516,8 @@ I2C:{arch:master},
 <segment>
 <pinref part="R4" gate="G$1" pin="2"/>
 <wire x1="63.5" y1="137.16" x2="63.5" y2="144.78" width="0.1524" layer="91"/>
-<wire x1="63.5" y1="144.78" x2="66.04" y2="144.78" width="0.1524" layer="91"/>
-<label x="66.04" y="144.78" size="1.27" layer="95" xref="yes"/>
+<wire x1="63.5" y1="144.78" x2="60.96" y2="144.78" width="0.1524" layer="91"/>
+<label x="60.96" y="144.78" size="1.27" layer="95" rot="R180" xref="yes"/>
 </segment>
 <segment>
 <pinref part="JP4" gate="G$1" pin="2"/>
