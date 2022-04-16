@@ -688,7 +688,7 @@ class Tscheda {
   }
 
   // Generate connections list in JSON format
-  public generateJson(): string {
+  public generateJson(): JSON {
     // Run drc
     this.drc();
 
@@ -700,7 +700,7 @@ class Tscheda {
         `No output data generated`,
       );
     }
-    return JSON.stringify(this.generateNetConnections(), null, 2);
+    return JSON.parse(JSON.stringify(this.generateNetConnections()));
   }
 
   public static getFriendlyName(protocol: string): string {
