@@ -5,65 +5,61 @@ import { spawn } from 'child_process';
 const generateSchematic = (req, res) => {
   console.log('\n######\n###### Generating Schematic \n######');
   console.log('INPUT:\n', JSON.stringify(req.body.schData, null, 2));
-  res.status(200).send('OK');
 
-  //   // Delete combined output if exists
-  //   let routedCombinedFilePath = './schematicToTyped/mergeOutput/merged.sch';
-  //   if (fs.existsSync(routedCombinedFilePath)) {
-  //     fs.unlinkSync(routedCombinedFilePath);
-  //   }
+  // Merge output path
+  const outputPath = './schematicToTyped/mergeOutput/';
+  const outputName = 'merged.sch';
+  const tschPath = '../data/typedSchematics/';
 
-  //   // Delete any *.pro file
-  //   let regex = /[.]pro$/;
-  //   let path = '../../json_to_eagle_brd/';
-  //   fs.readdirSync(path)
-  //     .filter((f) => regex.test(f))
-  //     .map((f) => fs.unlinkSync(path + f));
+  // Delete any *.pro file
+  fs.readdirSync(outputPath)
+    .filter((f) => /[.]pro$/.test(f))
+    .map((f) => fs.unlinkSync(outputPath + f));
 
   // Delete any *.sch file
-  const regex = /[.]sch$/;
-  const path = './schematicToTyped/mergeOutput/';
-  fs.readdirSync(path)
-    .filter((f) => regex.test(f))
-    .map((f) => fs.unlinkSync(path + f));
+  fs.readdirSync(outputPath)
+    .filter((f) => /[.]sch$/.test(f))
+    .map((f) => fs.unlinkSync(outputPath + f));
 
-  //   // Run Gadgetron modules combinator
-  //   let spawn = require('child_process').spawn;
-  //   let pyprog = spawn('python3', [
-  //     '../../json_to_eagle_brd/builder.py',
-  //     '-i',
-  //     JSON.stringify(req.body.pcbInput),
-  //   ]);
+  // Run schematic merger
+  const pyprog = spawn('python3', [
+    './schematicToTyped/typedSchematicsMerger.py',
+    '-i',
+    JSON.stringify(req.body.schData),
+    '-p',
+    tschPath,
+  ]);
 
-  //   pyprog.stderr.on('data', (data) => {
-  //     // Data error
-  //     console.log('\nDATA ERROR:\n', data.toString('utf8'));
-  //   });
+  pyprog.stderr.on('data', (data) => {
+    // Data error
+    console.log('\nDATA ERROR:\n', data.toString('utf8'));
+  });
 
-  //   pyprog.stdout.on('data', function (data) {
-  //     console.log('\nDATA GOOD:\n', data.toString('utf8'));
-  //   });
+  pyprog.stdout.on('data', function (data) {
+    console.log('\nDATA GOOD:\n', data.toString('utf8'));
+  });
 
-  //   pyprog.on('exit', function (code) {
-  //     if (code == '0') {
-  //       // Process finish correctly
-  //       try {
-  //         // Get PCB, if it doesn't exist then combined board failed.
-  //         fs.readFileSync('../../json_to_eagle_brd/COMBINED.brd', 'utf8');
-  //       } catch (err) {
-  //         console.log(err.stack);
-  //         res.status(500).send({ error: 'Server error' });
-  //         console.log('\n######\n###### END Generating PCB (Fail) \n######');
-  //         return;
-  //       }
-  //       res.send({ message: 'Success' });
-  //       console.log('\n######\n###### END Generating PCB (Success) \n######');
-  //     } else {
-  //       // Process error
-  //       res.status(500).send({ error: 'Server error' });
-  //       console.log('\n######\n###### END Generating PCB (Fail) \n######');
-  //     }
-  //   });
+  pyprog.on('exit', function (code) {
+    console.log('Code exit', code);
+    if (code == 0) {
+      // Process finish correctly
+      try {
+        // Get PCB, if it doesn't exist then combined board failed.
+        const data = fs.readFileSync(outputPath + outputName, 'utf8');
+        res.status(200).send({ schematic: data });
+        console.log('\n######\n###### END Generating PCB (Success) \n######');
+      } catch (err) {
+        console.log(err);
+        res.status(500).send({ error: 'Server error' });
+        console.log('\n######\n###### END Schematic PCB (Fail) \n######');
+        return;
+      }
+    } else {
+      // Process error
+      res.status(500).send({ error: 'Server error' });
+      console.log('\n######\n###### END Schematic PCB (Fail) \n######');
+    }
+  });
 };
 
 export { generateSchematic };
