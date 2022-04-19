@@ -7,7 +7,7 @@ const generateSchematic = (req, res) => {
   console.log('INPUT:\n', JSON.stringify(req.body.schData, null, 2));
 
   // Merge output path
-  const outputPath = './schematicToTyped/mergeOutput/';
+  const outputPath = './scripts/mergeOutput/';
   const outputName = 'merged.sch';
   const tschPath = '../data/typedSchematics/';
 
@@ -23,7 +23,7 @@ const generateSchematic = (req, res) => {
 
   // Run schematic merger
   const pyprog = spawn('python3', [
-    './schematicToTyped/typedSchematicsMerger.py',
+    './scripts/typedSchematicsMerger.py',
     '-i',
     JSON.stringify(req.body.schData),
     '-p',
