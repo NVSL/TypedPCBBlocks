@@ -51,8 +51,10 @@ interface BlockPosition {
 
 // Drop Event information
 interface DropEventInfo {
+  dropElement: HTMLElement;
   dropTschKey: string | null;
   dropMatKey: string | null;
+  dragElement: HTMLElement;
   dragTschKey: string | null;
   dragMatKey: string | null;
 }
@@ -401,8 +403,10 @@ class Flow {
           Utils.setMatDrop(draggableElement, '');
 
           const dropEventInfo: DropEventInfo = {
+            dropElement: dropzoneElement,
             dropTschKey: Utils.getTschKey(dropzoneElement),
             dropMatKey: Utils.getMatKey(dropzoneElement),
+            dragElement: draggableElement,
             dragTschKey: Utils.getTschKey(draggableElement),
             dragMatKey: Utils.getMatKey(draggableElement),
           };
@@ -413,23 +417,27 @@ class Flow {
         const draggableElement = <HTMLElement>event.relatedTarget;
         const dropzoneElement = <HTMLElement>event.target;
 
-        // draggableElement.textContent = 'Dropped in ' + event.target.id;
-        this.dragarraySet(dropzoneElement, draggableElement);
         // Get drop element info;
         const dropzoneElementMatKey = Utils.getMatKey(dropzoneElement);
         const draggableElementDropIn = Utils.getMatDrop(draggableElement);
         if (dropzoneElementMatKey != draggableElementDropIn) {
-          // Get info
-          const dropEventInfo: DropEventInfo = {
-            dropTschKey: Utils.getTschKey(dropzoneElement),
-            dropMatKey: Utils.getMatKey(dropzoneElement),
-            dragTschKey: Utils.getTschKey(draggableElement),
-            dragMatKey: Utils.getMatKey(draggableElement),
-          };
+          // Check z-indexes are coherent
+          const dropZIndex = Utils.getZIndex(dropzoneElement);
+          const dragZIndex = Utils.getZIndex(draggableElement);
+          if (dragZIndex > dropZIndex) {
+            // Get drop info
+            const dropEventInfo: DropEventInfo = {
+              dropElement: dropzoneElement,
+              dropTschKey: Utils.getTschKey(dropzoneElement),
+              dropMatKey: Utils.getMatKey(dropzoneElement),
+              dragElement: draggableElement,
+              dragTschKey: Utils.getTschKey(draggableElement),
+              dragMatKey: Utils.getMatKey(draggableElement),
+            };
 
-          // New drop
-          Utils.setMatDrop(draggableElement, dropzoneElementMatKey);
-          this.dispatch('flowDrop', dropEventInfo);
+            // Dispatch new drop event
+            this.dispatch('flowDrop', dropEventInfo);
+          }
         }
       },
       ondropdeactivate: (event) => {
@@ -725,7 +733,7 @@ class Flow {
   // ### Elements Positioning
 
   // Reverse position to original position
-  public revertPosition() {
+  public cancelDrop(dropInfo: DropEventInfo) {
     setTimeout(() => {
       if (this._startEnd == null) return;
       if (this._htmlContainer == null) return;
@@ -748,8 +756,16 @@ class Flow {
         yTotalOffset,
       );
 
+      // // Revert Drop
+      // this.dragarrayRemove(dropInfo.dropElement, dropInfo.dragElement);
+      // const draggableElementDropOut = Utils.getMatDrop(dropInfo.dragElement);
+      // if (draggableElementDropOut != '') {
+      //   Utils.setMatDrop(dropInfo.dragElement, '');
+      // }
+
       if (!this._startEnd.tschSelected) return;
 
+      // Update UI
       if (Utils.isMatElement(this._startEnd.tschSelected)) {
         // Is tschMat
         SvgConnection.updateAllNodes(this._htmlContainer, this.zoom);
@@ -763,6 +779,12 @@ class Flow {
         );
       }
     }, 10);
+  }
+
+  public enableDrop(dropInfo: DropEventInfo) {
+    // Save drop info
+    this.dragarraySet(dropInfo.dropElement, dropInfo.dragElement);
+    Utils.setMatDrop(dropInfo.dragElement, dropInfo.dropMatKey);
   }
 
   // Move target element by an offset

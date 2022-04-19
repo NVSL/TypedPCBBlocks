@@ -34,7 +34,7 @@ class TschedaFlow {
         data.dropMatKey == null
       ) {
         console.error('Drop Event Info is inconsistent: ', data);
-        this.flow.revertPosition();
+        this.flow.cancelDrop(data);
         return;
       }
 
@@ -45,13 +45,14 @@ class TschedaFlow {
           'Tsch Key could not be processed. Tsch key data:',
           data.dragTschKey,
         );
-        this.flow.revertPosition();
+        this.flow.cancelDrop(data);
         return;
       }
 
       if (dragBlockType == BlockType.matroot) {
         console.error('A mat root was already assigned');
-        this.flow.revertPosition();
+        console.log(data);
+        this.flow.cancelDrop(data);
         return;
       }
 
@@ -60,7 +61,7 @@ class TschedaFlow {
         // Add 'root' to mat
         if (data.dragMatKey == null) {
           console.error('Inconsistency error, drag mat key is null ', data);
-          this.flow.revertPosition();
+          this.flow.cancelDrop(data);
           return;
         }
 
@@ -70,7 +71,7 @@ class TschedaFlow {
         } catch (e) {
           const error = e as TschedaError;
           console.error(error.message);
-          this.flow.revertPosition();
+          this.flow.cancelDrop(data);
         }
       } else {
         try {
@@ -79,9 +80,12 @@ class TschedaFlow {
         } catch (e) {
           const error = e as TschedaError;
           console.error(error.message);
-          this.flow.revertPosition();
+          this.flow.cancelDrop(data);
         }
       }
+
+      // Save drop info
+      this.flow.enableDrop(data);
     });
     this.flow.on('flowUndrop', (data: DropEventInfo) => {
       console.log('Un Drop event', data);
