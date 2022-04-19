@@ -31,4 +31,9 @@ export default {
     }
     return null;
   },
+  getZIndex(ele: HTMLElement): number {
+    const eleStyle = window.getComputedStyle(ele);
+    const zIndex = eleStyle.getPropertyValue('z-index');
+    return parseInt(zIndex);
+  },
 };
