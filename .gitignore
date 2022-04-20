@@ -13,11 +13,8 @@ npm-debug.log*
 *.b#*
 *.s#*
 
-# EAGLE ignore combined output TODO: move to dist
-COMBINED.sch
-COMBINED.brd
-Combined.sch
-Combined.brd
+# EAGLE ignore merger output TODO: move to dist
+server/scripts/mergeOutput/
 
 # EAGLE ignore typed json output TODO: move to dist
 typedFile.json
