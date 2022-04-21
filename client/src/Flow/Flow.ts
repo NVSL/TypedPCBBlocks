@@ -5,6 +5,8 @@ import { InteractEvent } from '@interactjs/core/InteractEvent';
 import SvgConnection from './SvgConnection';
 import ContextMenu from './ContextMenu';
 import Utils from './Utils';
+import Toast from './Toast';
+import './Toast.css';
 import './SvgConnection.css';
 import './ContextMenu.css';
 import './Flow.css';
@@ -1075,6 +1077,17 @@ class Flow {
 
     callbackArray.listeners.forEach((listener) => {
       listener(details);
+    });
+  }
+
+  // Toast messages
+  public toastError(text: string) {
+    new Toast({
+      text: `! ${text}`,
+      position: 'bottom-center',
+      autoClose: 3000,
+      pauseOnHover: true,
+      pauseOnFocusLoss: true,
     });
   }
 }

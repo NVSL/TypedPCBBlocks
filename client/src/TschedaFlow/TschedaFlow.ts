@@ -22,6 +22,7 @@ class TschedaFlow {
     TschedaDebug.enable(true, 1);
     // init listeners
     this.listeners();
+    this.flow.toastError('error');
   }
 
   public listeners() {
