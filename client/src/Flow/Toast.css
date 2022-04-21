@@ -1,0 +1,87 @@
+:root {
+  --textColor: white;
+  --textBgColor: hsl(348, 100%, 61%);
+  --progressBgColor: white;
+}
+
+.toast {
+  box-sizing: border-box;
+  padding: 0.75rem;
+  color: var(--textColor);
+  background-color: var(--textBgColor);
+  border: 1px solid #333;
+  border-radius: 0.25em;
+  position: relative;
+  cursor: pointer;
+  transition: transform 300ms ease-in-out;
+  overflow: hidden;
+}
+
+.toast-container[data-position$='-right'] .toast {
+  transform: translateX(110%);
+}
+
+.toast-container[data-position$='-left'] .toast {
+  transform: translateX(-110%);
+}
+
+.toast-container[data-position='top-center'] .toast {
+  transform: translateY(-100vh);
+}
+
+.toast-container[data-position='bottom-center'] .toast {
+  transform: translateY(100vh);
+}
+
+.toast-container .toast.show {
+  transform: translate(0, 0);
+}
+
+.toast.progress::before {
+  content: '';
+  position: absolute;
+  height: 2px;
+  width: calc(100% * var(--progress));
+  background-color: var(--progressBgColor);
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.toast.can-close::after {
+  content: '\00D7';
+  position: absolute;
+  top: 2px;
+  right: 5px;
+}
+
+.toast-container {
+  position: fixed;
+  margin: 10px;
+  width: 25%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 100;
+}
+
+.toast-container[data-position^='top-'] {
+  top: 0;
+}
+
+.toast-container[data-position^='bottom-'] {
+  bottom: 0;
+}
+
+.toast-container[data-position$='-right'] {
+  right: 0;
+}
+
+.toast-container[data-position$='-left'] {
+  left: 0;
+}
+
+.toast-container[data-position$='-center'] {
+  left: 50%;
+  transform: translateX(-50%);
+}
