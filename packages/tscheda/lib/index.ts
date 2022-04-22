@@ -275,7 +275,7 @@ class Tscheda {
         protocol: vResult.vinProtocol,
       };
 
-      this.addConnection(key, [data]);
+      this.addConnection(key, data);
 
       // DEBUG
       TschedaDebug.log(
@@ -485,7 +485,7 @@ class Tscheda {
         };
         TschedaDebug.log(1, `>> [ADDING] MAT VOLTAGE CONNECTION`, vResult);
         // Store voltages connection
-        this.addConnection(key, [data]);
+        this.addConnection(key, data);
       } else {
         throw new TschedaError(
           ErrorCode.AddMatError,
@@ -864,7 +864,9 @@ class Tscheda {
           'with childs',
           childs,
         );
-        this.addConnection(parent, childs);
+        for (const child of childs) {
+          this.addConnection(parent, child);
+        }
       } else {
         throw new TschedaError(
           ErrorCode.ConnectError,
@@ -878,14 +880,30 @@ class Tscheda {
 
   // Adds connections by protocol to hashMap
   // Rule: This function replaces the connections if parent is found, it doesn't concat
-  private addConnection(parent: typedProtocol, childs: typedProtocol[]) {
+  private addConnection(parent: typedProtocol, child: typedProtocol) {
     if (this.connections.has(parent)) {
       const currentChilds = this.connections.get(parent);
       if (currentChilds != null) {
-        this.connections.set(parent, [...currentChilds, ...childs]);
+        this.connections.set(parent, [...currentChilds, child]);
       }
     } else {
-      this.connections.set(parent, childs);
+      // Check first if parent child is in any other connection // FIXME: Connections shouldn't be a map, it should be array
+      for (const [key, values] of this.connections.entries()) {
+        const interesction = values.filter(
+          (connValue) =>
+            connValue.protocol == child.protocol &&
+            connValue.uuid == child.uuid,
+        );
+        if (interesction.length != 0) {
+          const currentChilds = this.connections.get(key);
+          if (currentChilds != null) {
+            this.connections.set(key, [...currentChilds, parent]);
+            return;
+          }
+        }
+      }
+      // Else
+      this.connections.set(parent, [child]);
     }
   }
 
