@@ -439,19 +439,19 @@ export default {
         fromData: {
           connectionID: connectionID,
           connectionKey: connectionKey,
-          tschID: input_tschID,
-          tschKey: input_tschKey,
-          ioID: input_ioID,
-          ioKey: input_ioKey,
+          tschID: output_tschID,
+          tschKey: output_tschKey,
+          ioID: output_ioID,
+          ioKey: output_ioKey,
         },
         toProtocol: inputIOData.protocol,
         toData: {
           connectionID: connectionID,
           connectionKey: connectionKey,
-          tschID: output_tschID,
-          tschKey: output_tschKey,
-          ioID: output_ioID,
-          ioKey: output_ioKey,
+          tschID: input_tschID,
+          tschKey: input_tschKey,
+          ioID: input_ioID,
+          ioKey: input_ioKey,
         },
       };
       return connectInfo;

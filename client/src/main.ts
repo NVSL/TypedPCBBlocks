@@ -74,57 +74,41 @@ document
     //         net: '@VOUT_5V',
     //       },
     //       {
-    //         schematic: 'flash.sch',
+    //         schematic: 'temperature_sensor.sch',
     //         instance: 1,
-    //         net: '@VIN_5V',
+    //         net: '@VIN_2.7V-5.5V',
     //       },
     //     ],
     //   },
     //   {
-    //     type: 'SPI',
-    //     wire: 'MOSI',
+    //     type: 'I2C',
+    //     wire: 'SDA',
     //     connect: [
     //       {
     //         schematic: 'atmega328.sch',
     //         instance: 1,
-    //         net: '#SPI-0.MOSI!||#GPIO-11!',
+    //         net: '#I2C-0.SDA!||#ADC-4!',
     //       },
     //       {
-    //         schematic: 'flash.sch',
+    //         schematic: 'temperature_sensor.sch',
     //         instance: 1,
-    //         net: '#SPI.MOSI',
+    //         net: '#I2C-0.SDA',
     //       },
     //     ],
     //   },
     //   {
-    //     type: 'SPI',
-    //     wire: 'MISO',
+    //     type: 'I2C',
+    //     wire: 'SCL',
     //     connect: [
     //       {
     //         schematic: 'atmega328.sch',
     //         instance: 1,
-    //         net: '#SPI-0.MISO!||#GPIO-12!',
+    //         net: '#I2C-0.SCL!||#ADC-5!',
     //       },
     //       {
-    //         schematic: 'flash.sch',
+    //         schematic: 'temperature_sensor.sch',
     //         instance: 1,
-    //         net: '#SPI.MISO',
-    //       },
-    //     ],
-    //   },
-    //   {
-    //     type: 'SPI',
-    //     wire: 'SCK',
-    //     connect: [
-    //       {
-    //         schematic: 'atmega328.sch',
-    //         instance: 1,
-    //         net: '#SPI-0.SCK!||#GPIO-13!',
-    //       },
-    //       {
-    //         schematic: 'flash.sch',
-    //         instance: 1,
-    //         net: '#SPI.SCK',
+    //         net: '#I2C-0.SCL',
     //       },
     //     ],
     //   },
@@ -133,14 +117,14 @@ document
     //     wire: null,
     //     connect: [
     //       {
-    //         schematic: 'atmega328.sch',
+    //         schematic: 'temperature_sensor.sch',
     //         instance: 1,
-    //         net: '#GPIO-4!',
+    //         net: '#GPIO-ALERT!',
     //       },
     //       {
-    //         schematic: 'flash.sch',
+    //         schematic: 'atmega328.sch',
     //         instance: 1,
-    //         net: '#GPIO-CS',
+    //         net: '#GPIO-3!',
     //       },
     //     ],
     //   },
