@@ -880,10 +880,9 @@ class Tscheda {
   // Rule: This function replaces the connections if parent is found, it doesn't concat
   private addConnection(parent: typedProtocol, childs: typedProtocol[]) {
     if (this.connections.has(parent)) {
-      const val = this.connections.get(parent);
-      if (val) {
-        // this.connections.set(parent, val.concat(childs));
-        this.connections.set(parent, childs);
+      const currentChilds = this.connections.get(parent);
+      if (currentChilds != null) {
+        this.connections.set(parent, [...currentChilds, ...childs]);
       }
     } else {
       this.connections.set(parent, childs);
