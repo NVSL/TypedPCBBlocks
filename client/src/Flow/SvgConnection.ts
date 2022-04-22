@@ -326,7 +326,7 @@ export default {
     connectionKey: string,
     graphData: GraphData,
     zoom: number,
-  ): ConnectInfo | null {
+  ): ConnectInfo {
     try {
       // Check if mouse up element or parent contains input or output class.
       if (
@@ -456,9 +456,8 @@ export default {
       };
       return connectInfo;
     } catch (e) {
-      console.warn(e);
       eleConnection.remove();
-      return null;
+      throw e;
     }
   },
   connect(connectInfo: ConnectInfo, graphData: GraphData) {

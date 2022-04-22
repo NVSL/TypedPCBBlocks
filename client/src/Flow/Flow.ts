@@ -686,33 +686,39 @@ class Flow {
         if (!ele_last) return;
         if (!this._connectionEle) return;
         if (!this._htmlContainer) return;
-        const connectInfo = SvgConnection.canConnect(
-          this._eleSelected,
-          ele_last,
-          this._connectionEle,
-          this._htmlContainer,
-          this._connectionKey.toString(),
-          this.graphData,
-          this.zoom,
-        );
-        if (connectInfo != null) {
-          this._connectionKey++;
 
-          const fromEle = Utils.getParentTschElement(this._eleSelected);
-          const toEle = Utils.getParentTschElement(ele_last);
+        // Try connection
+        try {
+          const connectInfo = SvgConnection.canConnect(
+            this._eleSelected,
+            ele_last,
+            this._connectionEle,
+            this._htmlContainer,
+            this._connectionKey.toString(),
+            this.graphData,
+            this.zoom,
+          );
+          if (connectInfo != null) {
+            this._connectionKey++;
 
-          if (fromEle == null || toEle == null) return;
+            const fromEle = Utils.getParentTschElement(this._eleSelected);
+            const toEle = Utils.getParentTschElement(ele_last);
 
-          // Struct info
-          const connectEventInfo: ConnectEventInfo = {
-            fromTschKey: Utils.getTschKey(fromEle),
-            fromMatKey: Utils.getMatKey(fromEle),
-            toTschKey: Utils.getTschKey(toEle),
-            toMatKey: Utils.getMatKey(toEle),
-            connectInfo: connectInfo,
-          };
+            if (fromEle == null || toEle == null) return;
 
-          this.dispatch('flowConnect', connectEventInfo);
+            // Struct info
+            const connectEventInfo: ConnectEventInfo = {
+              fromTschKey: Utils.getTschKey(fromEle),
+              fromMatKey: Utils.getMatKey(fromEle),
+              toTschKey: Utils.getTschKey(toEle),
+              toMatKey: Utils.getMatKey(toEle),
+              connectInfo: connectInfo,
+            };
+
+            this.dispatch('flowConnect', connectEventInfo);
+          }
+        } catch (e: any) {
+          this.toastError(e.toString());
         }
         break;
     }
@@ -1082,10 +1088,11 @@ class Flow {
 
   // Toast messages
   public toastError(text: string) {
+    console.error(text);
     new Toast({
       text: `! ${text}`,
-      position: 'bottom-center',
-      autoClose: 3000,
+      position: 'top-right',
+      autoClose: 5000,
       pauseOnHover: true,
       pauseOnFocusLoss: true,
     });

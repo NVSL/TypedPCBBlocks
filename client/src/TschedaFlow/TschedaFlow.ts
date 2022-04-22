@@ -22,7 +22,6 @@ class TschedaFlow {
     TschedaDebug.enable(true, 1);
     // init listeners
     this.listeners();
-    this.flow.toastError('error');
   }
 
   public listeners() {
@@ -34,7 +33,7 @@ class TschedaFlow {
         data.dropTschKey == null ||
         data.dropMatKey == null
       ) {
-        console.error('Drop Event Info is inconsistent: ', data);
+        this.flow.toastError(`Drop Event Info is inconsistent: ${data}`);
         this.flow.cancelDrop(data);
         return;
       }
@@ -42,46 +41,47 @@ class TschedaFlow {
       const dragBlockType = this.tscheda.getBlockType(data.dragTschKey);
 
       if (dragBlockType == null) {
-        console.error(
-          'Tsch Key could not be processed. Tsch key data:',
-          data.dragTschKey,
+        this.flow.toastError(
+          `Tsch Key could not be processed. Tsch key data: ${data.dragTschKey}`,
         );
         this.flow.cancelDrop(data);
         return;
       }
 
       if (dragBlockType == BlockType.matroot) {
-        console.error('A mat root was already assigned');
-        console.log(data);
+        this.flow.toastError(`A mat root is already assigned`);
         this.flow.cancelDrop(data);
         return;
       }
 
-      // TODO: Difine a way to show errors
       if (dragBlockType == BlockType.mat) {
         // Add 'root' to mat
         if (data.dragMatKey == null) {
-          console.error('Inconsistency error, drag mat key is null ', data);
+          this.flow.toastError(
+            `Inconsistency error, drag mat key is null ${data}`,
+          );
           this.flow.cancelDrop(data);
           return;
         }
 
+        // Add mat to mat
         try {
-          // Add mat to mat
           this.tscheda.addMat(data.dropMatKey, data.dragMatKey);
         } catch (e) {
           const error = e as TschedaError;
-          console.error(error.message);
+          this.flow.toastError(`${error.message}`);
           this.flow.cancelDrop(data);
+          return;
         }
       } else {
+        // Add tsch to mat
         try {
-          // Add tsch to mat
           this.tscheda.addTsch(data.dropMatKey, data.dragTschKey);
         } catch (e) {
           const error = e as TschedaError;
-          console.error(error.message);
+          this.flow.toastError(`${error.message}`);
           this.flow.cancelDrop(data);
+          return;
         }
       }
 
@@ -94,9 +94,8 @@ class TschedaFlow {
     this.flow.on('flowConnect', async (data: ConnectEventInfo) => {
       console.log('Connect event', data);
       if (data.fromTschKey == null || data.toTschKey == null) {
-        console.error(
-          'Inconsistency error, from tsch ket or to tsch key is null ',
-          data,
+        this.flow.toastError(
+          `Inconsistency error, from tsch ket or to tsch key is null ${data}`,
         );
         return;
       }
@@ -112,7 +111,7 @@ class TschedaFlow {
         this.flow.connect(data.connectInfo);
       } catch (e) {
         const error = e as TschedaError;
-        console.error(error.message);
+        this.flow.toastError(`${error.message}`);
         this.flow.disconnect(data.connectInfo);
       }
     });
@@ -220,7 +219,7 @@ class TschedaFlow {
           break;
         case BlockType.matroot:
           if (matUuid == null) {
-            console.error('Inconsistency error, mat is null');
+            this.flow.toastError(`Inconsistency error, matroot is null`);
             return;
           }
 
@@ -251,7 +250,7 @@ class TschedaFlow {
           break;
         case BlockType.mat:
           if (matUuid == null) {
-            console.error('Inconsistency error, mat is null');
+            this.flow.toastError(`Inconsistency error, mat is null`);
             return;
           }
 
