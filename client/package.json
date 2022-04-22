@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:constraints": "(cd ./public/data/typedConstraints && npx tsc)",
     "serve": "vite preview"
   },
   "devDependencies": {
