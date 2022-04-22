@@ -868,7 +868,7 @@ class Tscheda {
       } else {
         throw new TschedaError(
           ErrorCode.ConnectError,
-          `Constraint error: ${error}, for protocol ${protocolName} when connecting ${parent} with childs ${childs}`,
+          `Constraint error - ${error}`,
         );
       }
     } catch (e) {
@@ -889,6 +889,8 @@ class Tscheda {
       this.connections.set(parent, childs);
     }
   }
+
+  public removeConnection() {}
 
   // Two protocols are equal
   // Input example: GPIO, GPIO

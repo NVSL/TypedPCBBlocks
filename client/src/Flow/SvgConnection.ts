@@ -342,7 +342,7 @@ export default {
             eleLast.classList.contains('output')
           )
         ) {
-          throw 'Mouse end target is not input or output';
+          throw 'End target is not a I/O connection';
         }
       }
 

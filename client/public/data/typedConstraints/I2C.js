@@ -36,13 +36,14 @@ class I2C extends POWER {
             }
             // Options
             if (parent.arch == null || child.arch == null) {
-                console.warn('Unknown I2C master-slave architecture, doing nothing', '- parent arch:', parent.arch, '- child arch:', child.arch);
+                console.warn('Unknown I2C master-slave architecture, doing nothing');
             }
             else {
+                if (parent.arch == 'slave' && child.arch == 'master') {
+                    return error(`Connecting slave to master is currently not supprted. Try the other diection, master to slave`);
+                }
                 if (!(parent.arch == 'master' && child.arch == 'slave')) {
-                    return error(`SPI parent and child architecture must be of type master-slave. Parent arch:
-            ${parent.arch} child arch:
-            ${child.arch}`);
+                    return error(`I2C parent and child architecture must be of type master-slave.`);
                 }
             }
         }
