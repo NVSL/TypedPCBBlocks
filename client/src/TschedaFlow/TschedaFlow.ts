@@ -117,10 +117,15 @@ class TschedaFlow {
     });
   }
 
-  public generateJSONSchematic(): JSON {
-    const jsonData = this.tscheda.generateJson();
-    console.log('JSON OUTPUT', jsonData);
-    return jsonData;
+  public generateJSONSchematic(): JSON | null {
+    try {
+      const jsonData = this.tscheda.generateJson();
+      console.log('JSON OUTPUT', jsonData);
+      return jsonData;
+    } catch (e: any) {
+      this.flow.toastError(e.toString());
+      return null;
+    }
   }
 
   public printConnectionMap() {
