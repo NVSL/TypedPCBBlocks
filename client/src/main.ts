@@ -36,11 +36,11 @@ const tschedaFlow = new TschedaFlow(
 
 // ADD TYPED SCHEMATICS TO UI
 tschedaFlow.addTypedSchematic('atmega328.sch', 100, 100);
-tschedaFlow.addTypedSchematic('led_smd.sch', 100, 600);
-tschedaFlow.addTypedSchematic('temperature_sensor.sch', 200, 600);
-tschedaFlow.addTypedSchematic('flash.sch', 300, 600);
-tschedaFlow.addTypedSchematic('power5V12V.sch', 400, 600);
-tschedaFlow.addTypedSchematic('power5V.sch', 600, 600);
+tschedaFlow.addTypedSchematic('led_smd.sch', 20, 100);
+tschedaFlow.addTypedSchematic('temperature_sensor.sch', 20, 350);
+tschedaFlow.addTypedSchematic('flash.sch', 20, 800);
+tschedaFlow.addTypedSchematic('power5V12V.sch', 100, 400);
+tschedaFlow.addTypedSchematic('power5V.sch', 600, 100);
 
 // Generate Schematic
 document
@@ -145,10 +145,11 @@ document
     //     ],
     //   },
     // ];
+    if (data == null) return;
     const serverResult = await server.post('generatePCB', {
       schData: data,
     });
-    console.log(serverResult);
+    console.log('Server result', serverResult);
     if (serverResult.data.schematic != null) {
       var file = new File([serverResult.data.schematic], 'merged.sch', {
         type: 'text/plain;charset=utf-8',
