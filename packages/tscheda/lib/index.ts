@@ -70,7 +70,8 @@ class Tscheda {
   tschs: Map<string, Tsch>;
   matsMap: Map<string, powerMatNode | undefined>;
   matsTree: powerMatNode | null;
-  connections: MultiMap<typedProtocol, typedProtocol[]>;
+  connections: MultiMap<typedProtocol, typedProtocol[]>; // From-to connection map
+  rawConections: Array<typedProtocol[]>; // True connection map
   typedConstraintsPath: string;
   constructor(typedConstrainsPath: string) {
     this.typedConstraintsPath = typedConstrainsPath;
@@ -78,6 +79,7 @@ class Tscheda {
     this.matsMap = new Map();
     this.matsTree = null;
     this.connections = new MultiMap();
+    this.rawConections = new Array();
   }
 
   ///// TSCHS
@@ -887,24 +889,53 @@ class Tscheda {
         this.connections.set(parent, [...currentChilds, child]);
       }
     } else {
-      // Check first if parent child is in any other connection // FIXME: Connections shouldn't be a map, it should be array
-      for (const [key, values] of this.connections.entries()) {
-        const interesction = values.filter(
-          (connValue) =>
-            connValue.protocol == child.protocol &&
-            connValue.uuid == child.uuid,
+      // Else
+      this.connections.set(parent, [child]);
+    }
+
+    // Add raw connections
+    this.addRawConnection(parent, child);
+  }
+
+  private flattenRawConnection(): Array<typedProtocol[]> {
+    const flattened: Array<typedProtocol[]> = new Array();
+    for (const connections of this.rawConections) {
+      let typedProtocolArray: typedProtocol[] = new Array();
+      for (const connection of connections) {
+        const find = typedProtocolArray.find(
+          (value) =>
+            value.protocol == connection.protocol &&
+            value.uuid == connection.uuid,
         );
-        if (interesction.length != 0) {
-          const currentChilds = this.connections.get(key);
-          if (currentChilds != null) {
-            this.connections.set(key, [...currentChilds, parent]);
+        if (find == undefined) {
+          typedProtocolArray.push(connection);
+        }
+      }
+      flattened.push(typedProtocolArray);
+    }
+    return flattened;
+  }
+
+  private addRawConnection(connOne: typedProtocol, connTwo: typedProtocol) {
+    for (const [key, connections] of this.rawConections.entries()) {
+      for (const connection of connections) {
+        if (
+          (connection.protocol == connOne.protocol &&
+            connection.uuid == connOne.uuid) ||
+          (connection.protocol == connTwo.protocol &&
+            connection.uuid == connTwo.uuid)
+        ) {
+          // Save connection in same key
+          const currentConns = this.rawConections.at(key);
+          if (currentConns != null) {
+            this.rawConections.splice(key, 1);
+            this.rawConections.push([...currentConns, connOne, connTwo]);
             return;
           }
         }
       }
-      // Else
-      this.connections.set(parent, [child]);
     }
+    this.rawConections.push([connOne, connTwo]);
   }
 
   public removeConnection() {}
@@ -962,6 +993,14 @@ class Tscheda {
   public printConnectionMap(): void {
     console.log('@ Connection MAP');
     for (const [key, val] of this.connections.entries()) {
+      console.log(key, '|', val);
+    }
+    console.log('@ Raw Connection MAP');
+    for (const [key, val] of this.rawConections.entries()) {
+      console.log(key, '|', val);
+    }
+    console.log('@ Flattend Raw Connection MAP');
+    for (const [key, val] of this.flattenRawConnection().entries()) {
       console.log(key, '|', val);
     }
   }
