@@ -518,7 +518,6 @@ class Flow {
           break;
         case ContextMenus.IOs:
           ContextMenu.Show('#contextMenuIOs', e);
-          console.log(this._iosSelected);
           break;
         default:
           return;
