@@ -7,6 +7,13 @@ class GPIO extends POWER implements PROTOCOL<GPIO> {
   public connect(childs: Array<GPIO>): result<boolean> {
     const parent = this;
 
+    // FIXME: Improve this using all connections
+    // const connections = [parent, ...childs]; // Remove connections without source voltage
+    if (parent.sourceVoltage == null) {
+      // Parent doesn't need source voltage
+      return ok(true);
+    }
+
     // ## Connection Constrains:
     for (const child of childs) {
       // Net voltages must be equal
