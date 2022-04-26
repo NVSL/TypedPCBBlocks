@@ -542,6 +542,109 @@ class Tscheda {
     }
   }
 
+  // private generateNetConnections(): connectionOutputFormat[] {
+  //   const mapHelper: MultiMap<
+  //     connectionHelper,
+  //     Array<connect>
+  //   > = new MultiMap();
+  //   function addToMapHelper(key: connectionHelper, connectInfo: connect) {
+  //     if (mapHelper.has(key)) {
+  //       let val: Array<connect> | null = mapHelper.get(key);
+  //       if (val) {
+  //         val.push(connectInfo);
+  //       }
+  //     } else {
+  //       mapHelper.set(key, [connectInfo]);
+  //     }
+  //   }
+
+  //   if (this.connections.size == 0) {
+  //     throw new TschedaError(
+  //       ErrorCode.GenerateError,
+  //       `No connections to process`,
+  //     );
+  //   }
+
+  //   const outputFormat: Array<connectionOutputFormat> = [];
+  //   if (this.connections.size > 0) {
+  //     for (const [key, val] of this.connections.entries()) {
+  //       mapHelper.clear();
+  //       const type = Tscheda.getFriendlyName(key.protocol);
+  //       const typedConnections: typedProtocol[] = [key].concat(
+  //         val.map((e) => e),
+  //       );
+  //       let subWires: string[] = [];
+  //       if (!this.isMat(key.uuid)) {
+  //         // is tsch
+  //         const tsch = this.getTsch(key.uuid);
+  //         subWires = Tscheda.getSubWires(type, tsch!.getNets(key.protocol));
+  //       }
+  //       for (const typedConn of typedConnections) {
+  //         let tsch: Tsch | null = null;
+  //         if (this.isMat(typedConn.uuid)) {
+  //           tsch = this.getMat(typedConn.uuid)!.powerTsch;
+  //         } else {
+  //           tsch = this.getTsch(typedConn.uuid);
+  //         }
+  //         if (tsch) {
+  //           if (subWires.length > 0) {
+  //             // SPI protocol sub wires are for example [MISO, MOSI, SCK]
+  //             // Connect by wire
+  //             for (const subWire of subWires) {
+  //               const net = tsch
+  //                 .getNets(typedConn.protocol)
+  //                 .filter((e) => e.includes(subWire))[0];
+  //               // Set connect
+  //               const connect: connect = {
+  //                 schematic: tsch.getFileName(),
+  //                 instance: tsch.getInstance()!,
+  //                 net: net,
+  //               };
+  //               // Add to map helper
+  //               const multiKey: connectionHelper = {
+  //                 type: type,
+  //                 wire: subWire,
+  //               };
+  //               addToMapHelper(multiKey, connect);
+  //             }
+  //           } else {
+  //             // Connect protocol with no subWires
+  //             const net = tsch.getNets(typedConn.protocol)[0];
+  //             // Set connect
+  //             const connect: connect = {
+  //               schematic: tsch.getFileName(),
+  //               instance: tsch.getInstance()!,
+  //               net: net,
+  //             };
+  //             // Add to map helper
+  //             const multiKey: connectionHelper = {
+  //               type: type,
+  //               wire: null,
+  //             };
+  //             addToMapHelper(multiKey, connect);
+  //           }
+  //         } else {
+  //           throw new TschedaError(
+  //             ErrorCode.GenerateError,
+  //             `Typed Schematic ${typedConn.uuid} not found`,
+  //           );
+  //         }
+  //       }
+  //       // Final format from map helper
+  //       for (const [key, val] of mapHelper.entries()) {
+  //         const index: connectionHelper = key;
+  //         const format: connectionOutputFormat = {
+  //           type: index.type,
+  //           wire: index.wire,
+  //           connect: val,
+  //         };
+  //         outputFormat.push(format);
+  //       }
+  //     }
+  //   }
+  //   return outputFormat;
+  // }
+
   private generateNetConnections(): connectionOutputFormat[] {
     const mapHelper: MultiMap<
       connectionHelper,
@@ -567,18 +670,23 @@ class Tscheda {
 
     const outputFormat: Array<connectionOutputFormat> = [];
     if (this.connections.size > 0) {
-      for (const [key, val] of this.connections.entries()) {
+      const flattenedConnections = this.flattenRawConnection();
+      for (const value of flattenedConnections.values()) {
         mapHelper.clear();
-        const type = Tscheda.getFriendlyName(key.protocol);
-        const typedConnections: typedProtocol[] = [key].concat(
-          val.map((e) => e),
-        );
+        // Get type from the first index value
+        const type = Tscheda.getFriendlyName(value[0].protocol);
+        const typedConnections: typedProtocol[] = value;
         let subWires: string[] = [];
-        if (!this.isMat(key.uuid)) {
+        // Get if it's a mat's connetions or tsch connections
+        if (!this.isMat(value[0].uuid)) {
           // is tsch
-          const tsch = this.getTsch(key.uuid);
-          subWires = Tscheda.getSubWires(type, tsch!.getNets(key.protocol));
+          const tsch = this.getTsch(value[0].uuid);
+          subWires = Tscheda.getSubWires(
+            type,
+            tsch!.getNets(value[0].protocol),
+          );
         }
+        // Process connections
         for (const typedConn of typedConnections) {
           let tsch: Tsch | null = null;
           if (this.isMat(typedConn.uuid)) {
@@ -807,6 +915,42 @@ class Tscheda {
         ErrorCode.ConnectError,
         `Protocol Names are not equal for parent ${parent} and childs ${childs}`,
       );
+    }
+
+    // Check: Multiple connections of same protcols between same instances are currently not permited
+    // Example uuid=2 GPIO-1, and uuid=2 GPIO-3 to uuid=4 GPIO-5
+    const inputs = [parent, ...childs];
+    console.log('INPUTS', inputs);
+    for (const input of inputs) {
+      for (const value of this.rawConections.values()) {
+        console.log('INPUT', input, 'VALUE', value);
+        const res = value.filter(
+          (v) => v.protocol == input.protocol && v.uuid == input.uuid,
+        );
+        console.log('FILTER RES', res);
+        if (res.length != 0) {
+          const otherInputUuids = inputs
+            .filter((i) => {
+              if (i.uuid && i.uuid != input.uuid) return i;
+            })
+            .map((r) => r.uuid);
+          const otherValueUuids = value
+            .filter((v) => {
+              if (v.uuid && v.uuid != input.uuid) return v;
+            })
+            .map((r) => r.uuid);
+          console.log('OTHER I', otherInputUuids, 'OTHER V', otherValueUuids);
+          const test = otherInputUuids.filter((o) =>
+            otherValueUuids.includes(o),
+          );
+          if (test.length != 0) {
+            throw new TschedaError(
+              ErrorCode.ConnectError,
+              `Multiple connections to a same typed net between same instances are not permited`,
+            );
+          }
+        }
+      }
     }
 
     // DEBUG
