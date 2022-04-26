@@ -14,7 +14,7 @@ Options:
 
 # RUN Example
 # server$
-# python3 ./schematicToTyped/typedSchematicsMerger.py ./output/tscheda_led.json -p ../data/typedSchematics/
+# python3 ./scripts/typedSchematicsMerger.py --debug ./scripts/examples/twoLEDsSameNet.json -p ../data/typedSchematics/
 
 import json
 import os
@@ -25,7 +25,7 @@ from Swoop import Swoop
 
 _debugMode = False
 _arguments = ""
-_uniquePrefix = "__u"
+_uniquePrefix = "(u$)" # Block device counter will be replaced by $
 _mergedSchematicOutput = "./mergeOutput/"
 _mergedSchematicName = "merged.sch"
 _schematicsPath = "/"
@@ -193,7 +193,7 @@ def main(arguments):
     if arguments['-p'] is True:
          _schematicsPath = arguments['TSCHS_PATH']
 
-    print("Typed Schematics PATH:", _schematicsPath)
+    debug_print("Typed Schematics PATH:", _schematicsPath)
 
     # Get unique schematics and give them a unique number
     unique_schematics = {}
@@ -204,7 +204,7 @@ def main(arguments):
                 connection['schematic'],
                 connection['instance'])):
                 # Order unique schematics by prefix
-                prefix = _uniquePrefix+str(unique_counter)
+                prefix = _uniquePrefix.replace("$", str(unique_counter))
                 unique_schematics[prefix] = {
                     "schematic": connection['schematic'], 
                     "instance": connection["instance"]}
@@ -222,13 +222,14 @@ def main(arguments):
     # Connect Nets
     debug_print(">> Renamed connected nets per schematic:")
     for connections in deviceConnections:
-        # Create renamed net name
+        # Create renamed net name, result example: #GPIO-2!+#GPIO-0+#GPIO-0 or @VOUT_5V-12V+@VIN_5V-15V
         renamedNet = ''
         for connection in connections['connect']:
+            prefix = getPrefix(unique_schematics, connection['schematic'], connection['instance'])
             if renamedNet != '':
-                renamedNet += '+' + connection['net']
+                renamedNet += '+' + connection['net'] + prefix
             else:
-                renamedNet += connection['net']
+                renamedNet += connection['net'] + prefix
         # Rename net
         for connection in connections['connect']:
             prefix = getPrefix(unique_schematics, connection['schematic'], connection['instance'])
