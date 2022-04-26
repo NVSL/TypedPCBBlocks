@@ -128,6 +128,10 @@ class TschedaFlow {
     }
   }
 
+  public displayError(errMsg: string) {
+    this.flow.toastError(errMsg);
+  }
+
   public printConnectionMap() {
     this.tscheda.printConnectionMap();
   }

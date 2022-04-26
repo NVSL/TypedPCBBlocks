@@ -37,8 +37,9 @@ const tschedaFlow = new TschedaFlow(
 // ADD TYPED SCHEMATICS TO UI
 tschedaFlow.addTypedSchematic('atmega328.sch', 100, 100);
 tschedaFlow.addTypedSchematic('led_smd.sch', 20, 100);
-tschedaFlow.addTypedSchematic('temperature_sensor.sch', 20, 350);
-tschedaFlow.addTypedSchematic('flash.sch', 20, 800);
+tschedaFlow.addTypedSchematic('led_smd.sch', 20, 380);
+tschedaFlow.addTypedSchematic('temperature_sensor.sch', 20, 600);
+tschedaFlow.addTypedSchematic('flash.sch', 20, 1000);
 tschedaFlow.addTypedSchematic('power5V12V.sch', 100, 400);
 tschedaFlow.addTypedSchematic('power5V.sch', 600, 100);
 
@@ -47,6 +48,7 @@ document
   .querySelector('#buttonGenerateSchematic')!
   .addEventListener('click', async () => {
     const data = tschedaFlow.generateJSONSchematic();
+    console.log(JSON.stringify(data, null, 4));
     // const data = [
     //   {
     //     type: 'VOUT',
@@ -130,17 +132,21 @@ document
     //   },
     // ];
     if (data == null) return;
-    const serverResult = await server.post('generatePCB', {
-      schData: data,
-    });
-    console.log('Server result', serverResult);
-    if (serverResult.data.schematic != null) {
-      var file = new File([serverResult.data.schematic], 'merged.sch', {
-        type: 'text/plain;charset=utf-8',
+    try {
+      const serverResult = await server.post('generatePCB', {
+        schData: data,
       });
-      FileSaver.saveAs(file);
-    } else {
-      console.error('TODO, output file error');
+      console.log('Server result', serverResult);
+      if (serverResult.data.schematic != null) {
+        var file = new File([serverResult.data.schematic], 'merged.sch', {
+          type: 'text/plain;charset=utf-8',
+        });
+        FileSaver.saveAs(file);
+      } else {
+        console.error('TODO, output file error');
+      }
+    } catch (e: any) {
+      tschedaFlow.displayError(e.toString());
     }
   });
 
