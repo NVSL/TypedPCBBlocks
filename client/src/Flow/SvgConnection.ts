@@ -366,22 +366,6 @@ export default {
         throw 'Cannot connect to same tsch element';
       }
 
-      // Check if connection alredy exists
-      if (
-        eleContainer.querySelectorAll(
-          '.connection.node_in_' +
-            outputTschElement.id +
-            '.node_out_' +
-            outputTschElement.id +
-            '.' +
-            input_ioID +
-            '.' +
-            output_ioID,
-        ).length !== 0
-      ) {
-        throw 'Connection alredy exists';
-      }
-
       // Conection doestn't exist save connection
       const input_tschKey = Utils.getTschKey(inputTschElement);
       const output_tschKey = Utils.getTschKey(outputTschElement);
@@ -391,6 +375,16 @@ export default {
 
       const input_tschID = `tsch-${input_tschKey}`;
       const output_tschID = `tsch-${output_tschKey}`;
+
+      // Check if connection alredy exists
+      // FIXME: Because changed format this no longer works
+      if (
+        eleContainer.querySelectorAll(
+          `[from-node="${output_tschID}"][to-node="${input_tschID}"][from-io="${output_ioID}"][to-io="${input_ioID}"]`,
+        ).length !== 0
+      ) {
+        throw 'Connection alredy exists';
+      }
 
       const inputIOData: IOData = graphData.data
         .get(input_tschKey)!
