@@ -1136,7 +1136,7 @@ BlockType:Pheripherial,
 <wire x1="10.16" y1="0" x2="10.16" y2="-5.08" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="#GPIO" class="0">
+<net name="#GPIO-0" class="0">
 <segment>
 <pinref part="D1" gate="G$1" pin="A"/>
 <wire x1="-2.54" y1="0" x2="-10.16" y2="0" width="0.1524" layer="91"/>
