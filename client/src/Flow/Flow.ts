@@ -61,6 +61,13 @@ interface DropEventInfo {
   dragMatKey: string | null;
 }
 
+// Delete Event information
+interface DeleteEventInfo {
+  deleteType: 'tsch' | 'connection';
+  deleteTschKey: string;
+  deleteConnections: ConnectionData[];
+}
+
 // Protocol info
 interface Protocol {
   key: string; // name + altname
@@ -73,10 +80,7 @@ interface ConnectInfo {
   eleConnection: SVGSVGElement;
   connectionID: string;
   connectionKey: string;
-  fromProtocol: Protocol;
-  fromData: ConnectionData;
-  toProtocol: Protocol;
-  toData: ConnectionData;
+  connectionData: ConnectionData;
 }
 interface ConnectEventInfo {
   fromTschKey: string | null;
@@ -90,6 +94,7 @@ interface ConnectEventInfo {
 
 // Flow variables for context menu processing
 interface FlowState {
+  flow: Flow;
   htmlContainer: HTMLElement | null;
   tschSelected: HTMLElement | null;
   connectionSelected: HTMLElement | null;
@@ -102,17 +107,27 @@ interface FlowState {
 interface ConnectionData {
   connectionID: string;
   connectionKey: string;
-  tschID: string;
-  tschKey: string;
-  ioID: string;
-  ioKey: string;
+  from: {
+    tschID: string;
+    tschKey: string;
+    ioID: string;
+    ioKey: string;
+    protocol: Protocol;
+  };
+  to: {
+    tschID: string;
+    tschKey: string;
+    ioID: string;
+    ioKey: string;
+    protocol: Protocol;
+  };
 }
 
 interface IOData {
   ioID: string;
   ioKey: string;
-  connections: Array<ConnectionData>;
   protocol: Protocol;
+  connections: Array<ConnectionData>;
 }
 type IOs = Map<string, IOData>;
 
@@ -546,6 +561,7 @@ class Flow {
       );
       if (!menuOption) return;
       const flowState: FlowState = {
+        flow: this,
         htmlContainer: this._htmlContainer,
         tschSelected: this._tschSelected,
         connectionSelected: this._connectionSelected,
@@ -1106,5 +1122,7 @@ export {
   MenuOptions,
   DropEventInfo,
   ConnectEventInfo,
+  ConnectionData,
   ConnectInfo,
+  DeleteEventInfo,
 };

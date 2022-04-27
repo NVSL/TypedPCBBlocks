@@ -401,25 +401,25 @@ export default {
       if (inputProtocolName !== outpuProtocolName)
         throw 'Protocol Type mismatch';
 
-      // Check if IO connection already exists for inputs
-      for (const connection of inputIOData.connections) {
-        if (
-          connection.ioID == outputIOData.ioID &&
-          connection.tschID == output_tschID
-        ) {
-          throw 'IO aready exists';
-        }
-      }
+      // // Check if IO connection already exists for inputs
+      // for (const connection of inputIOData.connections) {
+      //   if (
+      //     connection.ioID == outputIOData.ioID &&
+      //     connection.tschID == output_tschID
+      //   ) {
+      //     throw 'IO aready exists';
+      //   }
+      // }
 
-      // Check if IO connection already exists for inputs
-      for (const connection of outputIOData.connections) {
-        if (
-          connection.ioID == inputIOData.ioID &&
-          connection.tschID == input_tschID
-        ) {
-          throw 'IO aready exists';
-        }
-      }
+      // // Check if IO connection already exists for inputs
+      // for (const connection of outputIOData.connections) {
+      //   if (
+      //     connection.ioID == inputIOData.ioID &&
+      //     connection.tschID == input_tschID
+      //   ) {
+      //     throw 'IO aready exists';
+      //   }
+      // }
 
       console.log('Can Connect');
 
@@ -429,24 +429,42 @@ export default {
         eleConnection: eleConnection,
         connectionID: connectionID,
         connectionKey: connectionKey,
-        fromProtocol: outputIOData.protocol,
-        fromData: {
+        connectionData: {
           connectionID: connectionID,
           connectionKey: connectionKey,
-          tschID: output_tschID,
-          tschKey: output_tschKey,
-          ioID: output_ioID,
-          ioKey: output_ioKey,
+          from: {
+            protocol: outputIOData.protocol,
+            tschID: output_tschID,
+            tschKey: output_tschKey,
+            ioID: output_ioID,
+            ioKey: output_ioKey,
+          },
+          to: {
+            protocol: inputIOData.protocol,
+            tschID: input_tschID,
+            tschKey: input_tschKey,
+            ioID: input_ioID,
+            ioKey: input_ioKey,
+          },
         },
-        toProtocol: inputIOData.protocol,
-        toData: {
-          connectionID: connectionID,
-          connectionKey: connectionKey,
-          tschID: input_tschID,
-          tschKey: input_tschKey,
-          ioID: input_ioID,
-          ioKey: input_ioKey,
-        },
+        // fromProtocol: outputIOData.protocol,
+        // fromData: {
+        //   connectionID: connectionID,
+        //   connectionKey: connectionKey,
+        //   tschID: output_tschID,
+        //   tschKey: output_tschKey,
+        //   ioID: output_ioID,
+        //   ioKey: output_ioKey,
+        // },
+        // toProtocol: inputIOData.protocol,
+        // toData: {
+        //   connectionID: connectionID,
+        //   connectionKey: connectionKey,
+        //   tschID: input_tschID,
+        //   tschKey: input_tschKey,
+        //   ioID: input_ioID,
+        //   ioKey: input_ioKey,
+        // },
       };
       return connectInfo;
     } catch (e) {
@@ -466,43 +484,32 @@ export default {
     );
     connectInfo.eleConnection.setAttribute(
       'from-node',
-      connectInfo.fromData.tschID,
+      connectInfo.connectionData.from.tschID,
     );
     connectInfo.eleConnection.setAttribute(
       'to-node',
-      connectInfo.toData.tschID,
+      connectInfo.connectionData.to.tschID,
     );
     connectInfo.eleConnection.setAttribute(
       'from-io',
-      connectInfo.fromData.ioID,
+      connectInfo.connectionData.from.ioID,
     );
-    connectInfo.eleConnection.setAttribute('to-io', connectInfo.toData.ioID);
+    connectInfo.eleConnection.setAttribute(
+      'to-io',
+      connectInfo.connectionData.to.ioID,
+    );
+
+    // Get connection data in graphData
+    const outputIOData: IOData = graphData.data
+      .get(connectInfo.connectionData.from.tschKey)!
+      .ios.get(connectInfo.connectionData.from.ioKey)!;
+    const inputIOData: IOData = graphData.data
+      .get(connectInfo.connectionData.to.tschKey)!
+      .ios.get(connectInfo.connectionData.to.ioKey)!;
 
     // Save connection data in graphData
-
-    const outputIOData: IOData = graphData.data
-      .get(connectInfo.fromData.tschKey)!
-      .ios.get(connectInfo.fromData.ioKey)!;
-    const inputIOData: IOData = graphData.data
-      .get(connectInfo.toData.tschKey)!
-      .ios.get(connectInfo.toData.ioKey)!;
-
-    outputIOData.connections.push({
-      connectionID: connectInfo.fromData.connectionID,
-      connectionKey: connectInfo.fromData.connectionKey,
-      tschID: connectInfo.fromData.tschID,
-      tschKey: connectInfo.fromData.tschKey,
-      ioID: connectInfo.fromData.ioID,
-      ioKey: connectInfo.fromData.ioKey,
-    });
-    inputIOData.connections.push({
-      connectionID: connectInfo.toData.connectionID,
-      connectionKey: connectInfo.toData.connectionKey,
-      tschID: connectInfo.toData.tschID,
-      tschKey: connectInfo.toData.tschKey,
-      ioID: connectInfo.toData.ioID,
-      ioKey: connectInfo.toData.ioKey,
-    });
+    outputIOData.connections.push(connectInfo.connectionData);
+    inputIOData.connections.push(connectInfo.connectionData);
   },
   disconnect(connectInfo: ConnectInfo) {
     connectInfo.eleConnection.remove();
