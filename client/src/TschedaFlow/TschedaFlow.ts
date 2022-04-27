@@ -1,4 +1,9 @@
-import { Flow, DropEventInfo, ConnectEventInfo } from '../Flow/Flow';
+import {
+  Flow,
+  DropEventInfo,
+  ConnectEventInfo,
+  DeleteEventInfo,
+} from '../Flow/Flow';
 import { Tscheda, TschedaDebug, TschedaError, BlockType } from 'tscheda';
 import Utils from './Utils';
 
@@ -25,6 +30,7 @@ class TschedaFlow {
   }
 
   public listeners() {
+    // Flow Drop Event
     this.flow.on('flowDrop', (data: DropEventInfo) => {
       console.log('Drop event', data);
 
@@ -88,9 +94,19 @@ class TschedaFlow {
       // Save drop info
       this.flow.enableDrop(data);
     });
+
+    // Flow Un-Drop Event
     this.flow.on('flowUndrop', (data: DropEventInfo) => {
       console.log('Un Drop event', data);
     });
+
+    // Flow Delete Event
+    this.flow.on('flowDelete', (data: DeleteEventInfo) => {
+      console.log('Delete event', data);
+      // TODO: Delete Components here
+    });
+
+    // Flow Connect Event
     this.flow.on('flowConnect', async (data: ConnectEventInfo) => {
       console.log('Connect event', data);
       if (data.fromTschKey == null || data.toTschKey == null) {
@@ -104,9 +120,14 @@ class TschedaFlow {
         await this.tscheda.connect(
           {
             uuid: data.fromTschKey,
-            protocol: data.connectInfo.fromProtocol.key,
+            protocol: data.connectInfo.connectionData.from.protocol.key,
           },
-          [{ uuid: data.toTschKey, protocol: data.connectInfo.toProtocol.key }],
+          [
+            {
+              uuid: data.toTschKey,
+              protocol: data.connectInfo.connectionData.to.protocol.key,
+            },
+          ],
         );
         this.flow.connect(data.connectInfo);
       } catch (e) {
