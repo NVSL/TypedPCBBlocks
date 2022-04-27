@@ -1,4 +1,4 @@
-import { FlowState, MenuOptions } from './Flow';
+import { DeleteEventInfo, FlowState, MenuOptions } from './Flow';
 import Delete from './Delete';
 import Utils from './Utils';
 
@@ -167,11 +167,14 @@ export default {
         console.log('Delete click', flowState.tschSelected);
         if (!flowState.tschSelected) return;
         if (!flowState.htmlContainer) return;
-        Delete.removeNodeId(
+        const deleteEventInfo = Delete.removeNodeId(
           flowState.tschSelected,
           flowState.htmlContainer,
           flowState.graphData,
         );
+        if (deleteEventInfo) {
+          flowState.flow.dispatch('flowDelete', deleteEventInfo);
+        }
         break;
     }
   },
@@ -184,11 +187,23 @@ export default {
         if (!flowState.htmlContainer) return;
         if (!flowState.connectionSelected) return;
         // Delete connection
-        Delete.removeNodeConnections(
+        const connectionsRemoved = Delete.removeNodeConnections(
           [flowState.connectionSelected.id],
           flowState.htmlContainer,
           flowState.graphData,
         );
+        if (connectionsRemoved.length != 0) {
+          const deleteEventInfo: DeleteEventInfo = {
+            deleteType: 'connection',
+            deleteTschKey: '',
+            deleteConnections: connectionsRemoved,
+          };
+          flowState.flow.dispatch('flowDelete', deleteEventInfo);
+        } else {
+          console.error(
+            `Connection ${flowState.connectionSelected.id} was not removed`,
+          );
+        }
         break;
     }
   },
