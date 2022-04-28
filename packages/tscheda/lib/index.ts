@@ -848,28 +848,6 @@ class Tscheda {
     return uuid;
   }
 
-  private treeBFS() {
-    // Traverse matNodes Tree by level
-    let queue = new Queue();
-    let nextLevel = new Queue();
-    let level = 0;
-    queue.enqueue(this.matsTree);
-    while (!queue.isEmpty()) {
-      let matNode: powerMatNode | undefined = queue.dequeue();
-      console.log('BFS level', level, 'value: ', matNode);
-      if (matNode) {
-        for (const childs of matNode.children.values()) {
-          nextLevel.enqueue(childs);
-        }
-      }
-      if (queue.isEmpty()) {
-        queue = nextLevel;
-        nextLevel = new Queue();
-        level++;
-      }
-    }
-  }
-
   //###
   //### Protocol Constrains Connections
   //###
@@ -1131,11 +1109,38 @@ class Tscheda {
   }
 
   //###
+  //### Delete
+  //###
+
+  //###
   //### Prints
   //###
 
+  private printMatsTree() {
+    // Traverse matNodes Tree by level
+    let queue = new Queue();
+    let nextLevel = new Queue();
+    let level = 0;
+    queue.enqueue(this.matsTree);
+    while (!queue.isEmpty()) {
+      let matNode: powerMatNode | undefined = queue.dequeue();
+      console.log('Tree Level', level, 'Mat: ', matNode);
+      if (matNode) {
+        for (const childs of matNode.children.values()) {
+          nextLevel.enqueue(childs);
+        }
+      }
+      if (queue.isEmpty()) {
+        queue = nextLevel;
+        nextLevel = new Queue();
+        level++;
+      }
+    }
+  }
+
   public printConnectionMap(): void {
-    console.log('@ Connection MAP');
+    console.log('#############################');
+    console.log('@ From-To Connection MAP');
     for (const [key, val] of this.connections.entries()) {
       console.log(key, '|', val);
     }
@@ -1147,6 +1152,9 @@ class Tscheda {
     for (const [key, val] of this.flattenRawConnection().entries()) {
       console.log(key, '|', val);
     }
+    console.log('@ Mats Tree');
+    this.printMatsTree();
+    console.log('#############################');
   }
 }
 
