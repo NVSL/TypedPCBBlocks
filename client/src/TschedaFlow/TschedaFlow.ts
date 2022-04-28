@@ -104,6 +104,7 @@ class TschedaFlow {
     this.flow.on('flowDelete', (data: DeleteEventInfo) => {
       console.log('Delete event', data);
       // TODO: Delete Components here
+      this.flow.remove(data);
     });
 
     // Flow Connect Event
