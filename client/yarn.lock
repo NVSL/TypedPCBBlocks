@@ -60,6 +60,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/ungap__structured-clone@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "@types/ungap__structured-clone@npm:0.3.0"
+  checksum: 1502276e64645c2157e7a6d0dc6b572787b99f5a4e64d11711fcc05edb9c5be5d0a7827939d269746a29f24ae96c9581b16f12d00604dacfbfdc6b62ba6025c5
+  languageName: node
+  linkType: hard
+
+"@ungap/structured-clone@npm:^0.3.4":
+  version: 0.3.4
+  resolution: "@ungap/structured-clone@npm:0.3.4"
+  checksum: c8ae58af9e65619e7c56c7b1f30f85cdd01ac6b92d67f6832d26fa28a19cc856529588d0c82926b55f46eb31d53691522e06c484ca4b92e215d988e6b0cf2a20
+  languageName: node
+  linkType: hard
+
 "abbrev@npm:1":
   version: 1.1.1
   resolution: "abbrev@npm:1.1.1"
@@ -213,6 +227,8 @@ __metadata:
   dependencies:
     "@types/file-saver": ^2.0.5
     "@types/relaxed-json": ^1.0.1
+    "@types/ungap__structured-clone": ^0.3.0
+    "@ungap/structured-clone": ^0.3.4
     axios: ^0.26.1
     fast-xml-parser: ^4.0.1
     file-saver: ^2.0.5
