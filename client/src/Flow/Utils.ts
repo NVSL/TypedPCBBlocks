@@ -1,3 +1,5 @@
+import structuredClone from '@ungap/structured-clone';
+
 export default {
   isMatElement(target: HTMLElement): boolean {
     return target.getAttribute('mat-key') ? true : false;
@@ -35,5 +37,11 @@ export default {
     const eleStyle = window.getComputedStyle(ele);
     const zIndex = eleStyle.getPropertyValue('z-index');
     return parseInt(zIndex);
+  },
+  copy(object: JSON): JSON {
+    return structuredClone(object);
+  },
+  mapToJSON(map: Map<any, any>): JSON {
+    return this.copy(<JSON>Object.fromEntries(map));
   },
 };
