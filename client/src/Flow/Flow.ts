@@ -10,6 +10,7 @@ import './Toast.css';
 import './SvgConnection.css';
 import './ContextMenu.css';
 import './Flow.css';
+import Delete from './Delete';
 
 // Context Menus
 enum ContextMenus {
@@ -63,9 +64,12 @@ interface DropEventInfo {
 
 // Delete Event information
 interface DeleteEventInfo {
-  deleteType: 'tsch' | 'connection';
-  deleteTschKey: string;
-  deleteConnections: ConnectionData[];
+  toDeleteType: 'blockTsch' | 'matTsch' | 'connection';
+  toDeleteTsch: {
+    key: string;
+    element: HTMLElement;
+  } | null;
+  toDeleteConnections: ConnectionData[];
 }
 
 // Protocol info
@@ -1111,6 +1115,12 @@ class Flow {
       pauseOnHover: true,
       pauseOnFocusLoss: true,
     });
+  }
+
+  // Delete UI elements
+  public remove(deleteEventInfo: DeleteEventInfo) {
+    if (this._htmlContainer == null) return;
+    Delete.remove(this.graphData, this._htmlContainer, deleteEventInfo);
   }
 }
 
