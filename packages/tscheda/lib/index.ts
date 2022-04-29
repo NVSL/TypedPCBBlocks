@@ -22,6 +22,7 @@ interface connectionHelper {
   wire: string | null;
 }
 
+// FIXME: Change typedProtoco by Protocol interface
 interface typedProtocol {
   uuid: uuid;
   protocol: string;
@@ -32,11 +33,49 @@ interface eagle {
   filename: string;
 }
 
+// TSCH Types
+
 enum BlockType {
   computemodule = 'computemodule',
   pheripherial = 'pheripherial',
   matroot = 'matroot',
   mat = 'mat',
+}
+
+// Delete interfaces
+
+interface DeleteEventInfo {
+  toDeleteType: 'blockTsch' | 'matTsch' | 'connection';
+  toDeleteTsch: {
+    key: string;
+    element: HTMLElement;
+  } | null;
+  toDeleteConnections: ConnectionData[];
+}
+
+interface ConnectionData {
+  connectionID: string;
+  connectionKey: string;
+  from: {
+    tschID: string;
+    tschKey: string;
+    ioID: string;
+    ioKey: string;
+    protocol: Protocol;
+  };
+  to: {
+    tschID: string;
+    tschKey: string;
+    ioID: string;
+    ioKey: string;
+    protocol: Protocol;
+  };
+}
+
+interface Protocol {
+  key: string; // name + altname
+  name: string; // GPIO, SPI, I2C
+  altname: string; // 1,2,WP,RESET
 }
 
 // TODO: Move powerMat and powerMat node to another file
@@ -97,6 +136,7 @@ class Tscheda {
       randomUuid = this.getRandomUuid();
     }
     this.tschs.set(randomUuid, tsch);
+    tsch.uuid = randomUuid;
     // Update tsch instance number
     this.setInstance(tsch);
     return randomUuid;
@@ -330,16 +370,29 @@ class Tscheda {
     return null;
   }
 
-  public getTschMat(tschUuid: string): powerMatNode | null {
+  public getMatOfInDesignTsch(tschUuid: string): powerMatNode | null {
     if (this.isInDesing(tschUuid)) {
-      for (const Mat of this.matsMap.values()) {
-        if (Mat) {
-          for (const tschUuidInMat of Mat.tschMap.keys()) {
-            if (tschUuidInMat == tschUuid) {
-              return Mat;
-            }
+      loop: for (const Mat of this.matsMap.values()) {
+        if (Mat == undefined) continue loop;
+        for (const tschUuidInMat of Mat.tschMap.keys()) {
+          if (tschUuidInMat == tschUuid) {
+            return Mat;
           }
         }
+      }
+    }
+    return null;
+  }
+
+  public getInDesignTschsOfMat(mat: powerMatNode): Map<string, Tsch> {
+    return mat.tschMap;
+  }
+
+  public getMatByTsch(tschUuid: string): powerMatNode | null {
+    loop: for (const Mat of this.matsMap.values()) {
+      if (Mat == undefined) continue loop;
+      if (tschUuid == Mat.powerTsch.uuid) {
+        return Mat;
       }
     }
     return null;
@@ -1060,8 +1113,6 @@ class Tscheda {
     this.rawConections.push([connOne, connTwo]);
   }
 
-  public removeConnection() {}
-
   // Two protocols are equal
   // Input example: GPIO, GPIO
   // Output: true
@@ -1111,6 +1162,58 @@ class Tscheda {
   //###
   //### Delete
   //###
+  public remove(data: DeleteEventInfo) {
+    switch (data.toDeleteType) {
+      case 'matTsch':
+        if (data.toDeleteTsch == null) throw 'Mat to delete not found';
+        const tschUuid = data.toDeleteTsch.key;
+        console.log('Key', tschUuid);
+        // Get Mat uuid
+        const mat = this.getMatByTsch(data.toDeleteTsch.key);
+        if (mat == null) throw 'Mat to delete not found';
+        // Check if Mat has Mapped chidrens
+        const MappedTsch = this.getInDesignTschsOfMat(mat);
+        if (MappedTsch.size != 0) {
+          throw 'Delete Mat elements first';
+        }
+        // Check if Mat is a leaf with no children (Last in Tree)
+        if (this.isMatChildrenEmpty(mat) == false)
+          throw 'Delete Mat elements first';
+        // Delete Mat VIN/VOUT from From-To connections
+        for (const [key, val] of this.connections.entries()) {
+          const array = [key, ...val];
+          array.forEach((val) => {
+            if (val.uuid == mat.uuid) {
+              this.connections.delete(key);
+            }
+          });
+        }
+        // Delete Mat VIN/VOUT form RawConnections
+        for (const [key, array] of this.rawConections.entries()) {
+          array.forEach((val) => {
+            if (val.uuid == mat.uuid) {
+              this.rawConections.splice(key, 1);
+            }
+          });
+        }
+        // Delete Mat from Tree
+        const parentMat = mat.parent;
+        if (parentMat != 'root' && parentMat != null) {
+          parentMat.children.delete(mat.uuid);
+        } else if (parentMat == 'root') {
+          this.matsTree = null;
+        }
+        this.matsMap.delete(mat.uuid);
+        this.tschs.delete(tschUuid);
+      default:
+        break;
+    }
+  }
+
+  private isMatChildrenEmpty(mat: powerMatNode): boolean {
+    if (mat.children.size == 0) return true;
+    return false;
+  }
 
   //###
   //### Prints
