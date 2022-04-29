@@ -60,10 +60,11 @@ class Tsch {
   outputsPower: boolean;
   typedSchematic: TypedSchematic | null;
   configuration: Configuration;
+  extraInfo: Map<string, string>;
+  uuid: string | null;
   inDesign: boolean;
   sourceVoltage: voltage | null;
   instance: number | null;
-  extraInfo: Map<string, string>;
   constructor() {
     this.eagleVersion = null;
     this.eagleFileName = '';
@@ -72,6 +73,7 @@ class Tsch {
     this.configuration = {};
     this.extraInfo = new Map();
     // Modified when added to design
+    this.uuid = null;
     this.inDesign = false;
     this.sourceVoltage = null; // voltage[voutIndex] from Mat vout: voltage[]
     this.instance = null; // If same schematic, instance + 1
