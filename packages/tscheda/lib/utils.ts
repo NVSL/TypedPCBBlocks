@@ -71,6 +71,10 @@ class MultiMap<K, V> {
   public clear(): void {
     this.map.clear();
   }
+  public delete(key: K): boolean {
+    const jsonKey: string = JSON.stringify(key);
+    return this.map.delete(jsonKey);
+  }
   public get size(): number {
     return this.map.size;
   }
