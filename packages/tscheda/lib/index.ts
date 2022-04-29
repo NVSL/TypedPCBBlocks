@@ -1171,43 +1171,61 @@ class Tscheda {
         // Get Mat uuid
         const mat = this.getMatByTsch(data.toDeleteTsch.key);
         if (mat == null) throw 'Mat to delete not found';
-        // Check if Mat has Mapped chidrens
-        const MappedTsch = this.getInDesignTschsOfMat(mat);
-        if (MappedTsch.size != 0) {
-          throw 'Delete Mat elements first';
-        }
-        // Check if Mat is a leaf with no children (Last in Tree)
-        if (this.isMatChildrenEmpty(mat) == false)
-          throw 'Delete Mat elements first';
-        // Delete Mat VIN/VOUT from From-To connections
-        for (const [key, val] of this.connections.entries()) {
-          const array = [key, ...val];
-          array.forEach((val) => {
-            if (val.uuid == mat.uuid) {
-              this.connections.delete(key);
-            }
-          });
-        }
-        // Delete Mat VIN/VOUT form RawConnections
-        for (const [key, array] of this.rawConections.entries()) {
-          array.forEach((val) => {
-            if (val.uuid == mat.uuid) {
-              this.rawConections.splice(key, 1);
-            }
-          });
-        }
-        // Delete Mat from Tree
-        const parentMat = mat.parent;
-        if (parentMat != 'root' && parentMat != null) {
-          parentMat.children.delete(mat.uuid);
-        } else if (parentMat == 'root') {
-          this.matsTree = null;
-        }
-        this.matsMap.delete(mat.uuid);
-        this.tschs.delete(tschUuid);
+        this.removeMat(mat);
       default:
         break;
     }
+  }
+
+  public removeMat(mat: string);
+  public removeMat(mat: powerMatNode);
+  public removeMat(mat: powerMatNode | string) {
+    let matNode: powerMatNode;
+    if (typeof mat == 'string') {
+      const resMat = this.getMat(mat);
+      if (resMat == null) throw `Mat uuid ${mat} not found`;
+      matNode = resMat;
+    } else {
+      matNode = mat;
+    }
+
+    const matTschUuid = matNode.powerTsch.uuid;
+    if (matTschUuid == null) throw `Mat tsch uuid is null`;
+
+    // Check if Mat has Mapped chidrens
+    const MappedTsch = this.getInDesignTschsOfMat(matNode);
+    if (MappedTsch.size != 0) {
+      throw 'Delete Mat elements first';
+    }
+    // Check if Mat is a leaf with no children (Last in Tree)
+    if (this.isMatChildrenEmpty(matNode) == false)
+      throw 'Delete Mat elements first';
+    // Delete Mat VIN/VOUT from From-To connections
+    for (const [key, val] of this.connections.entries()) {
+      const array = [key, ...val];
+      array.forEach((val) => {
+        if (val.uuid == matNode.uuid) {
+          this.connections.delete(key);
+        }
+      });
+    }
+    // Delete Mat VIN/VOUT form RawConnections
+    for (const [key, array] of this.rawConections.entries()) {
+      array.forEach((val) => {
+        if (val.uuid == matNode.uuid) {
+          this.rawConections.splice(key, 1);
+        }
+      });
+    }
+    // Delete Mat from Tree
+    const parentMat = matNode.parent;
+    if (parentMat != 'root' && parentMat != null) {
+      parentMat.children.delete(matNode.uuid);
+    } else if (parentMat == 'root') {
+      this.matsTree = null;
+    }
+    this.matsMap.delete(matNode.uuid);
+    this.tschs.delete(matTschUuid);
   }
 
   private isMatChildrenEmpty(mat: powerMatNode): boolean {

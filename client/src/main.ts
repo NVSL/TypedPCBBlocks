@@ -157,5 +157,10 @@ document.querySelector('#buttonPrintMap')!.addEventListener('click', () => {
 
 // Check DRC
 document.querySelector('#buttonCheckDrc')!.addEventListener('click', () => {
-  tschedaFlow.checkDRC();
+  try {
+    tschedaFlow.checkDRC();
+    console.log('Success no errors');
+  } catch (e: any) {
+    tschedaFlow.displayError(e.toString());
+  }
 });
