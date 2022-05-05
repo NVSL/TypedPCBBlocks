@@ -101,28 +101,42 @@ export default {
     switch (deleteEventInfo.toDeleteType) {
       case 'matTsch':
       case 'blockTsch':
-        if (deleteEventInfo.toDeleteTsch == null) {
-          throw 'Error Deleting Tsch, toDeleteTsch is null';
+        {
+          if (deleteEventInfo.toDeleteTsch == null) {
+            throw 'Error Deleting Tsch, toDeleteTsch is null';
+          }
+
+          // Delete Node Connections Data and HTML Elements
+          const connectionToRemoveIDs = deleteEventInfo.toDeleteConnections.map(
+            (c) => c.connectionID,
+          );
+          this.removeNodeConnections(
+            connectionToRemoveIDs,
+            container,
+            graphData,
+            true,
+          );
+
+          // Delete Node Data
+          graphData.data.delete(deleteEventInfo.toDeleteTsch.key);
+
+          // Delete Node HTML Element
+          deleteEventInfo.toDeleteTsch.element.remove();
         }
-
-        // Delete Node Data
-        graphData.data.delete(deleteEventInfo.toDeleteTsch.key);
-
-        // Delete Node
-        deleteEventInfo.toDeleteTsch.element.remove();
-
         break;
       case 'connection':
-        // Substract only connections to remove IDs
-        const connectionToRemoveIDs = deleteEventInfo.toDeleteConnections.map(
-          (c) => c.connectionID,
-        );
-        this.removeNodeConnections(
-          connectionToRemoveIDs,
-          container,
-          graphData,
-          true,
-        );
+        {
+          // Delete Connections Data and HTML Elements
+          const connectionToRemoveIDs = deleteEventInfo.toDeleteConnections.map(
+            (c) => c.connectionID,
+          );
+          this.removeNodeConnections(
+            connectionToRemoveIDs,
+            container,
+            graphData,
+            true,
+          );
+        }
         break;
     }
 
