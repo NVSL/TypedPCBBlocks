@@ -30,7 +30,9 @@ class TschedaFlow {
   }
 
   public listeners() {
-    // Flow Drop Event
+    // ####
+    // #### Flow Drop Event
+    // ####
     this.flow.on('flowDrop', (data: DropEventInfo) => {
       console.log('Drop event', data);
 
@@ -95,24 +97,9 @@ class TschedaFlow {
       this.flow.enableDrop(data);
     });
 
-    // Flow Un-Drop Event
-    this.flow.on('flowUndrop', (data: DropEventInfo) => {
-      console.log('Un Drop event', data);
-    });
-
-    // Flow Delete Event
-    this.flow.on('flowDelete', (data: DeleteEventInfo) => {
-      console.log('Delete event', data);
-      // TODO: Delete Components here
-      try {
-        this.tscheda.remove(data);
-        this.flow.remove(data);
-      } catch (e: any) {
-        this.flow.toastError(e.toString());
-      }
-    });
-
-    // Flow Connect Event
+    // ####
+    // #### Flow Connect Event
+    // ####
     this.flow.on('flowConnect', async (data: ConnectEventInfo) => {
       console.log('Connect event', data);
       if (data.fromTschKey == null || data.toTschKey == null) {
@@ -140,6 +127,27 @@ class TschedaFlow {
         const error = e as TschedaError;
         this.flow.toastError(`${error.message}`);
         this.flow.disconnect(data.connectInfo);
+      }
+    });
+
+    // ####
+    // #### Flow Un-Drop Event
+    // ####
+    this.flow.on('flowUndrop', (data: DropEventInfo) => {
+      console.log('Un Drop event', data);
+    });
+
+    // ####
+    // #### Flow Delete Event
+    // ####
+    this.flow.on('flowDelete', (data: DeleteEventInfo) => {
+      console.log('Delete event', data);
+      // TODO: Delete Components here
+      try {
+        this.flow.remove(data);
+        this.tscheda.remove(data);
+      } catch (e: any) {
+        this.flow.toastError(e.toString());
       }
     });
   }

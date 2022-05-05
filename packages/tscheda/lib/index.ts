@@ -106,7 +106,7 @@ class powerMatNode {
 
 // Power cascade
 class Tscheda {
-  tschs: Map<string, Tsch>;
+  tschsMap: Map<string, Tsch>;
   matsMap: Map<string, powerMatNode | undefined>;
   matsTree: powerMatNode | null;
   connections: MultiMap<typedProtocol, typedProtocol[]>; // From-to connection map
@@ -114,7 +114,7 @@ class Tscheda {
   typedConstraintsPath: string;
   constructor(typedConstrainsPath: string) {
     this.typedConstraintsPath = typedConstrainsPath;
-    this.tschs = new Map();
+    this.tschsMap = new Map();
     this.matsMap = new Map();
     this.matsTree = null;
     this.connections = new MultiMap();
@@ -132,10 +132,10 @@ class Tscheda {
   public newTsch(tsch: Tsch): uuid {
     // Generate new ID
     let randomUuid = this.getRandomUuid();
-    while (this.tschs.has(randomUuid)) {
+    while (this.tschsMap.has(randomUuid)) {
       randomUuid = this.getRandomUuid();
     }
-    this.tschs.set(randomUuid, tsch);
+    this.tschsMap.set(randomUuid, tsch);
     tsch.uuid = randomUuid;
     // Update tsch instance number
     this.setInstance(tsch);
@@ -143,8 +143,8 @@ class Tscheda {
   }
 
   public getTsch(tschUuid: string): Tsch | null {
-    if (this.tschs.has(tschUuid)) {
-      const tsch = this.tschs.get(tschUuid);
+    if (this.tschsMap.has(tschUuid)) {
+      const tsch = this.tschsMap.get(tschUuid);
       if (tsch) return tsch;
       else return null;
     }
@@ -159,14 +159,6 @@ class Tscheda {
     return null;
   }
 
-  public isInDesing(tschUuid: string): boolean {
-    const tsch = this.getTsch(tschUuid);
-    if (tsch) {
-      return tsch.inDesign;
-    }
-    return false;
-  }
-
   public isTsch(tschOrTschUuid: any): boolean {
     if (typeof tschOrTschUuid === 'string') {
       if (this.getTsch(tschOrTschUuid)) {
@@ -179,6 +171,35 @@ class Tscheda {
     }
 
     return false;
+  }
+
+  public isTschInView(tschUuid: string): boolean;
+  public isTschInView(tsch: Tsch): boolean;
+  public isTschInView(tsch: string | Tsch): boolean {
+    let tschUuid;
+    if (typeof tsch != 'string') {
+      tschUuid = tsch.uuid;
+    } else {
+      tschUuid = tsch;
+    }
+    if (this.tschsMap.has(tschUuid)) {
+      return true;
+    }
+    return false;
+  }
+
+  public isTschInDesign(tschUuid: string): boolean;
+  public isTschInDesign(tsch: Tsch): boolean;
+  public isTschInDesign(tsch: string | Tsch): boolean {
+    let tschUuid;
+    if (typeof tsch != 'string') {
+      tschUuid = tsch.uuid;
+    } else {
+      tschUuid = tsch;
+    }
+    const thisTsch = this.getTsch(tschUuid);
+    if (thisTsch == null) return false;
+    return thisTsch.inDesign;
   }
 
   public typedSch(tschUuid: uuid): TypedSchematic | null {
@@ -285,6 +306,7 @@ class Tscheda {
     // Rule: if Tsch's doesn't have a VIN (e.g. LED) add them anyway
     if (Tsch.getVin() == null) {
       // ADD TSCH TO MAT
+      // FIXME: tschMap should be an array of objects. Map is not necesarry.
       Mat.tschMap.set(this.getRandomUuid(), Tsch);
       Tsch.inDesign = true;
 
@@ -370,8 +392,37 @@ class Tscheda {
     return null;
   }
 
+  public isMatInView(matUuid: string): boolean;
+  public isMatInView(mat: powerMatNode): boolean;
+  public isMatInView(mat: string | powerMatNode): boolean {
+    let matUuid;
+    if (typeof mat != 'string') {
+      matUuid = mat.uuid;
+    } else {
+      matUuid = mat;
+    }
+    if (this.matsMap.has(matUuid)) {
+      return true;
+    }
+    return false;
+  }
+
+  public isMatInDesign(matUuid: string): boolean;
+  public isMatInDesign(mat: powerMatNode): boolean;
+  public isMatInDesign(mat: string | powerMatNode): boolean {
+    let matUuid;
+    if (typeof mat != 'string') {
+      matUuid = mat.uuid;
+    } else {
+      matUuid = mat;
+    }
+    const thisMat = this.getMat(matUuid);
+    if (thisMat == null) return false;
+    return thisMat.powerTsch.inDesign;
+  }
+
   public getMatOfInDesignTsch(tschUuid: string): powerMatNode | null {
-    if (this.isInDesing(tschUuid)) {
+    if (this.isTschInDesign(tschUuid)) {
       loop: for (const Mat of this.matsMap.values()) {
         if (Mat == undefined) continue loop;
         for (const tschUuidInMat of Mat.tschMap.keys()) {
@@ -584,7 +635,7 @@ class Tscheda {
   private setInstance(tsch: Tsch) {
     let instanceCounter = 0;
     if (this.isTsch(tsch)) {
-      for (const storedTsch of this.tschs.values()) {
+      for (const storedTsch of this.tschsMap.values()) {
         if (storedTsch) {
           if (tsch.eagleFileName == storedTsch.eagleFileName) {
             instanceCounter++;
@@ -815,7 +866,7 @@ class Tscheda {
     }
 
     // Check that all required Typed Nets are connected
-    for (const [uuid, tsch] of this.tschs.entries()) {
+    for (const [uuid, tsch] of this.tschsMap.entries()) {
       if (tsch.inDesign) {
         if (tsch.typedSchematic && !tsch.outputsPower) {
           for (const [key, typedNet] of Object.entries(tsch.typedSchematic)) {
@@ -923,7 +974,7 @@ class Tscheda {
     }
 
     // Check if parent TSCH and child TSCHs are in design
-    if (!this.isInDesing(parent.uuid)) {
+    if (!this.isTschInDesign(parent.uuid)) {
       throw new TschedaError(
         ErrorCode.ConnectError,
         `Parent Typed Schematic ${parent.uuid} uuid is not in desing`,
@@ -931,7 +982,7 @@ class Tscheda {
     }
 
     for (const child of childs) {
-      if (!this.isInDesing(child.uuid)) {
+      if (!this.isTschInDesign(child.uuid)) {
         throw new TschedaError(
           ErrorCode.ConnectError,
           `Child Typed Schematic  ${child.uuid} uuid not in desing`,
@@ -1072,6 +1123,29 @@ class Tscheda {
     this.addRawConnection(parent, child);
   }
 
+  private generateRawConnections(): Array<typedProtocol[]> {
+    const rawConections: Array<typedProtocol[]> = new Array();
+    rawLoop: for (const [key, val] of this.connections.entries()) {
+      const connArray = [key, ...val];
+      for (const [rawKey, rawVal] of rawConections.entries()) {
+        // Check if any connArray value intersects with an existing Raw connection
+        const intersect = connArray.filter(
+          (c) =>
+            rawVal.filter((r) => r.protocol == c.protocol && r.uuid == c.uuid)
+              .length > 0,
+        );
+        console.log('Interesct', intersect);
+        if (intersect.length > 0) {
+          console.log('to concat', rawVal.concat(connArray));
+          rawConections.splice(rawKey, 1, rawVal.concat(connArray));
+          continue rawLoop;
+        }
+      }
+      rawConections.push(connArray);
+    }
+    return rawConections;
+  }
+
   private flattenRawConnection(): Array<typedProtocol[]> {
     const flattened: Array<typedProtocol[]> = new Array();
     for (const connections of this.rawConections) {
@@ -1165,32 +1239,78 @@ class Tscheda {
   public remove(data: DeleteEventInfo) {
     switch (data.toDeleteType) {
       case 'matTsch':
-        if (data.toDeleteTsch == null) throw 'Mat to delete not found';
-        const tschUuid = data.toDeleteTsch.key;
-        console.log('Key', tschUuid);
-        // Get Mat uuid
-        const mat = this.getMatByTsch(data.toDeleteTsch.key);
-        if (mat == null) throw 'Mat to delete not found';
-        this.removeMat(mat);
+        {
+          if (data.toDeleteTsch == null) throw 'Mat key to delete not found';
+          const tschUuid = data.toDeleteTsch.key;
+          console.log('Key', tschUuid);
+          // Get Mat uuid
+          const mat = this.getMatByTsch(data.toDeleteTsch.key);
+          if (mat == null) throw 'Mat to delete not found';
+          // Remove Mat
+          this.removeMat(mat);
+        }
+        break;
+      case 'blockTsch':
+        {
+          if (data.toDeleteTsch == null) throw 'Tsch key to delete not found';
+          const tschUuid = data.toDeleteTsch.key;
+          // Get Tsch uuid
+          const tsch = this.getTsch(tschUuid);
+          if (tsch == null) throw 'Tsch to delete not found';
+          // Remove Tsch
+          this.removeTsch(tschUuid);
+        }
+        break;
       default:
         break;
     }
   }
 
-  public removeMat(mat: string);
+  public removeMat(matUuid: string);
   public removeMat(mat: powerMatNode);
-  public removeMat(mat: powerMatNode | string) {
+  public removeMat(mat: string | powerMatNode): void {
     let matNode: powerMatNode;
     if (typeof mat == 'string') {
+      if (this.isMatInView(mat) == false) {
+        throw `Mat uuid ${mat} not in view`;
+      }
       const resMat = this.getMat(mat);
       if (resMat == null) throw `Mat uuid ${mat} not found`;
       matNode = resMat;
     } else {
+      if (this.isMatInView(mat) == false) {
+        throw `Mat uuid ${mat.uuid} not in view`;
+      }
       matNode = mat;
     }
 
     const matTschUuid = matNode.powerTsch.uuid;
     if (matTschUuid == null) throw `Mat tsch uuid is null`;
+
+    // Remove from Design
+    this.removeMatFromDesign(matNode);
+    // Remove from View
+    this.matsMap.delete(matNode.uuid);
+    this.tschsMap.delete(matTschUuid);
+  }
+
+  public removeMatFromDesign(matUuid: string);
+  public removeMatFromDesign(mat: powerMatNode);
+  public removeMatFromDesign(mat: string | powerMatNode): void {
+    let matNode: powerMatNode;
+    if (typeof mat == 'string') {
+      if (this.isMatInView(mat) == false) {
+        throw `Mat uuid ${mat} not in view`;
+      }
+      const resMat = this.getMat(mat);
+      if (resMat == null) throw `Mat uuid ${mat} not found`;
+      matNode = resMat;
+    } else {
+      if (this.isMatInView(mat) == false) {
+        throw `Mat uuid ${mat.uuid} not in view`;
+      }
+      matNode = mat;
+    }
 
     // Check if Mat has Mapped chidrens
     const MappedTsch = this.getInDesignTschsOfMat(matNode);
@@ -1224,13 +1344,151 @@ class Tscheda {
     } else if (parentMat == 'root') {
       this.matsTree = null;
     }
-    this.matsMap.delete(matNode.uuid);
-    this.tschs.delete(matTschUuid);
+
+    // Set Mat In Desgin to false
+    matNode.powerTsch.inDesign = false;
   }
 
   private isMatChildrenEmpty(mat: powerMatNode): boolean {
     if (mat.children.size == 0) return true;
     return false;
+  }
+
+  removeTsch(tschUuid: string);
+  removeTsch(tsch: Tsch);
+  removeTsch(tsch: string | Tsch): void {
+    let tschUuid;
+    if (typeof tsch == 'string') {
+      if (this.isTschInView(tsch) == false) {
+        throw `Tsch uuid ${tsch} not in view`;
+      }
+      tschUuid = tsch;
+    } else {
+      if (this.isTschInView(tsch) == false) {
+        throw `Tsch uuid ${tsch.uuid} not in view`;
+      }
+      tschUuid = tsch.uuid;
+    }
+
+    // If tsch is a mat tsch uuid remove mat
+    const isMat = this.getMatByTsch(tschUuid);
+    if (isMat != null) {
+      this.removeMat(isMat);
+      return;
+    }
+
+    // Remove from Design
+    this.removeTschFromDesign(tschUuid);
+    // Remove from View
+    this.tschsMap.delete(tschUuid);
+    return;
+  }
+
+  public removeTschFromDesign(tschUuid: string);
+  public removeTschFromDesign(tsch: Tsch);
+  public removeTschFromDesign(tsch: string | Tsch): void {
+    let tschUuid: string;
+    let tschNode: Tsch | null;
+    if (typeof tsch == 'string') {
+      if (this.isTschInView(tsch) == false) {
+        throw `Tsch uuid ${tsch} not in view`;
+      }
+      tschUuid = tsch;
+      tschNode = this.getTsch(tschUuid);
+      if (tschNode == null) {
+        throw `Tsch uuid ${tschUuid} not found`;
+      }
+    } else {
+      if (this.isTschInView(tsch) == false) {
+        throw `Tsch uuid ${tsch.uuid} not in view`;
+      }
+      tschUuid = tsch.uuid!;
+      tschNode = tsch;
+    }
+
+    // If tsch is a matTsch uuid, if it is remove mat from design
+    const isMat = this.getMatByTsch(tschUuid);
+    if (isMat != null) {
+      this.removeMatFromDesign(isMat);
+      return;
+    }
+
+    // Delete tschUuid from From-To connections
+    let connectionsToDelete: Array<typedProtocol[]> = new Array();
+    loop: for (const [key, val] of this.connections.entries()) {
+      // Delete all originating connections of Tsch
+      const toDelete: Array<typedProtocol> = new Array();
+      if (key.uuid == tschUuid) {
+        [key, ...val].forEach((t) => toDelete.push(t));
+        this.connections.delete(key);
+        continue loop;
+      }
+      // Delete all ending connections to to delete tsch
+      val.forEach((v, index) => {
+        if (v.uuid == tschUuid) {
+          if (val.length == 1) {
+            // If it's the only connection delete entire key
+            [key, ...val].forEach((t) => toDelete.push(t));
+            this.connections.delete(key);
+          } else {
+            // Delete only the connection entry if there are more connections
+            [key, v].forEach((t) => toDelete.push(t));
+            val.splice(index, 1);
+          }
+        }
+      });
+      connectionsToDelete.push(toDelete);
+    }
+    // Delete tschUuid form RawConnections
+
+    // deleteLoop: for (const [rawKey, rawArray] of this.rawConections.entries()) {
+    //   for (const [deleteKey, deleteArray] of connectionsToDelete.entries()) {
+    //     if (
+    //       deleteArray.every(
+    //         (t) =>
+    //           rawArray.filter(
+    //             (r) => r.protocol == t.protocol && r.uuid == t.uuid,
+    //           ).length > 0,
+    //       )
+    //     ) {
+    //       // If same length delete entire key
+    //       if (deleteArray.length == rawArray.length) {
+    //         this.rawConections.splice(rawKey, 1);
+    //         continue deleteLoop;
+    //       }
+    //       // If not the same delete values only
+    //       rawArray.forEach()
+    //     }
+    //   }
+    //   connectionsToDelete.forEach((tArray) => {});
+    // }
+
+    // connectionsToDelete.forEach((t) => {
+    //   const removed = false;
+    //   for (const [key, array] of this.rawConections.entries()) {
+    //     array.forEach((val, index) => {
+    //       if (val.uuid == t.uuid && val.protocol == t.protocol) {
+    //         console.log('Remove ', t);
+    //         const removed = true;
+    //         array.splice(index, 1);
+    //       }
+    //     });
+    //   }
+    //   if (removed == false) console.log('Element not removed', t);
+    // });
+
+    // Remove blockTsch from Mats Tree
+    matsloop: for (const Mat of this.matsMap.values()) {
+      if (Mat == undefined) continue matsloop;
+      for (const [key, InDesignTsch] of Mat.tschMap.entries()) {
+        if (InDesignTsch.uuid === tschUuid) {
+          Mat.tschMap.delete(key);
+        }
+      }
+    }
+
+    // Change inDesign flag
+    tschNode.inDesign = false;
   }
 
   //###
@@ -1261,12 +1519,50 @@ class Tscheda {
 
   public printConnectionMap(): void {
     console.log('#############################');
+    console.log('@ TSCH ELEMENTS');
+    for (const [key, val] of this.tschsMap.entries()) {
+      console.log(
+        key,
+        '|',
+        val.eagleFileName,
+        '|',
+        'Instance:',
+        val.instance,
+        '|',
+        'In Design:',
+        val.inDesign,
+      );
+      // console.log('Object', val);
+    }
+    console.log('@ MAT ELEMENTS');
+    for (const [key, val] of this.matsMap.entries()) {
+      console.log(
+        key,
+        '|',
+        val!.powerTsch.eagleFileName,
+        '|',
+        'Instance:',
+        val!.powerTsch.instance,
+        '|',
+        'In Design:',
+        val!.powerTsch.inDesign,
+        '|',
+        'TSCH uuid:',
+        val!.powerTsch.uuid,
+      );
+      console.log('BlockTsch Elements:', val!.tschMap);
+      // console.log('Object', val);
+    }
     console.log('@ From-To Connection MAP');
     for (const [key, val] of this.connections.entries()) {
       console.log(key, '|', val);
     }
     console.log('@ Raw Connection MAP');
     for (const [key, val] of this.rawConections.entries()) {
+      console.log(key, '|', val);
+    }
+    console.log('@ Generated Raw Connection MAP');
+    for (const [key, val] of this.generateRawConnections().entries()) {
       console.log(key, '|', val);
     }
     console.log('@ Flattend Raw Connection MAP');
