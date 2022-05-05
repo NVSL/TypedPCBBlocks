@@ -110,7 +110,7 @@ class Tscheda {
   matsMap: Map<string, powerMatNode | undefined>;
   matsTree: powerMatNode | null;
   connections: MultiMap<typedProtocol, typedProtocol[]>; // From-to connection map
-  rawConections: Array<typedProtocol[]>; // True connection map
+  // rawConections: Array<typedProtocol[]>; // True connection map // FIXME: Deprecate
   typedConstraintsPath: string;
   constructor(typedConstrainsPath: string) {
     this.typedConstraintsPath = typedConstrainsPath;
@@ -118,7 +118,7 @@ class Tscheda {
     this.matsMap = new Map();
     this.matsTree = null;
     this.connections = new MultiMap();
-    this.rawConections = new Array();
+    // this.rawConections = new Array(); // FIXME: Deprecate
   }
 
   ///// TSCHS
@@ -774,7 +774,7 @@ class Tscheda {
 
     const outputFormat: Array<connectionOutputFormat> = [];
     if (this.connections.size > 0) {
-      const flattenedConnections = this.flattenRawConnection();
+      const flattenedConnections = this.flattenRawConnections();
       for (const value of flattenedConnections.values()) {
         mapHelper.clear();
         // Get type from the first index value
@@ -1002,14 +1002,11 @@ class Tscheda {
     // Check: Multiple connections of same protcols between same instances are currently not permited
     // Example uuid=2 GPIO-1, and uuid=2 GPIO-3 to uuid=4 GPIO-5
     const inputs = [parent, ...childs];
-    console.log('INPUTS', inputs);
     for (const input of inputs) {
-      for (const value of this.rawConections.values()) {
-        console.log('INPUT', input, 'VALUE', value);
+      for (const value of this.generateRawConnections().values()) {
         const res = value.filter(
           (v) => v.protocol == input.protocol && v.uuid == input.uuid,
         );
-        console.log('FILTER RES', res);
         if (res.length != 0) {
           const otherInputUuids = inputs
             .filter((i) => {
@@ -1021,7 +1018,6 @@ class Tscheda {
               if (v.uuid && v.uuid != input.uuid) return v;
             })
             .map((r) => r.uuid);
-          console.log('OTHER I', otherInputUuids, 'OTHER V', otherValueUuids);
           const test = otherInputUuids.filter((o) =>
             otherValueUuids.includes(o),
           );
@@ -1119,8 +1115,8 @@ class Tscheda {
       this.connections.set(parent, [child]);
     }
 
-    // Add raw connections
-    this.addRawConnection(parent, child);
+    // Add raw connections // FIXME: Deprecate
+    // this.addRawConnection(parent, child);
   }
 
   private generateRawConnections(): Array<typedProtocol[]> {
@@ -1134,9 +1130,7 @@ class Tscheda {
             rawVal.filter((r) => r.protocol == c.protocol && r.uuid == c.uuid)
               .length > 0,
         );
-        console.log('Interesct', intersect);
         if (intersect.length > 0) {
-          console.log('to concat', rawVal.concat(connArray));
           rawConections.splice(rawKey, 1, rawVal.concat(connArray));
           continue rawLoop;
         }
@@ -1146,9 +1140,9 @@ class Tscheda {
     return rawConections;
   }
 
-  private flattenRawConnection(): Array<typedProtocol[]> {
+  private flattenRawConnections(): Array<typedProtocol[]> {
     const flattened: Array<typedProtocol[]> = new Array();
-    for (const connections of this.rawConections) {
+    for (const connections of this.generateRawConnections()) {
       let typedProtocolArray: typedProtocol[] = new Array();
       for (const connection of connections) {
         const find = typedProtocolArray.find(
@@ -1165,27 +1159,28 @@ class Tscheda {
     return flattened;
   }
 
-  private addRawConnection(connOne: typedProtocol, connTwo: typedProtocol) {
-    for (const [key, connections] of this.rawConections.entries()) {
-      for (const connection of connections) {
-        if (
-          (connection.protocol == connOne.protocol &&
-            connection.uuid == connOne.uuid) ||
-          (connection.protocol == connTwo.protocol &&
-            connection.uuid == connTwo.uuid)
-        ) {
-          // Save connection in same key
-          const currentConns = this.rawConections.at(key);
-          if (currentConns != null) {
-            this.rawConections.splice(key, 1);
-            this.rawConections.push([...currentConns, connOne, connTwo]);
-            return;
-          }
-        }
-      }
-    }
-    this.rawConections.push([connOne, connTwo]);
-  }
+  // FIXME: Deprecate
+  // private addRawConnection(connOne: typedProtocol, connTwo: typedProtocol) {
+  //   for (const [key, connections] of this.rawConections.entries()) {
+  //     for (const connection of connections) {
+  //       if (
+  //         (connection.protocol == connOne.protocol &&
+  //           connection.uuid == connOne.uuid) ||
+  //         (connection.protocol == connTwo.protocol &&
+  //           connection.uuid == connTwo.uuid)
+  //       ) {
+  //         // Save connection in same key
+  //         const currentConns = this.rawConections.at(key);
+  //         if (currentConns != null) {
+  //           this.rawConections.splice(key, 1);
+  //           this.rawConections.push([...currentConns, connOne, connTwo]);
+  //           return;
+  //         }
+  //       }
+  //     }
+  //   }
+  //   this.rawConections.push([connOne, connTwo]);
+  // }
 
   // Two protocols are equal
   // Input example: GPIO, GPIO
@@ -1329,14 +1324,14 @@ class Tscheda {
         }
       });
     }
-    // Delete Mat VIN/VOUT form RawConnections
-    for (const [key, array] of this.rawConections.entries()) {
-      array.forEach((val) => {
-        if (val.uuid == matNode.uuid) {
-          this.rawConections.splice(key, 1);
-        }
-      });
-    }
+    // // Delete Mat VIN/VOUT form RawConnections // FIXME: Deprecate
+    // for (const [key, array] of this.rawConections.entries()) {
+    //   array.forEach((val) => {
+    //     if (val.uuid == matNode.uuid) {
+    //       this.rawConections.splice(key, 1);
+    //     }
+    //   });
+    // }
     // Delete Mat from Tree
     const parentMat = matNode.parent;
     if (parentMat != 'root' && parentMat != null) {
@@ -1414,12 +1409,12 @@ class Tscheda {
     }
 
     // Delete tschUuid from From-To connections
-    let connectionsToDelete: Array<typedProtocol[]> = new Array();
+    // let connectionsToDelete: Array<typedProtocol[]> = new Array();
     loop: for (const [key, val] of this.connections.entries()) {
       // Delete all originating connections of Tsch
-      const toDelete: Array<typedProtocol> = new Array();
+      // const toDelete: Array<typedProtocol> = new Array();
       if (key.uuid == tschUuid) {
-        [key, ...val].forEach((t) => toDelete.push(t));
+        // [key, ...val].forEach((t) => toDelete.push(t));
         this.connections.delete(key);
         continue loop;
       }
@@ -1428,19 +1423,18 @@ class Tscheda {
         if (v.uuid == tschUuid) {
           if (val.length == 1) {
             // If it's the only connection delete entire key
-            [key, ...val].forEach((t) => toDelete.push(t));
+            // [key, ...val].forEach((t) => toDelete.push(t));
             this.connections.delete(key);
           } else {
             // Delete only the connection entry if there are more connections
-            [key, v].forEach((t) => toDelete.push(t));
+            // [key, v].forEach((t) => toDelete.push(t));
             val.splice(index, 1);
           }
         }
       });
-      connectionsToDelete.push(toDelete);
+      // connectionsToDelete.push(toDelete);
     }
-    // Delete tschUuid form RawConnections
-
+    // Delete tschUuid form RawConnections // FIXME: Depreacte
     // deleteLoop: for (const [rawKey, rawArray] of this.rawConections.entries()) {
     //   for (const [deleteKey, deleteArray] of connectionsToDelete.entries()) {
     //     if (
@@ -1557,16 +1551,16 @@ class Tscheda {
     for (const [key, val] of this.connections.entries()) {
       console.log(key, '|', val);
     }
+    // console.log('@ Raw Connection MAP'); // FIXME: Deprecate
+    // for (const [key, val] of this.rawConections.entries()) {
+    //   console.log(key, '|', val);
+    // }
     console.log('@ Raw Connection MAP');
-    for (const [key, val] of this.rawConections.entries()) {
-      console.log(key, '|', val);
-    }
-    console.log('@ Generated Raw Connection MAP');
     for (const [key, val] of this.generateRawConnections().entries()) {
       console.log(key, '|', val);
     }
     console.log('@ Flattend Raw Connection MAP');
-    for (const [key, val] of this.flattenRawConnection().entries()) {
+    for (const [key, val] of this.flattenRawConnections().entries()) {
       console.log(key, '|', val);
     }
     console.log('@ Mats Tree');
