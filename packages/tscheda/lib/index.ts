@@ -1256,8 +1256,41 @@ class Tscheda {
           this.removeTsch(tschUuid);
         }
         break;
+      case 'connection':
+        for (const toDeleteConn of data.toDeleteConnections) {
+          const from: typedProtocol = {
+            uuid: toDeleteConn.from.tschKey,
+            protocol: toDeleteConn.from.protocol.key,
+          };
+          let to: typedProtocol = {
+            uuid: toDeleteConn.to.tschKey,
+            protocol: toDeleteConn.to.protocol.key,
+          };
+          this.removeConnection(from, [to]);
+        }
+        break;
       default:
         break;
+    }
+  }
+
+  public removeConnection(from: typedProtocol, to: typedProtocol[]) {
+    for (const [consKey, consVal] of this.connections.entries()) {
+      if (consKey.uuid == from.uuid && consKey.protocol == from.protocol) {
+        for (const [arrKey, arrVal] of consVal.entries()) {
+          const find = to.find(
+            (t) => t.uuid == arrVal.uuid && t.protocol == arrVal.protocol,
+          );
+          if (find != undefined) {
+            // Remove element
+            consVal.splice(arrKey, 1);
+          }
+        }
+        // No more items, delete entire key
+        if (consVal.length == 0) {
+          this.connections.delete(consKey);
+        }
+      }
     }
   }
 
