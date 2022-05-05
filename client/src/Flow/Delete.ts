@@ -103,7 +103,7 @@ export default {
       case 'blockTsch':
         {
           if (deleteEventInfo.toDeleteTsch == null) {
-            throw 'Error Deleting Tsch, toDeleteTsch is null';
+            throw 'Fatal Error: toDeleteTsch is null';
           }
 
           // Delete Node Connections Data and HTML Elements
