@@ -144,8 +144,9 @@ class TschedaFlow {
       console.log('Delete event', data);
       // TODO: Delete Components here
       try {
-        this.flow.remove(data);
+        // Deletion must be in order, first tscheda, then flow.
         this.tscheda.remove(data);
+        this.flow.remove(data);
       } catch (e: any) {
         this.flow.toastError(e.toString());
       }
