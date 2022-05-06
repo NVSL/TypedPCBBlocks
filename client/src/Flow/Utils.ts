@@ -13,6 +13,9 @@ export default {
   getMatDrop(nodeElement: HTMLElement): string | null {
     return nodeElement.getAttribute('dropped-in-mat-key');
   },
+  getMatElement(matKey: string): HTMLElement | null {
+    return document.querySelector(`[mat-key="${matKey}"]`);
+  },
   setMatDrop(nodeElement: HTMLElement, matKey: string | null) {
     if (matKey == null) return;
     nodeElement.setAttribute('dropped-in-mat-key', matKey);
