@@ -298,6 +298,14 @@ class Tscheda {
       );
     }
 
+    // Check if parent mat is in design
+    if (this.isMatInDesign(Mat) == false) {
+      throw new TschedaError(
+        ErrorCode.AddTschError,
+        `Mat Uuid ${matUuid} is not in design`,
+      );
+    }
+
     TschedaDebug.log(
       1,
       `>> [TEST] ADD TSCH ${Tsch.eagleFileName} IN MAT ${Mat.powerTsch.eagleFileName}`,
@@ -516,7 +524,7 @@ class Tscheda {
     if (!childMat) {
       throw new TschedaError(
         ErrorCode.AddMatError,
-        `Child Mat ${childMatUuid} does not found`,
+        `Child Mat ${childMatUuid} not found`,
       );
     }
     if (childMat.powerTsch.inDesign == true) {
@@ -525,6 +533,7 @@ class Tscheda {
         `Child Mat ${childMatUuid} already in design, create a new mat`,
       );
     }
+
     if (parentMatUuid == 'root') {
       if (this.matsTree == null) {
         // Rule: Only mats with VOUT and no VIN can be added to root
@@ -553,6 +562,14 @@ class Tscheda {
         throw new TschedaError(
           ErrorCode.AddMatError,
           `Parent Mat Uuid ${parentMatUuid} not found`,
+        );
+      }
+
+      // Check if parent mat is in design
+      if (this.isMatInDesign(parentMat) == false) {
+        throw new TschedaError(
+          ErrorCode.AddMatError,
+          `Mat Uuid ${parentMatUuid} is not in design`,
         );
       }
 
@@ -1343,11 +1360,11 @@ class Tscheda {
     // Check if Mat has Mapped chidrens
     const MappedTsch = this.getInDesignTschsOfMat(matNode);
     if (MappedTsch.size != 0) {
-      throw 'Delete Mat elements first';
+      throw 'Delete or Remove Mat elements first';
     }
     // Check if Mat is a leaf with no children (Last in Tree)
     if (this.isMatChildrenEmpty(matNode) == false)
-      throw 'Delete Mat elements first';
+      throw 'Delete or Remove Mat elements first';
     // Delete Mat VIN/VOUT from From-To connections
     for (const [key, val] of this.connections.entries()) {
       const array = [key, ...val];
