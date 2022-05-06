@@ -1,6 +1,8 @@
 import {
   Flow,
+  FlowUtils,
   DropEventInfo,
+  UnDropEventInfo,
   ConnectEventInfo,
   DeleteEventInfo,
 } from '../Flow/Flow';
@@ -42,7 +44,7 @@ class TschedaFlow {
         data.dropMatKey == null
       ) {
         this.flow.toastError(`Drop Event Info is inconsistent: ${data}`);
-        this.flow.cancelDrop(data);
+        this.flow.cancelDrop();
         return;
       }
 
@@ -52,13 +54,13 @@ class TschedaFlow {
         this.flow.toastError(
           `Tsch Key could not be processed. Tsch key data: ${data.dragTschKey}`,
         );
-        this.flow.cancelDrop(data);
+        this.flow.cancelDrop();
         return;
       }
 
       if (dragBlockType == BlockType.matroot) {
         this.flow.toastError(`A mat root is already assigned`);
-        this.flow.cancelDrop(data);
+        this.flow.cancelDrop();
         return;
       }
 
@@ -68,7 +70,7 @@ class TschedaFlow {
           this.flow.toastError(
             `Inconsistency error, drag mat key is null ${data}`,
           );
-          this.flow.cancelDrop(data);
+          this.flow.cancelDrop();
           return;
         }
 
@@ -78,7 +80,7 @@ class TschedaFlow {
         } catch (e) {
           const error = e as TschedaError;
           this.flow.toastError(`${error.message}`);
-          this.flow.cancelDrop(data);
+          this.flow.cancelDrop();
           return;
         }
       } else {
@@ -88,7 +90,7 @@ class TschedaFlow {
         } catch (e) {
           const error = e as TschedaError;
           this.flow.toastError(`${error.message}`);
-          this.flow.cancelDrop(data);
+          this.flow.cancelDrop();
           return;
         }
       }
@@ -133,8 +135,27 @@ class TschedaFlow {
     // ####
     // #### Flow Un-Drop Event
     // ####
-    this.flow.on('flowUndrop', (data: DropEventInfo) => {
+    this.flow.on('flowUndrop', (data: UnDropEventInfo) => {
       console.log('Un Drop event', data);
+      try {
+        if (FlowUtils.isMatElement(data.dragElement)) {
+          // Is MatTsch
+          if (data.dragMatKey == null) {
+            throw 'DragMatKey is null';
+          }
+          this.tscheda.removeMatFromDesign(data.dragMatKey);
+        } else {
+          // Is BlockTsch
+          if (data.dragTschKey == null) {
+            throw 'DragTschKey is null';
+          }
+          this.tscheda.removeTschFromDesign(data.dragTschKey);
+        }
+        this.flow.removeFromDesign(data);
+      } catch (e: any) {
+        this.flow.cancelDrop();
+        this.flow.toastError(e.toString());
+      }
     });
 
     // ####
