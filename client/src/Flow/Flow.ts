@@ -4,7 +4,7 @@ import { InteractEvent } from '@interactjs/core/InteractEvent';
 // Flow libraries and CSS
 import SvgConnection from './SvgConnection';
 import ContextMenu from './ContextMenu';
-import Utils from './Utils';
+import FlowUtils from './Utils';
 import Toast from './Toast';
 import './Toast.css';
 import './SvgConnection.css';
@@ -57,6 +57,16 @@ interface DropEventInfo {
   dropElement: HTMLElement;
   dropTschKey: string | null;
   dropMatKey: string | null;
+  dragElement: HTMLElement;
+  dragTschKey: string | null;
+  dragMatKey: string | null;
+}
+
+// UnDrop Event information
+interface UnDropEventInfo {
+  unDropElement: HTMLElement;
+  unDropTschKey: string | null;
+  unDropMatKey: string | null;
   dragElement: HTMLElement;
   dragTschKey: string | null;
   dragMatKey: string | null;
@@ -165,6 +175,9 @@ class Flow {
 
   // Start|End Block Positions for reverting
   private _startEnd: BlockPosition | null = null;
+
+  // UnDrop event
+  private _unDrop: UnDropEventInfo | null = null;
 
   // SVG
   private _connectionKey: number = 1;
@@ -402,7 +415,7 @@ class Flow {
 
         // feedback the possibility of a drop
         dropzoneElement.classList.add('can-drop');
-        if (Utils.isMatElement(draggableElement) == false) {
+        if (FlowUtils.isMatElement(draggableElement) == false) {
           draggableElement.classList.add('can-drop');
           // draggableElement.textContent = 'Dragged in';
         }
@@ -413,25 +426,32 @@ class Flow {
 
         // remove the drop feedback style
         dropzoneElement.classList.remove('can-drop');
-        if (Utils.isMatElement(draggableElement) == false) {
+        if (FlowUtils.isMatElement(draggableElement) == false) {
           draggableElement.classList.remove('can-drop');
         }
-        this.dragarrayRemove(dropzoneElement, draggableElement);
 
-        // Remove drag-in tag and dispatch undropp event
-        const draggableElementDropOut = Utils.getMatDrop(draggableElement);
-        if (draggableElementDropOut != '') {
-          Utils.setMatDrop(draggableElement, '');
-
-          const dropEventInfo: DropEventInfo = {
-            dropElement: dropzoneElement,
-            dropTschKey: Utils.getTschKey(dropzoneElement),
-            dropMatKey: Utils.getMatKey(dropzoneElement),
+        // Dispatch undrop event
+        const DropInMatKey = FlowUtils.getMatDrop(draggableElement);
+        if (
+          DropInMatKey != '' &&
+          DropInMatKey != null &&
+          this._unDrop == null
+        ) {
+          // Note: Using dropzoneElement may detect below mats, although it should work as well.
+          const unDropElement = FlowUtils.getMatElement(DropInMatKey);
+          if (unDropElement == null) {
+            console.error('UnDrop element is null');
+            return;
+          }
+          const dropEventInfo: UnDropEventInfo = {
+            unDropElement: unDropElement,
+            unDropTschKey: FlowUtils.getTschKey(unDropElement),
+            unDropMatKey: FlowUtils.getMatKey(unDropElement),
             dragElement: draggableElement,
-            dragTschKey: Utils.getTschKey(draggableElement),
-            dragMatKey: Utils.getMatKey(draggableElement),
+            dragTschKey: FlowUtils.getTschKey(draggableElement),
+            dragMatKey: FlowUtils.getMatKey(draggableElement),
           };
-          this.dispatch('flowUndrop', dropEventInfo);
+          this._unDrop = dropEventInfo;
         }
       },
       ondrop: (event) => {
@@ -439,21 +459,21 @@ class Flow {
         const dropzoneElement = <HTMLElement>event.target;
 
         // Get drop element info;
-        const dropzoneElementMatKey = Utils.getMatKey(dropzoneElement);
-        const draggableElementDropIn = Utils.getMatDrop(draggableElement);
+        const dropzoneElementMatKey = FlowUtils.getMatKey(dropzoneElement);
+        const draggableElementDropIn = FlowUtils.getMatDrop(draggableElement);
         if (dropzoneElementMatKey != draggableElementDropIn) {
           // Check z-indexes are coherent
-          const dropZIndex = Utils.getZIndex(dropzoneElement);
-          const dragZIndex = Utils.getZIndex(draggableElement);
+          const dropZIndex = FlowUtils.getZIndex(dropzoneElement);
+          const dragZIndex = FlowUtils.getZIndex(draggableElement);
           if (dragZIndex > dropZIndex) {
             // Get drop info
             const dropEventInfo: DropEventInfo = {
               dropElement: dropzoneElement,
-              dropTschKey: Utils.getTschKey(dropzoneElement),
-              dropMatKey: Utils.getMatKey(dropzoneElement),
+              dropTschKey: FlowUtils.getTschKey(dropzoneElement),
+              dropMatKey: FlowUtils.getMatKey(dropzoneElement),
               dragElement: draggableElement,
-              dragTschKey: Utils.getTschKey(draggableElement),
-              dragMatKey: Utils.getMatKey(draggableElement),
+              dragTschKey: FlowUtils.getTschKey(draggableElement),
+              dragMatKey: FlowUtils.getMatKey(draggableElement),
             };
 
             // Dispatch new drop event
@@ -659,7 +679,7 @@ class Flow {
 
             if (!this._tschSelected) return;
 
-            if (Utils.isMatElement(this._tschSelected)) {
+            if (FlowUtils.isMatElement(this._tschSelected)) {
               // Is tschMat
               SvgConnection.updateAllNodes(this._htmlContainer, this.zoom);
             } else {
@@ -693,6 +713,13 @@ class Flow {
       this._startEnd.endY = targetPos.y;
     }
 
+    // It's a unDrop event
+    if (this._unDrop != null) {
+      this.dispatch('flowUndrop', this._unDrop);
+      this._unDrop = null;
+      return;
+    }
+
     switch (this._uiEleMouseDown) {
       case UIElement.NodeInput:
       case UIElement.NodeOutput:
@@ -720,17 +747,17 @@ class Flow {
           if (connectInfo != null) {
             this._connectionKey++;
 
-            const fromEle = Utils.getParentTschElement(this._eleSelected);
-            const toEle = Utils.getParentTschElement(ele_last);
+            const fromEle = FlowUtils.getParentTschElement(this._eleSelected);
+            const toEle = FlowUtils.getParentTschElement(ele_last);
 
             if (fromEle == null || toEle == null) return;
 
             // Struct info
             const connectEventInfo: ConnectEventInfo = {
-              fromTschKey: Utils.getTschKey(fromEle),
-              fromMatKey: Utils.getMatKey(fromEle),
-              toTschKey: Utils.getTschKey(toEle),
-              toMatKey: Utils.getMatKey(toEle),
+              fromTschKey: FlowUtils.getTschKey(fromEle),
+              fromMatKey: FlowUtils.getMatKey(fromEle),
+              toTschKey: FlowUtils.getTschKey(toEle),
+              toMatKey: FlowUtils.getMatKey(toEle),
               connectInfo: connectInfo,
             };
 
@@ -760,7 +787,7 @@ class Flow {
   // ### Elements Positioning
 
   // Reverse position to original position
-  public cancelDrop(dropInfo: DropEventInfo) {
+  public cancelDrop() {
     setTimeout(() => {
       if (this._startEnd == null) return;
       if (this._htmlContainer == null) return;
@@ -785,15 +812,15 @@ class Flow {
 
       // // Revert Drop
       // this.dragarrayRemove(dropInfo.dropElement, dropInfo.dragElement);
-      // const draggableElementDropOut = Utils.getMatDrop(dropInfo.dragElement);
+      // const draggableElementDropOut = FlowUtils.getMatDrop(dropInfo.dragElement);
       // if (draggableElementDropOut != '') {
-      //   Utils.setMatDrop(dropInfo.dragElement, '');
+      //   FlowUtils.setMatDrop(dropInfo.dragElement, '');
       // }
 
       if (!this._startEnd.tschSelected) return;
 
       // Update UI
-      if (Utils.isMatElement(this._startEnd.tschSelected)) {
+      if (FlowUtils.isMatElement(this._startEnd.tschSelected)) {
         // Is tschMat
         SvgConnection.updateAllNodes(this._htmlContainer, this.zoom);
       } else {
@@ -811,7 +838,7 @@ class Flow {
   public enableDrop(dropInfo: DropEventInfo) {
     // Save drop info
     this.dragarraySet(dropInfo.dropElement, dropInfo.dragElement);
-    Utils.setMatDrop(dropInfo.dragElement, dropInfo.dropMatKey);
+    FlowUtils.setMatDrop(dropInfo.dragElement, dropInfo.dropMatKey);
   }
 
   // Move target element by an offset
@@ -845,7 +872,7 @@ class Flow {
       // Set new positon
       this.positionelementSet(childTarget, pos.x, pos.y);
 
-      if (Utils.isMatElement(childTarget)) {
+      if (FlowUtils.isMatElement(childTarget)) {
         // If Mat, recursively modify positions
         this.positionelementSetChildsOffset(childTarget, dx, dy);
       }
@@ -1122,15 +1149,35 @@ class Flow {
     if (this._htmlContainer == null) return;
     Delete.remove(this.graphData, this._htmlContainer, deleteEventInfo);
   }
+
+  // Remove UI elements from Desgin
+  public removeFromDesign(unDropEventInfo: UnDropEventInfo) {
+    // Remove dropped-in-mat-key attribute data
+    FlowUtils.setMatDrop(unDropEventInfo.dragElement, '');
+    // Remove from grouped drag
+    this.dragarrayRemove(
+      unDropEventInfo.unDropElement,
+      unDropEventInfo.dragElement,
+    );
+    // Remove connections
+    if (this._htmlContainer == null) return;
+    Delete.removeAllNodeConnections(
+      unDropEventInfo.dragElement,
+      this._htmlContainer,
+      this.graphData,
+    );
+  }
 }
 
 export {
   Flow,
+  FlowUtils,
   GraphData,
   IOData,
   FlowState,
   MenuOptions,
   DropEventInfo,
+  UnDropEventInfo,
   ConnectEventInfo,
   ConnectionData,
   ConnectInfo,
