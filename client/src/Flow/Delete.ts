@@ -11,13 +11,10 @@ export default {
   ): DeleteEventInfo | null {
     if (!nodeElement) return null;
 
-    // Delete Node Block from Storage Object
+    // Get node Element Tsch Key
     const tschKey = Utils.getTschKey(nodeElement);
     if (tschKey == null) {
-      console.error(
-        `Node number ${tschKey} not found in tsch element`,
-        nodeElement,
-      );
+      console.error(`Node element tsch key ${tschKey} not found`, nodeElement);
       return null;
     }
 
@@ -141,6 +138,35 @@ export default {
     }
 
     console.log('AFTER DELETE:', Utils.mapToJSON(graphData.data));
+  },
+
+  removeAllNodeConnections(
+    nodeElement: HTMLElement,
+    container: HTMLElement,
+    graphData: GraphData,
+  ): Array<ConnectionData> {
+    if (!nodeElement) throw `Node element is null`;
+    // Get node Element Tsch Key
+    const tschKey = Utils.getTschKey(nodeElement);
+    if (tschKey == null) {
+      throw `Node element tsch key ${tschKey} not found`;
+    }
+
+    const connections: Array<ConnectionData> = this.getNodeConnections(
+      nodeElement,
+      graphData,
+    );
+
+    // Get to remove node connections - false flag
+    const connectionToRemoveIDs = connections.map((c) => c.connectionID);
+    const connectionsRemoved = this.removeNodeConnections(
+      connectionToRemoveIDs,
+      container,
+      graphData,
+      true,
+    );
+
+    return connectionsRemoved;
   },
 
   removeNodeConnections(
