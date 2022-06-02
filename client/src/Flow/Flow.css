@@ -5,31 +5,6 @@
   --background-gird-line: #f1f1f1;
 }
 
-/* TODO: Move html, body and app out of Interact */
-/* TODO: Rename Interact with a diferent name*/
-html,
-body {
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  font-family: 'Segoe UI', Arial, sans-serif;
-  margin: 0px;
-  padding: 0px;
-}
-
-#app {
-  width: 100vw;
-  height: 100vh;
-  background: var(--background-color);
-  background-size: 10px 10px;
-  background-image: linear-gradient(
-      to right,
-      var(--background-gird-line) 1px,
-      transparent 1px
-    ),
-    linear-gradient(to bottom, var(--background-gird-line) 1px, transparent 1px);
-}
-
 /* PARENT TSCHS CONTAINER  */
 .tschs {
   display: flex;

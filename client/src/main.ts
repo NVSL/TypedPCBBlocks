@@ -1,6 +1,7 @@
 import axios from 'axios';
 import FileSaver from 'file-saver';
 import { TschedaFlow } from './TschedaFlow/TschedaFlow';
+import './style.css';
 
 // Set server and axios
 let SERVER_URL;
@@ -42,6 +43,7 @@ tschedaFlow.addTypedSchematic('temperature_sensor.sch', 20, 600);
 tschedaFlow.addTypedSchematic('flash.sch', 20, 1000);
 tschedaFlow.addTypedSchematic('power5V12V.sch', 100, 400);
 tschedaFlow.addTypedSchematic('power5V.sch', 600, 100);
+tschedaFlow.addTypedSchematic('power3V3.sch', 800, 100);
 
 // Generate Schematic
 document
