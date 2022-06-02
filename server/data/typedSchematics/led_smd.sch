@@ -1094,14 +1094,14 @@ You are welcome to use this library for commercial purposes. For attribution, we
 </class>
 </classes>
 <parts>
-<part name="D1" library="SparkFun-LED" library_urn="urn:adsk.eagle:library:529" deviceset="LED" device="1206" package3d_urn="urn:adsk.eagle:package:39352/1"/>
-<part name="R1" library="SparkFun-Resistors" library_urn="urn:adsk.eagle:library:532" deviceset="RESISTOR" device="1206" package3d_urn="urn:adsk.eagle:package:39654/1" value="330"/>
+<part name="D1" library="SparkFun-LED" library_urn="urn:adsk.eagle:library:529" deviceset="LED" device="1206" package3d_urn="urn:adsk.eagle:package:39352/1" override_package3d_urn="urn:adsk.eagle:package:35748083/2" override_package_urn="urn:adsk.eagle:footprint:39304/1"/>
+<part name="R1" library="SparkFun-Resistors" library_urn="urn:adsk.eagle:library:532" deviceset="RESISTOR" device="1206" package3d_urn="urn:adsk.eagle:package:39654/1" override_package3d_urn="urn:adsk.eagle:package:35748059/2" override_package_urn="urn:adsk.eagle:footprint:39619/1" value="330"/>
 <part name="GND1" library="SparkFun-PowerSymbols" library_urn="urn:adsk.eagle:library:530" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
 <plain>
-<text x="20.32" y="-5.08" size="1.778" layer="97">#{
+<text x="-20.32" y="-15.24" size="1.778" layer="97">#{
 BlockType:Pheripherial,
 }</text>
 </plain>
@@ -1167,6 +1167,11 @@ will not be understood (or retained) with this version.
 Since Version 8.3, EAGLE supports the association of 3D packages
 with devices in libraries, schematics, and board files. Those 3D
 packages will not be understood (or retained) with this version.
+</note>
+<note version="9.4" severity="warning">
+Since Version 9.4, EAGLE supports the overriding of 3D packages
+in schematics and board files. Those overridden 3d packages
+will not be understood (or retained) with this version.
 </note>
 </compatibility>
 </eagle>

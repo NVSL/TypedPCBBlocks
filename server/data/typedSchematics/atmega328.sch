@@ -2173,7 +2173,7 @@ SparkFun BigTime Watch Kit&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;
 <sheets>
 <sheet>
 <plain>
-<text x="175.26" y="101.6" size="1.778" layer="97">#{
+<text x="162.56" y="99.06" size="1.778" layer="97">#{
 BlockType:ComputeModule,
 SPI:{arch:master},
 I2C:{arch:master},
@@ -2515,9 +2515,8 @@ I2C:{arch:master},
 <net name="@VIN_3.3V-5V" class="0">
 <segment>
 <pinref part="R4" gate="G$1" pin="2"/>
-<wire x1="63.5" y1="137.16" x2="63.5" y2="144.78" width="0.1524" layer="91"/>
-<wire x1="63.5" y1="144.78" x2="60.96" y2="144.78" width="0.1524" layer="91"/>
-<label x="60.96" y="144.78" size="1.27" layer="95" rot="R180" xref="yes"/>
+<wire x1="63.5" y1="137.16" x2="50.8" y2="137.16" width="0.1524" layer="91"/>
+<label x="50.8" y="137.16" size="1.27" layer="95" rot="R180" xref="yes"/>
 </segment>
 <segment>
 <pinref part="JP4" gate="G$1" pin="2"/>

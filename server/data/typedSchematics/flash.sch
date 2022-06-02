@@ -514,22 +514,22 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <sheet>
 <plain>
 <text x="30.48" y="7.62" size="2.54" layer="97">FLASH</text>
-<text x="83.82" y="25.4" size="1.778" layer="97">#{
+<text x="20.32" y="27.94" size="1.778" layer="97">#{
 BlockType:Pheripherial,
 SPI:{arch:slave}
 }</text>
 </plain>
 <instances>
 <instance part="IC1" gate="G$1" x="22.86" y="22.86" smashed="yes">
-<attribute name="NAME" x="24.13" y="30.48" size="1.778" layer="95" align="center-left"/>
-<attribute name="VALUE" x="24.13" y="27.94" size="1.778" layer="96" align="center-left"/>
+<attribute name="NAME" x="44.958" y="28.956" size="1.778" layer="95" align="center-left"/>
+<attribute name="VALUE" x="25.908" y="26.67" size="1.778" layer="96" align="center-left"/>
 </instance>
-<instance part="C1" gate="G$1" x="73.66" y="17.78" smashed="yes">
-<attribute name="NAME" x="75.184" y="20.701" size="1.778" layer="95" font="vector"/>
-<attribute name="VALUE" x="75.184" y="15.621" size="1.778" layer="96" font="vector"/>
+<instance part="C1" gate="G$1" x="71.12" y="17.78" smashed="yes">
+<attribute name="NAME" x="72.644" y="20.701" size="1.778" layer="95" font="vector"/>
+<attribute name="VALUE" x="72.644" y="15.621" size="1.778" layer="96" font="vector"/>
 </instance>
-<instance part="GND1" gate="1" x="73.66" y="7.62" smashed="yes">
-<attribute name="VALUE" x="73.66" y="7.366" size="1.778" layer="96" align="top-center"/>
+<instance part="GND1" gate="1" x="71.12" y="7.62" smashed="yes">
+<attribute name="VALUE" x="71.12" y="7.366" size="1.778" layer="96" align="top-center"/>
 </instance>
 <instance part="GND2" gate="1" x="17.78" y="7.62" smashed="yes">
 <attribute name="VALUE" x="17.78" y="7.366" size="1.778" layer="96" align="top-center"/>
@@ -542,7 +542,7 @@ SPI:{arch:slave}
 <segment>
 <pinref part="GND1" gate="1" pin="GND"/>
 <pinref part="C1" gate="G$1" pin="2"/>
-<wire x1="73.66" y1="10.16" x2="73.66" y2="15.24" width="0.1524" layer="91"/>
+<wire x1="71.12" y1="10.16" x2="71.12" y2="15.24" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="GND2" gate="1" pin="GND"/>
@@ -554,56 +554,56 @@ SPI:{arch:slave}
 <net name="#SPI.SCK" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="C"/>
-<wire x1="50.8" y1="17.78" x2="55.88" y2="17.78" width="0.1524" layer="91"/>
-<label x="55.88" y="17.78" size="1.27" layer="95" xref="yes"/>
+<wire x1="50.8" y1="17.78" x2="53.34" y2="17.78" width="0.1524" layer="91"/>
+<label x="53.34" y="17.78" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="#GPIO-HOLD!" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="HOLD#"/>
-<wire x1="50.8" y1="20.32" x2="55.88" y2="20.32" width="0.1524" layer="91"/>
-<label x="55.88" y="20.32" size="1.27" layer="95" xref="yes"/>
+<wire x1="50.8" y1="20.32" x2="53.34" y2="20.32" width="0.1524" layer="91"/>
+<label x="53.34" y="20.32" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="#GPIO-WP!" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="W#"/>
-<wire x1="22.86" y1="17.78" x2="17.78" y2="17.78" width="0.1524" layer="91"/>
-<label x="17.78" y="17.78" size="1.27" layer="95" rot="R180" xref="yes"/>
+<wire x1="22.86" y1="17.78" x2="20.32" y2="17.78" width="0.1524" layer="91"/>
+<label x="20.32" y="17.78" size="1.27" layer="95" rot="R180" xref="yes"/>
 </segment>
 </net>
 <net name="#SPI.MISO" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="DQ1"/>
-<wire x1="22.86" y1="20.32" x2="17.78" y2="20.32" width="0.1524" layer="91"/>
-<label x="17.78" y="20.32" size="1.27" layer="95" rot="R180" xref="yes"/>
+<wire x1="22.86" y1="20.32" x2="20.32" y2="20.32" width="0.1524" layer="91"/>
+<label x="20.32" y="20.32" size="1.27" layer="95" rot="R180" xref="yes"/>
 </segment>
 </net>
 <net name="#GPIO-CS" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="S#"/>
-<wire x1="22.86" y1="22.86" x2="17.78" y2="22.86" width="0.1524" layer="91"/>
-<label x="17.78" y="22.86" size="1.27" layer="95" rot="R180" xref="yes"/>
+<wire x1="22.86" y1="22.86" x2="20.32" y2="22.86" width="0.1524" layer="91"/>
+<label x="20.32" y="22.86" size="1.27" layer="95" rot="R180" xref="yes"/>
 </segment>
 </net>
 <net name="#SPI.MOSI" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="DQ0"/>
-<wire x1="50.8" y1="15.24" x2="55.88" y2="15.24" width="0.1524" layer="91"/>
-<label x="55.88" y="15.24" size="1.27" layer="95" xref="yes"/>
+<wire x1="50.8" y1="15.24" x2="53.34" y2="15.24" width="0.1524" layer="91"/>
+<label x="53.34" y="15.24" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="@VIN_5V" class="0">
 <segment>
 <pinref part="C1" gate="G$1" pin="1"/>
 <pinref part="IC1" gate="G$1" pin="VCC"/>
-<wire x1="73.66" y1="27.94" x2="73.66" y2="22.86" width="0.1524" layer="91"/>
+<wire x1="71.12" y1="27.94" x2="71.12" y2="22.86" width="0.1524" layer="91"/>
 <wire x1="50.8" y1="22.86" x2="53.34" y2="22.86" width="0.1524" layer="91"/>
 <wire x1="53.34" y1="22.86" x2="53.34" y2="27.94" width="0.1524" layer="91"/>
-<wire x1="53.34" y1="27.94" x2="73.66" y2="27.94" width="0.1524" layer="91"/>
-<wire x1="73.66" y1="27.94" x2="73.66" y2="35.56" width="0.1524" layer="91"/>
-<junction x="73.66" y="27.94"/>
-<wire x1="73.66" y1="35.56" x2="68.58" y2="35.56" width="0.1524" layer="91"/>
+<wire x1="53.34" y1="27.94" x2="71.12" y2="27.94" width="0.1524" layer="91"/>
+<wire x1="71.12" y1="27.94" x2="71.12" y2="35.56" width="0.1524" layer="91"/>
+<junction x="71.12" y="27.94"/>
+<wire x1="71.12" y1="35.56" x2="68.58" y2="35.56" width="0.1524" layer="91"/>
 <label x="68.58" y="35.56" size="1.27" layer="95" rot="R180" xref="yes"/>
 </segment>
 </net>
