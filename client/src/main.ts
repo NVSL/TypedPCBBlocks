@@ -2,6 +2,7 @@ import axios from 'axios';
 import FileSaver from 'file-saver';
 import { TschedaFlow } from './TschedaFlow/TschedaFlow';
 import './style.css';
+import 'bulma/css/bulma.min.css';
 
 // Set server and axios
 let SERVER_URL;

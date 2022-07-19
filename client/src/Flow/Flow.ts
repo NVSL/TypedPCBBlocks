@@ -309,8 +309,8 @@ class Flow {
       parent = target;
       while (parent) {
         if (
-          parent.classList.contains('output') ||
-          parent.classList.contains('input')
+          parent.classList.contains('block-output') ||
+          parent.classList.contains('block-input')
         ) {
           this._iosSelected = parent;
           break;
@@ -327,18 +327,18 @@ class Flow {
           // Correct element selection to parent
           this._eleSelected = this._eleSelected.parentElement!;
           switch (this._eleSelected.classList[0]) {
-            case 'input':
+            case 'block-input':
               this._uiEleMouseDown = UIElement.NodeInput;
               break;
-            case 'output':
+            case 'block-output':
               this._uiEleMouseDown = UIElement.NodeOutput;
               break;
           }
           break;
-        case 'input':
+        case 'block-input':
           this._uiEleMouseDown = UIElement.NodeInput;
           break;
-        case 'output':
+        case 'block-output':
           this._uiEleMouseDown = UIElement.NodeOutput;
           break;
         case 'main-path':
@@ -534,8 +534,8 @@ class Flow {
           break loop;
         }
         if (
-          parent.classList.contains('input') ||
-          parent.classList.contains('output')
+          parent.classList.contains('block-input') ||
+          parent.classList.contains('block-output')
         ) {
           this._contextMenuSelected = ContextMenus.IOs;
           break loop;
@@ -1005,7 +1005,7 @@ class Flow {
     // ADD INPUTS
     node.insertAdjacentHTML(
       'beforeend',
-      `<div class="inputs"></div>`, // Insert as lastChild
+      `<div class="block-inputs"></div>`, // Insert as lastChild
     );
     const inputs = <HTMLElement>node.lastChild;
     // Add Node HTML element inputs
@@ -1013,7 +1013,7 @@ class Flow {
     for (const value of Object.values(num_in)) {
       inputs.insertAdjacentHTML(
         'beforeend',
-        `<div class="input io-${IOKey}" io-id="io-${IOKey}" io-key="${IOKey}"><div class="type">${value.name}-${value.altname}</div></div>`, // Insert as lastChild
+        `<div class="block-input io-${IOKey}" io-id="io-${IOKey}" io-key="${IOKey}"><div class="type">${value.name}-${value.altname}</div></div>`, // Insert as lastChild
       );
       IOs.set(IOKey.toString(), {
         ioID: `io-${IOKey}`,
@@ -1031,13 +1031,13 @@ class Flow {
     // ADD CONTENT
     node.insertAdjacentHTML(
       'beforeend',
-      `<div class="content">${html}</div>`, // Insert as lastChild
+      `<div class="block-content">${html}</div>`, // Insert as lastChild
     );
 
     // ADD OUTPUTS
     node.insertAdjacentHTML(
       'beforeend',
-      `<div class="outputs"></div>`, // Insert as lastChild
+      `<div class="block-outputs"></div>`, // Insert as lastChild
     );
     const outputs = <HTMLElement>node.lastChild;
     // Add Node HTML element outputs
@@ -1045,7 +1045,7 @@ class Flow {
     for (const value of Object.values(num_out)) {
       outputs.insertAdjacentHTML(
         'beforeend',
-        `<div class="output io-${IOKey}" io-id="io-${IOKey}" io-key="${IOKey}"><div class="type">${value.name}-${value.altname}</div></div>`, // Insert as lastChild
+        `<div class="block-output io-${IOKey}" io-id="io-${IOKey}" io-key="${IOKey}"><div class="type">${value.name}-${value.altname}</div></div>`, // Insert as lastChild
       );
       IOs.set(IOKey.toString(), {
         ioID: `io-${IOKey}`,

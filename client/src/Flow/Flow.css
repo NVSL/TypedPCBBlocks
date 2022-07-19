@@ -46,13 +46,13 @@
   cursor: move;
 }
 
-.tschs .tsch .inputs,
-.tschs .tsch .outputs {
+.tschs .tsch .block-inputs,
+.tschs .tsch .block-outputs {
   width: 0px;
 }
 
-.tschs .tsch .input,
-.tschs .tsch .output {
+.tschs .tsch .block-input,
+.tschs .tsch .block-output {
   position: relative;
   background: white;
   border-radius: 50%;
@@ -63,35 +63,35 @@
   border: 2px solid var(--border-color);
 }
 
-.tschs .tsch .input:hover,
-.tschs .tsch .output:hover {
+.tschs .tsch .block-input:hover,
+.tschs .tsch .block-output:hover {
   background: #4ea9ff;
 }
 
-.tschs .tsch .input {
+.tschs .tsch .block-input {
   left: -10px;
   top: 2px;
   background: white;
 }
-.tschs .tsch .output {
+.tschs .tsch .block-output {
   right: 10px;
   top: 2px;
 }
 
-.tschs .tsch .output .type {
+.tschs .tsch .block-output .type {
   color: black;
   margin-top: -4px;
   margin-left: 23px;
   white-space: nowrap;
 }
-.tschs .tsch .input .type {
+.tschs .tsch .block-input .type {
   color: black;
   margin-top: -4px;
   margin-left: -100px;
   white-space: nowrap;
 }
 
-.tschs .tsch .content {
+.tschs .tsch .block-content {
   width: 100%;
   height: 100%;
   display: block;
