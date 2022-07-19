@@ -170,6 +170,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"bulma@npm:^0.9.4":
+  version: 0.9.4
+  resolution: "bulma@npm:0.9.4"
+  checksum: bc0ab8c203deb0ae200fab5b38547ad4bc8ed1e3abcf6f4ac8a2229af46540419bbcb78c9d2e80f3ddda8825d64fa186ed8775674656cdcabe5544be4d0f3d85
+  languageName: node
+  linkType: hard
+
 "cacache@npm:^15.2.0":
   version: 15.3.0
   resolution: "cacache@npm:15.3.0"
@@ -230,6 +237,7 @@ __metadata:
     "@types/ungap__structured-clone": ^0.3.0
     "@ungap/structured-clone": ^0.3.4
     axios: ^0.26.1
+    bulma: ^0.9.4
     fast-xml-parser: ^4.0.1
     file-saver: ^2.0.5
     interactjs: ^1.10.11
