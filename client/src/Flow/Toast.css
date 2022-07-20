@@ -37,11 +37,11 @@
   transform: translate(0, 0);
 }
 
-.toast.progress::before {
+.toast.toast-progress::before {
   content: '';
   position: absolute;
   height: 2px;
-  width: calc(100% * var(--progress));
+  width: calc(100% * var(--toast-progress));
   background-color: var(--progressBgColor);
   bottom: 0;
   left: 0;
@@ -71,6 +71,8 @@
 
 .toast-container[data-position^='bottom-'] {
   bottom: 0;
+  margin-bottom: 50px;
+  margin-right: 100px;
 }
 
 .toast-container[data-position$='-right'] {

@@ -107,14 +107,14 @@ export default class Toast {
   }
 
   set showProgress(value: boolean) {
-    this.toastElem.classList.toggle('progress', value);
-    this.toastElem.style.setProperty('--progress', (1).toString());
+    this.toastElem.classList.toggle('toast-progress', value);
+    this.toastElem.style.setProperty('--toast-progress', (1).toString());
     if (value) {
       const func = () => {
         if (typeof this._autoClose == 'boolean') return;
         if (!this.isPaused) {
           this.toastElem.style.setProperty(
-            '--progress',
+            '--toast-progress',
             (1 - this.timeVisible / this._autoClose).toString(),
           );
         }
