@@ -5,68 +5,88 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite App</title>
+    <script type="module" src="/src/main.ts" defer></script>
   </head>
   <body>
-    <!-- Nav Bar Elements -->
-    <nav
-      class="navbar is-primary"
-      role="navigation"
-      aria-label="main navigation"
-    >
-      <div id="navbarBasicExample" class="navbar-menu">
-        <!-- Left Elements -->
-        <div id="navbar-start" class="navbar-start">
-          <a id="gerberHeader" class="navbar-item"> Gerber Tools </a>
-        </div>
+    <div id="app">
+      <div id="flexMain">
+        <!-- Nav Bar Elements -->
+        <nav
+          class="navbar is-link"
+          role="navigation"
+          aria-label="main navigation"
+        >
+          <div id="navbarBasicExample" class="navbar-menu">
+            <!-- Left Elements -->
+            <div id="navbar-start" class="navbar-start">
+              <a id="gerberHeader" class="navbar-item"> TypedSchematics </a>
+            </div>
 
-        <!-- Right Elements -->
-        <div class="navbar-end">
-          <!-- Github Link -->
-          <a
-            href="https://github.com/lancaster-university/coniston"
-            class="navbar-item"
-          >
-            Github
-          </a>
+            <!-- Right Elements -->
+            <div class="navbar-end">
+              <!-- Github Link -->
+              <a
+                href="https://github.com/lancaster-university/coniston"
+                class="navbar-item"
+              >
+                Github
+              </a>
+            </div>
+          </div>
+        </nav>
+
+        <!-- Typed Schematics Container -->
+        <!-- <button id="buttonGenerateSchematic">Generate Schematic</button>
+        <button id="buttonPrintMap">Print Map</button>
+        <button id="buttonCheckDrc">Check DRC</button> -->
+        <!-- Main View divided by 2 columns -->
+
+        <div id="pageContent">
+          <div id="Panels">
+            <!-- Blocks Panel -->
+            <div id="sidePanel">
+              <div id="jsEditor">Hello World</div>
+            </div>
+            <!-- Work Area -->
+            <div id="mainPanel">
+              <!-- marker-start="url(#dot)" marker-end="url(#dot)" -->
+              <div id="tschs">
+                <!-- Mat Context Menu (Right Click)-->
+                <menu id="contextMenuMat" class="context-menu">
+                  <a href="javascript:;" menu-option="LayerTop">Layer Top</a>
+                  <a href="javascript:;" menu-option="LayerUp">Layer Up</a>
+                  <a href="javascript:;" menu-option="LayerDown">Layer Down</a>
+                  <a href="javascript:;" menu-option="LayerBottom"
+                    >Layer Bottom</a
+                  >
+                  <hr />
+                  <a href="javascript:;" menu-option="Delete">Delete</a>
+                </menu>
+
+                <!-- Block Context Menu (Right Click)-->
+                <menu id="contextMenuBlock" class="context-menu">
+                  <a href="javascript:;" menu-option="Delete">Delete</a>
+                </menu>
+
+                <!-- Block Context Connection (Right Click)-->
+                <menu id="contextMenuConnection" class="context-menu">
+                  <a href="javascript:;" menu-option="Delete">Delete</a>
+                </menu>
+
+                <!-- Block Context IOs (Right Click)-->
+                <menu id="contextMenuIOs" class="context-menu">
+                  <a href="javascript:;" menu-option="Left">Left</a>
+                  <a href="javascript:;" menu-option="Right">Right</a>
+                </menu>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </nav>
-
-    <div id="app">
-      <!-- Typed Schematics Container -->
-      <button id="buttonGenerateSchematic">Generate Schematic</button>
-      <button id="buttonPrintMap">Print Map</button>
-      <button id="buttonCheckDrc">Check DRC</button>
-      <div id="tschs"></div>
-
-      <!-- marker-start="url(#dot)" marker-end="url(#dot)" -->
-
-      <!-- Mat Context Menu (Right Click)-->
-      <menu id="contextMenuMat" class="context-menu">
-        <a href="javascript:;" menu-option="LayerTop">Layer Top</a>
-        <a href="javascript:;" menu-option="LayerUp">Layer Up</a>
-        <a href="javascript:;" menu-option="LayerDown">Layer Down</a>
-        <a href="javascript:;" menu-option="LayerBottom">Layer Bottom</a>
-        <hr />
-        <a href="javascript:;" menu-option="Delete">Delete</a>
-      </menu>
-
-      <!-- Block Context Menu (Right Click)-->
-      <menu id="contextMenuBlock" class="context-menu">
-        <a href="javascript:;" menu-option="Delete">Delete</a>
-      </menu>
-
-      <!-- Block Context Connection (Right Click)-->
-      <menu id="contextMenuConnection" class="context-menu">
-        <a href="javascript:;" menu-option="Delete">Delete</a>
-      </menu>
-
-      <!-- Block Context IOs (Right Click)-->
-      <menu id="contextMenuIOs" class="context-menu">
-        <a href="javascript:;" menu-option="Left">Left</a>
-        <a href="javascript:;" menu-option="Right">Right</a>
-      </menu>
     </div>
-    <script type="module" src="/src/main.ts" defer></script>
   </body>
+  <script>
+    //     <div id="mainPanel" class="column is-main-content">
+    //   <div id="tschs"></div>
+  </script>
 </html>

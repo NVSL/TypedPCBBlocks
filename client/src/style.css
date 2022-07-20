@@ -2,11 +2,11 @@ html,
 body {
   margin: 0px;
   padding: 0px;
+  height: 100vh;
 }
 
 /* Comment for changing background white */
 #app {
-  width: 100vw;
   height: 100vh;
   background: var(--background-color);
   background-size: 10px 10px;
@@ -17,3 +17,53 @@ body {
     ),
     linear-gradient(to bottom, var(--background-gird-line) 1px, transparent 1px);
 }
+
+#flexMain {
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction: column;
+  border: solid red;
+  height: 100vh;
+}
+
+nav {
+  border: solid cyan;
+}
+
+#pageContent {
+  flex: 1;
+  border: solid cyan;
+}
+
+#Panels {
+  display: flex;
+  flex-wrap: nowrap;
+  height: 100%;
+  flex-direction: row;
+  border: solid yellow;
+}
+
+#sidePanel {
+  min-width: 15%;
+  background-color: lightgray;
+  overflow-y: scroll;
+}
+
+#mainPanel {
+  flex: 1;
+  border: solid purple;
+}
+
+/* TODO: tsch should have another div main container */
+
+/* How to Flex:
+ - Parent : Add display flex, it sets/resets the elements
+  inside to be flex. Add height and flex-direciton. Optional
+  add flex-wrap if you want elements to wrap content is small.
+ - Children: Just add flex: 1 to the element you want to
+   make it fill the screen content. Flex: 1 sets:
+      flex-grow: 1, flex-shrink: 0, flex-basis: 100%.
+  
+  
+ // Use (border: solid color) to debug.
+*/
