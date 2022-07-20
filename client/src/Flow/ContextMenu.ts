@@ -228,11 +228,11 @@ export default {
       return;
     }
 
-    let ioType: 'input' | 'output' | null;
-    if (flowState.iosSelecteded.classList.contains('input')) {
-      ioType = 'input';
-    } else if (flowState.iosSelecteded.classList.contains('output')) {
-      ioType = 'output';
+    let ioType: 'block-input' | 'block-output' | null;
+    if (flowState.iosSelecteded.classList.contains('block-input')) {
+      ioType = 'block-input';
+    } else if (flowState.iosSelecteded.classList.contains('block-output')) {
+      ioType = 'block-output';
     } else {
       ioType = null;
     }
@@ -244,26 +244,26 @@ export default {
 
     switch (option) {
       case MenuOptions.Left:
-        if (ioType == 'input') return;
+        if (ioType == 'block-input') return;
         const inputs = document.querySelector(
-          `[tsch-key="${tschKey}"] .inputs`,
+          `[tsch-key="${tschKey}"] .block-inputs`,
         );
         if (!inputs) {
           console.error('Inputs block not found');
           return;
         }
-        flowState.iosSelecteded.classList.remove('output');
+        flowState.iosSelecteded.classList.remove('block-output');
         const classNameLeftTmp = flowState.iosSelecteded.className;
         flowState.iosSelecteded.className = '';
-        flowState.iosSelecteded.classList.add('input'); // Add at classList[0]
+        flowState.iosSelecteded.classList.add('block-input'); // Add at classList[0]
         flowState.iosSelecteded.className += ' ' + classNameLeftTmp; // Restore prev classList
         inputs.appendChild(flowState.iosSelecteded);
         break;
       case MenuOptions.Right:
         console.log('Menu right', ioType);
-        if (ioType == 'output') return;
+        if (ioType == 'block-output') return;
         const outputs = document.querySelector(
-          `[tsch-key="${tschKey}"] .outputs`,
+          `[tsch-key="${tschKey}"] .block-outputs`,
         );
         if (!outputs) {
           console.error('Outputs block not found');
@@ -273,10 +273,10 @@ export default {
         const className1 = flowState.iosSelecteded.className;
         console.log('Class List', classListTmp1);
         console.log('Class Name', className1);
-        flowState.iosSelecteded.classList.remove('input');
+        flowState.iosSelecteded.classList.remove('block-input');
         const classNameRightTmp = flowState.iosSelecteded.className;
         flowState.iosSelecteded.className = '';
-        flowState.iosSelecteded.classList.add('output'); // Add at classList[0]
+        flowState.iosSelecteded.classList.add('block-output'); // Add at classList[0]
         flowState.iosSelecteded.className += ' ' + classNameRightTmp; // Restore prev classList
         outputs.appendChild(flowState.iosSelecteded);
         break;

@@ -1137,7 +1137,7 @@ class Flow {
     console.error(text);
     new Toast({
       text: `! ${text}`,
-      position: 'top-right',
+      position: 'bottom-right',
       autoClose: 5000,
       pauseOnHover: true,
       pauseOnFocusLoss: true,
