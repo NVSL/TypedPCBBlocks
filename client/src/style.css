@@ -32,7 +32,7 @@ nav {
 
 #pageContent {
   flex: 1;
-  border: solid cyan;
+  border: solid blue;
 }
 
 #Panels {
@@ -44,14 +44,64 @@ nav {
 }
 
 #sidePanel {
-  min-width: 15%;
-  background-color: lightgray;
-  overflow-y: scroll;
+  width: 350px;
+  background-color: #fafafa;
+  flex-shrink: 1;
+  border: solid violet;
 }
 
-#mainPanel {
+#sidePanelContent {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  border: solid orangered;
+  height: 100%;
+}
+
+#listContainer {
+  flex: 1;
+  display: flex;
+  border: solid cyan;
+  overflow: auto;
+  height: 100px;
+}
+
+.listBox {
+  height: 100px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: solid blue;
+  align-items: center;
+  padding-top: 10px;
+}
+
+/* Schematic Blocks Boxes */
+[data-box='powerRoot'] {
+  display: inherit;
+}
+
+[data-box='power'] {
+  display: none;
+}
+
+[data-box='computeModules'] {
+  display: none;
+}
+
+[data-box='pheripherials'] {
+  display: none;
+}
+
+.schematicBlock {
+  width: 15rem;
+}
+
+#tschsPanel {
   flex: 1;
   border: solid purple;
+  overflow: hidden;
 }
 
 /* TODO: tsch should have another div main container */
