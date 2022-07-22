@@ -12,14 +12,26 @@
       <div id="flexMain">
         <!-- Nav Bar Elements -->
         <nav
-          class="navbar is-link"
+          class="navbar is-white"
           role="navigation"
           aria-label="main navigation"
         >
+          <button
+            id="burgerButton"
+            class="button appTextColor is-white is-fullheight"
+          >
+            ---
+          </button>
+
           <div id="navbarBasicExample" class="navbar-menu">
             <!-- Left Elements -->
             <div id="navbar-start" class="navbar-start">
-              <a id="gerberHeader" class="navbar-item"> TypedSchematics </a>
+              <p
+                id="gerberHeader"
+                class="appTextColor navbar-item is-size-5 is-grey"
+              >
+                TypedSchematics
+              </p>
             </div>
 
             <!-- Right Elements -->
@@ -27,7 +39,7 @@
               <!-- Github Link -->
               <a
                 href="https://github.com/lancaster-university/coniston"
-                class="navbar-item"
+                class="navbar-item appTextColor"
               >
                 Github
               </a>
@@ -46,15 +58,22 @@
             <!-- Blocks Panel -->
             <div id="sidePanel">
               <nav id="sidePanelContent" class="panel">
-                <p class="panel-heading">Schematic Blocks</p>
-                <div class="panel-block">
+                <p
+                  id="schematicBlockText"
+                  class="appTextColor is-size-6 pl-5 pt-3"
+                >
+                  Schematic Blocks
+                </p>
+
+                <hr class="appDivider" />
+                <!-- <div class="panel-block">
                   <p class="control has-icons-left">
                     <input class="input" type="text" placeholder="Search" />
                     <span class="icon is-left">
                       <i class="fas fa-search" aria-hidden="true"></i>
                     </span>
                   </p>
-                </div>
+                </div> -->
                 <p id="panelTabs" class="panel-tabs">
                   <a data-block="powerRoot" class="is-active">Power Root</a>
                   <a data-block="power">Power</a>
