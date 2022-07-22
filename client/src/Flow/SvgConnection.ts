@@ -331,15 +331,15 @@ export default {
       // Check if mouse up element or parent contains input or output class.
       if (
         !(
-          eleLast.classList.contains('input') ||
-          eleLast.classList.contains('output')
+          eleLast.classList.contains('block-input') ||
+          eleLast.classList.contains('block-output')
         )
       ) {
         eleLast = <HTMLElement>eleLast.parentElement;
         if (
           !(
-            eleLast.classList.contains('input') ||
-            eleLast.classList.contains('output')
+            eleLast.classList.contains('block-input') ||
+            eleLast.classList.contains('block-output')
           )
         ) {
           throw 'End target is not a I/O connection';
