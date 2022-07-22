@@ -384,6 +384,7 @@ class Flow {
         onend: this.resizeEnd,
       })
       .draggable({
+        inertia: true,
         modifiers: [
           // Restrict to parent view
           // NOTE: This causes dragging svg to not be moved and getting bad X,Y
@@ -392,7 +393,7 @@ class Flow {
           //   endOnly: true,
           // }),
         ],
-        inertia: true,
+        autoScroll: true,
         onstart: this.dragStart,
         onmove: this.dragMove,
         onend: this.dragEnd,
