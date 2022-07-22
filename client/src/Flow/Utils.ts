@@ -2,16 +2,32 @@ import structuredClone from '@ungap/structured-clone';
 
 export default {
   isMatElement(target: HTMLElement): boolean {
-    return target.getAttribute('mat-key') ? true : false;
+    try {
+      return target.getAttribute('mat-key') ? true : false;
+    } catch (e) {
+      return false;
+    }
   },
   getTschKey(nodeElement: HTMLElement): string | null {
-    return nodeElement.getAttribute('tsch-key');
+    try {
+      return nodeElement.getAttribute('tsch-key');
+    } catch (e) {
+      return null;
+    }
   },
   getMatKey(nodeElement: HTMLElement): string | null {
-    return nodeElement.getAttribute('mat-key');
+    try {
+      return nodeElement.getAttribute('mat-key');
+    } catch (e) {
+      return null;
+    }
   },
   getMatDrop(nodeElement: HTMLElement): string | null {
-    return nodeElement.getAttribute('dropped-in-mat-key');
+    try {
+      return nodeElement.getAttribute('dropped-in-mat-key');
+    } catch (e) {
+      return null;
+    }
   },
   getMatElement(matKey: string): HTMLElement | null {
     return document.querySelector(`[mat-key="${matKey}"]`);
@@ -21,7 +37,11 @@ export default {
     nodeElement.setAttribute('dropped-in-mat-key', matKey);
   },
   getIOKey(nodeElement: HTMLElement): string | null {
-    return nodeElement.getAttribute('io-key');
+    try {
+      return nodeElement.getAttribute('io-key');
+    } catch (e) {
+      return null;
+    }
   },
   getConnectionKey(connectionElement: HTMLElement): string | null {
     return connectionElement.getAttribute('connection-key');
