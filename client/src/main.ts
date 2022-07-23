@@ -30,21 +30,21 @@ Left aside
 */
 
 // INIT TSCHEDA
-const container = <HTMLElement>document.querySelector('#tschs');
+const editor = <HTMLElement>document.querySelector('#tschs');
 const tschedaFlow = new TschedaFlow(
-  container,
+  editor,
   'http://localhost:3000/data/typedConstraints/',
 );
 
 // ADD TYPED SCHEMATICS TO UI
-tschedaFlow.addTypedSchematic('atmega328.sch', 100, 100);
-tschedaFlow.addTypedSchematic('led_smd.sch', 20, 100);
-tschedaFlow.addTypedSchematic('led_smd.sch', 20, 380);
-tschedaFlow.addTypedSchematic('temperature_sensor.sch', 20, 600);
-tschedaFlow.addTypedSchematic('flash.sch', 20, 1000);
-tschedaFlow.addTypedSchematic('power5V12V.sch', 100, 400);
-tschedaFlow.addTypedSchematic('power5V.sch', 400, 100);
-tschedaFlow.addTypedSchematic('power3V3.sch', 400, 100);
+// tschedaFlow.addTypedSchematic('atmega328.sch', 100, 100);
+// tschedaFlow.addTypedSchematic('led_smd.sch', 20, 100);
+// tschedaFlow.addTypedSchematic('led_smd.sch', 20, 380);
+// tschedaFlow.addTypedSchematic('temperature_sensor.sch', 516, 238);
+// tschedaFlow.addTypedSchematic('flash.sch', 20, 1000);
+// tschedaFlow.addTypedSchematic('power5V12V.sch', 100, 400);
+// tschedaFlow.addTypedSchematic('power5V.sch', 400, 100);
+// tschedaFlow.addTypedSchematic('power3V3.sch', 400, 100);
 
 // // Generate Schematic
 // document
@@ -168,7 +168,8 @@ tschedaFlow.addTypedSchematic('power3V3.sch', 400, 100);
 //   }
 // });
 
-// Schematic Blocks Panel Tabs
+// ## SIDE PANEL
+
 const panelTabs = document.querySelector('#panelTabs')!.children;
 
 Object.entries(panelTabs).map((tab) => {
@@ -206,6 +207,54 @@ Object.entries(panelTabs).map((tab) => {
   //     'Hello ' + this + ' (' + this.innerHTML + ') from map method...',
   //   );
   // });
+});
+
+// ## DRAG/DROP SCHEMATIC ELEMENTS
+
+var dragElements = document.getElementsByClassName('drag-blocks');
+for (let i = 0; i < dragElements.length; i++) {
+  dragElements[i].addEventListener('dragstart', dragBlock, false);
+  dragElements[i].addEventListener('dragend', dropBlock, false);
+}
+
+function dragBlock(e: any) {
+  console.log('Drag Start', e.target);
+}
+
+function dropBlock(e: any) {
+  const dragElement = <HTMLElement>e.target;
+  let dropElement = <HTMLElement | null>(
+    document.elementFromPoint(e.clientX, e.clientY)
+  ); // AKA editor
+
+  // Search for tschs, else null. No need for while loop.
+  if (dropElement) dropElement = dropElement.closest('#tschs');
+  if (dropElement == null) return;
+
+  // Get schematic file name
+  const figureElement = dragElement.closest('.drag-blocks');
+  if (figureElement == null) return;
+
+  const schematicFile = figureElement.getAttribute('data-schematic');
+
+  if (schematicFile == null) {
+    console.log('Error, schematic file data attribute not found');
+  } else {
+    // Drop element TODO: Select correct element.
+    const editor = document.querySelector('#tschs')!.getBoundingClientRect();
+    tschedaFlow.addTypedSchematic(
+      schematicFile,
+      e.clientY - editor.top,
+      e.clientX - editor.left,
+    ); // FIXME:  Coordinates are flipped but works better, future?
+  }
+}
+
+document.addEventListener('click', (e) => {
+  const editor = document.querySelector('#tschs')!.getBoundingClientRect();
+  console.log('Click', e.clientX, e.clientY);
+  console.log('Editor', editor.left, editor.top);
+  console.log('Rest', e.clientX - editor.left, e.clientY - editor.top);
 });
 
 // document.querySelector('#buttonCheckDrc')!.addEventListener('click', () => {
