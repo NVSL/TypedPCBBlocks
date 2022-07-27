@@ -74,6 +74,15 @@ nav {
   background-color: #fafafa;
   flex-shrink: 1;
   border: solid violet;
+  box-shadow: 0 0 3em rgba(0, 0, 0, 0.15);
+  /* close */
+  transform: translateX(-100%);
+  transition: ease-out 0.5s;
+}
+
+#sidePanel[open] {
+  transform: translateX(0px);
+  transition: ease-in 0.5s;
 }
 
 #sidePanelContent {

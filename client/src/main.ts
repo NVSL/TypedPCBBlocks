@@ -265,3 +265,24 @@ document.addEventListener('click', (e) => {
 //     tschedaFlow.displayError(e.toString());
 //   }
 // });
+
+// (<HTMLElement>document.querySelector('#sidePanel')!).style.display = 'none';
+document.querySelector('#burgerButton')!.addEventListener('click', () => {
+  const sidePanel = document.querySelector('#sidePanel')!;
+  const isOpen = sidePanel.toggleAttribute('open');
+  if (isOpen == true) {
+    (<HTMLElement>document.querySelector('#sidePanel')!).style.display =
+      'initial';
+  }
+  sidePanel.addEventListener(
+    'transitionend',
+    () => {
+      console.log('Transition End');
+      if (isOpen == false) {
+        (<HTMLElement>document.querySelector('#sidePanel')!).style.display =
+          'none';
+      }
+    },
+    { once: true },
+  );
+});
