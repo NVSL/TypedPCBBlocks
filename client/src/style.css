@@ -69,20 +69,28 @@ nav {
   border: solid yellow;
 }
 
+/* ----
+Side Panel 
+---- */
+
 #sidePanel {
   width: 350px;
   background-color: #fafafa;
   flex-shrink: 1;
   border: solid violet;
   box-shadow: 0 0 3em rgba(0, 0, 0, 0.15);
-  /* close */
-  transform: translateX(-100%);
-  transition: ease-out 0.5s;
+}
+
+#sidePanel[close] {
+  visibility: hidden;
+  margin-left: -350px;
+  transition: ease-out 0.4s;
 }
 
 #sidePanel[open] {
-  transform: translateX(0px);
-  transition: ease-in 0.5s;
+  visibility: visible;
+  margin-left: 0px;
+  transition: ease-in 0.4s;
 }
 
 #sidePanelContent {
@@ -132,6 +140,8 @@ nav {
 .schematicBlock {
   width: 15rem;
 }
+
+/* Main Panel */
 
 #tschsPanel {
   flex: 1;

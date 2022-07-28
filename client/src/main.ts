@@ -266,23 +266,25 @@ document.addEventListener('click', (e) => {
 //   }
 // });
 
-// (<HTMLElement>document.querySelector('#sidePanel')!).style.display = 'none';
-document.querySelector('#burgerButton')!.addEventListener('click', () => {
+// ----
+// Side Panel
+// ----
+
+function sidePanelToogle(): boolean {
   const sidePanel = document.querySelector('#sidePanel')!;
-  const isOpen = sidePanel.toggleAttribute('open');
-  if (isOpen == true) {
-    (<HTMLElement>document.querySelector('#sidePanel')!).style.display =
-      'initial';
+  const isClosed = sidePanel.hasAttribute('close');
+  if (isClosed) {
+    sidePanel.removeAttribute('close');
+    sidePanel.setAttribute('open', '');
+  } else {
+    sidePanel.removeAttribute('open');
+    sidePanel.setAttribute('close', '');
   }
-  sidePanel.addEventListener(
-    'transitionend',
-    () => {
-      console.log('Transition End');
-      if (isOpen == false) {
-        (<HTMLElement>document.querySelector('#sidePanel')!).style.display =
-          'none';
-      }
-    },
-    { once: true },
-  );
+  return !isClosed;
+}
+
+const navBuger = <HTMLElement>document.querySelector('#burgerButton')!;
+navBuger.addEventListener('click', (e) => {
+  const isOpen = sidePanelToogle();
+  isOpen ? (navBuger.innerHTML = '☰') : (navBuger.innerHTML = 'X');
 });
