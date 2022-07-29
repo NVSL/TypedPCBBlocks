@@ -3,8 +3,12 @@ import FileSaver from 'file-saver';
 import { TschedaFlow } from './TschedaFlow/TschedaFlow';
 import './style.css';
 import 'bulma/css/bulma.min.css';
+import * as BLOCKS from './blocks';
 
-// Set server and axios
+/* ----
+SETUP SERVER
+---- */
+
 let SERVER_URL;
 let WEBSITE_URL;
 if (process.env.NODE_ENV === 'production') {
@@ -20,6 +24,10 @@ if (process.env.NODE_ENV === 'production') {
 const server = axios.create({
   baseURL: SERVER_URL,
 });
+
+/* ----
+SETUP BLOCKS
+---- */
 
 /*
  - Start integration with Tsch Lib
