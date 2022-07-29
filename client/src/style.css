@@ -12,8 +12,6 @@ body {
   height: 100vh;
 }
 
-/* #030303 */
-
 /* Comment for changing background white */
 #app {
   height: 100vh;
@@ -118,6 +116,16 @@ Side Panel
   border: solid blue;
   align-items: center;
   padding-top: 10px;
+}
+
+#listContainer figure {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+#listContainer figure img:hover {
+  /* transform: scale(1.1); */
+  border: 1px solid black;
+  box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
 }
 
 /* Schematic Blocks Boxes */
