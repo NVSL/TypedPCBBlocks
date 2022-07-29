@@ -305,12 +305,12 @@ I2C:{arch:slave,address:'0x18'},
 }</text>
 </plain>
 <instances>
-<instance part="GND1" gate="1" x="-5.08" y="-20.32" smashed="yes">
-<attribute name="VALUE" x="-5.08" y="-20.574" size="1.778" layer="96" align="top-center"/>
+<instance part="GND1" gate="1" x="-7.62" y="-7.62" smashed="yes">
+<attribute name="VALUE" x="-7.62" y="-7.874" size="1.778" layer="96" align="top-center"/>
 </instance>
 <instance part="U1" gate="G$1" x="0" y="7.62" smashed="yes">
-<attribute name="NAME" x="-10.16" y="15.24" size="1.27" layer="95"/>
-<attribute name="VALUE" x="5.08" y="15.24" size="1.27" layer="95"/>
+<attribute name="NAME" x="-10.16" y="13.716" size="1.27" layer="95"/>
+<attribute name="VALUE" x="5.08" y="13.716" size="1.27" layer="95"/>
 </instance>
 <instance part="GND2" gate="1" x="10.16" y="-7.62" smashed="yes">
 <attribute name="VALUE" x="10.16" y="-7.874" size="1.778" layer="96" align="top-center"/>
@@ -320,11 +320,6 @@ I2C:{arch:slave,address:'0x18'},
 </busses>
 <nets>
 <net name="GND" class="0">
-<segment>
-<pinref part="U1" gate="G$1" pin="GND"/>
-<pinref part="GND1" gate="1" pin="GND"/>
-<wire x1="-5.08" y1="-2.54" x2="-5.08" y2="-17.78" width="0.1524" layer="91"/>
-</segment>
 <segment>
 <pinref part="U1" gate="G$1" pin="A0"/>
 <pinref part="GND2" gate="1" pin="GND"/>
@@ -337,6 +332,12 @@ I2C:{arch:slave,address:'0x18'},
 <pinref part="U1" gate="G$1" pin="A2"/>
 <wire x1="10.16" y1="-2.54" x2="10.16" y2="-5.08" width="0.1524" layer="91"/>
 <junction x="10.16" y="-5.08"/>
+</segment>
+<segment>
+<pinref part="GND1" gate="1" pin="GND"/>
+<wire x1="-7.62" y1="-5.08" x2="-5.08" y2="-5.08" width="0.1524" layer="91"/>
+<pinref part="U1" gate="G$1" pin="GND"/>
+<wire x1="-5.08" y1="-5.08" x2="-5.08" y2="-2.54" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="#I2C-0.SCL" class="0">
@@ -365,10 +366,9 @@ I2C:{arch:slave,address:'0x18'},
 </net>
 <net name="@VIN_2.7V-5.5V" class="0">
 <segment>
-<wire x1="-12.7" y1="-17.78" x2="-12.7" y2="-2.54" width="0.1524" layer="91"/>
 <pinref part="U1" gate="G$1" pin="VDD"/>
-<wire x1="-12.7" y1="-2.54" x2="-7.62" y2="-2.54" width="0.1524" layer="91"/>
-<label x="-12.7" y="-17.78" size="1.27" layer="95" rot="R180" xref="yes"/>
+<wire x1="-10.16" y1="-2.54" x2="-7.62" y2="-2.54" width="0.1524" layer="91"/>
+<label x="-10.16" y="-2.54" size="1.27" layer="95" rot="R180" xref="yes"/>
 </segment>
 </net>
 </nets>
