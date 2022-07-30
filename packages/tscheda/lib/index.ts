@@ -35,6 +35,11 @@ interface eagle {
 
 // TSCH Types
 
+// FIXME: Names ortography error in pheripherial!
+/* 
+Change to:
+type BlockType = 'powerRoot' | 'power' | 'computeModule' | 'peripheral';
+*/
 enum BlockType {
   computemodule = 'computemodule',
   pheripherial = 'pheripherial',

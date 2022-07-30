@@ -26,8 +26,38 @@ const server = axios.create({
 });
 
 /* ----
-SETUP BLOCKS
+INJECT BLOCKS INSIDE BOX LISTS 
 ---- */
+
+const box = document.querySelectorAll('[data-box]')!;
+box.forEach((ele) => {
+  const element = <HTMLElement>ele;
+  const blockType = <BLOCKS.BlockType | undefined>element.dataset.box;
+  console.log(blockType);
+  if (blockType == undefined) return;
+  console.log(BLOCKS.LIST[blockType]);
+  for (const blockInfo of BLOCKS.LIST[blockType]) {
+    element.insertAdjacentHTML(
+      'beforeend',
+      `<div class="card schematicBlock">
+        <div class="card-image">
+          <figure
+            class="drag-blocks | image"
+            draggable="true"
+            data-block="${blockType}"
+            data-schematic="${blockInfo.schematic}"
+          >
+            <img
+              src="${BLOCKS.PATH}${blockInfo.image}"
+              alt="Placeholder image"
+            />
+          </figure>
+          <div class="card-content py-2">${blockInfo.schematic}</div>
+        </div>
+      </div>`,
+    );
+  }
+});
 
 /*
  - Start integration with Tsch Lib
@@ -176,7 +206,9 @@ const tschedaFlow = new TschedaFlow(
 //   }
 // });
 
-// ## SIDE PANEL
+/* ----
+SIDE PANEL TABS
+---- */
 
 const panelTabs = document.querySelector('#panelTabs')!.children;
 
@@ -184,20 +216,22 @@ Object.entries(panelTabs).map((tab) => {
   const tabElement = tab[1];
 
   tabElement.addEventListener('click', (e) => {
-    const ele = <HTMLElement>e.target;
-    const eleTabName = ele.getAttribute('data-block');
-    // Clean previous Element
-    const previousEle = document.querySelector('#panelTabs .is-active')!;
-    previousEle.classList.remove('is-active'); // Remove tab active
-    const previousTabName = previousEle.getAttribute('data-block')!;
+    // Get Selected Tab
+    const selectedTab = <HTMLElement>e.target;
+    const selectedTabName = selectedTab.getAttribute('data-tab');
+    // Get Previous Active Tab
+    const previousTab = document.querySelector('#panelTabs .is-active')!;
+    const previousTabName = previousTab.getAttribute('data-tab')!;
+    previousTab.classList.remove('is-active'); // Remove tab active
+
+    // Hide/Show Box of Blocks
     (<HTMLElement>(
       document.querySelector(`[data-box="${previousTabName}"]`)
     ))!.style.display = 'none'; // Hide box
-    // Set new is-active
-    ele.classList.add('is-active');
+    selectedTab.classList.add('is-active');
     (<HTMLElement>(
-      document.querySelector(`[data-box="${eleTabName}"]`)
-    ))!.style.display = 'inherit'; // Hide box
+      document.querySelector(`[data-box="${selectedTabName}"]`)
+    ))!.style.display = 'inherit'; // Show box
     // (<HTMLElement>(
     //   document.querySelector(`[data-box="${eleTabName}"]`)
     // ))!.style.transition = '';
@@ -292,7 +326,7 @@ function sidePanelToogle(): boolean {
 }
 
 const navBuger = <HTMLElement>document.querySelector('#burgerButton')!;
-navBuger.addEventListener('click', (e) => {
+navBuger.addEventListener('click', () => {
   const isOpen = sidePanelToogle();
   isOpen ? (navBuger.innerHTML = '☰') : (navBuger.innerHTML = 'X');
 });

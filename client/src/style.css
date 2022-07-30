@@ -126,6 +126,7 @@ Side Panel
   /* transform: scale(1.1); */
   border: 1px solid black;
   box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
+  cursor: zoom-in;
 }
 
 /* Schematic Blocks Boxes */
@@ -137,11 +138,11 @@ Side Panel
   display: none;
 }
 
-[data-box='computeModules'] {
+[data-box='computeModule'] {
   display: none;
 }
 
-[data-box='pheripherials'] {
+[data-box='peripheral'] {
   display: none;
 }
 
